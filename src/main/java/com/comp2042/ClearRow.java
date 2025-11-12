@@ -8,7 +8,7 @@ public final class ClearRow {
 
     public ClearRow(int linesRemoved, int[][] newMatrix, int scoreBonus) {
         this.linesRemoved = linesRemoved;
-        this.newMatrix = newMatrix;
+        this.newMatrix = MatrixOperations.copy(newMatrix);
         this.scoreBonus = scoreBonus;
     }
 

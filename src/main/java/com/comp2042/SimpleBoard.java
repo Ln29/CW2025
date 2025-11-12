@@ -2,7 +2,7 @@ package com.comp2042;
 
 import com.comp2042.logic.bricks.Brick;
 import com.comp2042.logic.bricks.BrickGenerator;
-import com.comp2042.logic.bricks.RandomBrickGenerator;
+import com.comp2042.logic.bricks.SevenBagBrickGenerator;
 
 import java.awt.*;
 
@@ -20,7 +20,7 @@ public class SimpleBoard implements Board {
         this.width = width;
         this.height = height;
         currentGameMatrix = new int[width][height];
-        brickGenerator = new RandomBrickGenerator();
+        brickGenerator = new SevenBagBrickGenerator();
         brickRotator = new BrickRotator();
         score = new Score();
     }
@@ -85,7 +85,7 @@ public class SimpleBoard implements Board {
     public boolean createNewBrick() {
         Brick currentBrick = brickGenerator.getBrick();
         brickRotator.setBrick(currentBrick);
-        currentOffset = new Point(4, 10);
+        currentOffset = createSpawnPoint();
         return MatrixOperations.intersect(currentGameMatrix, brickRotator.getCurrentShape(), (int) currentOffset.getX(), (int) currentOffset.getY());
     }
 
@@ -123,5 +123,13 @@ public class SimpleBoard implements Board {
         currentGameMatrix = new int[width][height];
         score.reset();
         createNewBrick();
+    }
+
+    private Point createSpawnPoint() {
+        int maxX = Math.max(0, height - 4);
+        int spawnX = maxX / 2;
+        int maxY = Math.max(0, width - 4);
+        int spawnY = Math.max(0, Math.min(2, maxY));
+        return new Point(spawnX, spawnY);
     }
 }

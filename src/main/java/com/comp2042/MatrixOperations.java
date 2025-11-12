@@ -4,22 +4,38 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 public class MatrixOperations {
 
-
-    //We don't want to instantiate this utility class
-    private MatrixOperations(){
-
+    // we don't want to instantiate this utility class
+    private MatrixOperations() {
     }
 
+    // check if the brick intersects with the board or goes out of bounds
     public static boolean intersect(final int[][] matrix, final int[][] brick, int x, int y) {
-        for (int i = 0; i < brick.length; i++) {
-            for (int j = 0; j < brick[i].length; j++) {
-                int targetX = x + i;
-                int targetY = y + j;
-                if (brick[j][i] != 0 && (checkOutOfBound(matrix, targetX, targetY) || matrix[targetY][targetX] != 0)) {
+        // make sure the parameters are not null
+        Objects.requireNonNull(matrix, "matrix cannot be null");
+        Objects.requireNonNull(brick, "brick cannot be null");
+
+        // loop through each cell of the brick
+        for (int row = 0; row < brick.length; row++) {
+            int[] brickRow = Objects.requireNonNull(brick[row], "brick row cannot be null");
+            for (int col = 0; col < brickRow.length; col++) {
+                int cell = brickRow[col];
+
+                // skip empty cells
+                if (cell == 0) {
+                    continue;
+                }
+
+                // calculate where this cell would be on the board
+                int targetX = x + col;
+                int targetY = y + row;
+
+                // check if it hits something or goes out of bounds
+                if (isOutOfBound(matrix, targetX, targetY) || matrix[targetY][targetX] != 0) {
                     return true;
                 }
             }
@@ -27,73 +43,121 @@ public class MatrixOperations {
         return false;
     }
 
-    private static boolean checkOutOfBound(int[][] matrix, int targetX, int targetY) {
-        boolean returnValue = true;
-        if (targetX >= 0 && targetY < matrix.length && targetX < matrix[targetY].length) {
-            returnValue = false;
-        }
-        return returnValue;
+    // check if a position is outside the board
+    private static boolean isOutOfBound(int[][] matrix, int targetX, int targetY) {
+        return targetX < 0
+                || targetY < 0
+                || targetY >= matrix.length
+                || targetX >= matrix[targetY].length;
     }
 
+    // make a copy of the matrix
     public static int[][] copy(int[][] original) {
-        int[][] myInt = new int[original.length][];
+        // check if the original matrix is null
+        Objects.requireNonNull(original, "original matrix cannot be null");
+
+        int[][] result = new int[original.length][];
+
+        // copy each row
         for (int i = 0; i < original.length; i++) {
-            int[] aMatrix = original[i];
-            int aLength = aMatrix.length;
-            myInt[i] = new int[aLength];
-            System.arraycopy(aMatrix, 0, myInt[i], 0, aLength);
+            int[] sourceRow = Objects.requireNonNull(original[i], "matrix row cannot be null");
+            int[] destinationRow = new int[sourceRow.length];
+            System.arraycopy(sourceRow, 0, destinationRow, 0, sourceRow.length);
+            result[i] = destinationRow;
         }
-        return myInt;
+        return result;
     }
 
+    // merge the brick into the board at a specific position
     public static int[][] merge(int[][] filledFields, int[][] brick, int x, int y) {
-        int[][] copy = copy(filledFields);
-        for (int i = 0; i < brick.length; i++) {
-            for (int j = 0; j < brick[i].length; j++) {
-                int targetX = x + i;
-                int targetY = y + j;
-                if (brick[j][i] != 0) {
-                    copy[targetY][targetX] = brick[j][i];
+        // check if brick is null
+        Objects.requireNonNull(brick, "brick cannot be null");
+
+        // make a copy first so we don't change the original
+        int[][] boardCopy = copy(filledFields);
+
+        // go through each cell of the brick
+        for (int row = 0; row < brick.length; row++) {
+            int[] brickRow = Objects.requireNonNull(brick[row], "brick row cannot be null");
+            for (int col = 0; col < brickRow.length; col++) {
+                int cell = brickRow[col];
+
+                // skip empty cells
+                if (cell == 0) {
+                    continue;
+                }
+
+                // calculate the target position
+                int targetX = x + col;
+                int targetY = y + row;
+
+                // place the brick cell on the board if it's in bounds
+                if (!isOutOfBound(boardCopy, targetX, targetY)) {
+                    boardCopy[targetY][targetX] = cell;
                 }
             }
         }
-        return copy;
+        return boardCopy;
     }
 
+    // check for complete rows and remove them
     public static ClearRow checkRemoving(final int[][] matrix) {
-        int[][] tmp = new int[matrix.length][matrix[0].length];
-        Deque<int[]> newRows = new ArrayDeque<>();
-        List<Integer> clearedRows = new ArrayList<>();
+        // make sure matrix is not null and not empty
+        Objects.requireNonNull(matrix, "matrix cannot be null");
+        if (matrix.length == 0) {
+            throw new IllegalArgumentException("matrix must have at least one row");
+        }
 
+        int[] firstRow = Objects.requireNonNull(matrix[0], "matrix row cannot be null");
+        int[][] newMatrix = new int[matrix.length][firstRow.length];
+        Deque<int[]> remainingRows = new ArrayDeque<>();
+        List<Integer> clearedRowIndices = new ArrayList<>();
+
+        // check each row to see if it's complete
         for (int i = 0; i < matrix.length; i++) {
-            int[] tmpRow = new int[matrix[i].length];
-            boolean rowToClear = true;
-            for (int j = 0; j < matrix[0].length; j++) {
-                if (matrix[i][j] == 0) {
-                    rowToClear = false;
+            int[] sourceRow = Objects.requireNonNull(matrix[i], "matrix row cannot be null");
+            int[] tmpRow = new int[sourceRow.length];
+            boolean isRowComplete = true;
+
+            // check if all cells in this row are filled
+            for (int j = 0; j < sourceRow.length; j++) {
+                int cell = sourceRow[j];
+                if (cell == 0) {
+                    isRowComplete = false;
                 }
-                tmpRow[j] = matrix[i][j];
+                tmpRow[j] = cell;
             }
-            if (rowToClear) {
-                clearedRows.add(i);
+
+            // if the row is complete, mark it for clearing
+            if (isRowComplete) {
+                clearedRowIndices.add(i);
             } else {
-                newRows.add(tmpRow);
+                remainingRows.add(tmpRow);
             }
         }
+
+        // fill the new matrix from bottom to top
         for (int i = matrix.length - 1; i >= 0; i--) {
-            int[] row = newRows.pollLast();
+            int[] row = remainingRows.pollLast();
             if (row != null) {
-                tmp[i] = row;
+                newMatrix[i] = row;
             } else {
                 break;
             }
         }
-        int scoreBonus = 50 * clearedRows.size() * clearedRows.size();
-        return new ClearRow(clearedRows.size(), tmp, scoreBonus);
+
+        // calculate the score bonus
+        int linesCleared = clearedRowIndices.size();
+        int scoreBonus = 50 * linesCleared * linesCleared;
+        return new ClearRow(linesCleared, newMatrix, scoreBonus);
     }
 
-    public static List<int[][]> deepCopyList(List<int[][]> list){
-        return list.stream().map(MatrixOperations::copy).collect(Collectors.toList());
+    // make a deep copy of a list of matrices
+    public static List<int[][]> deepCopyList(List<int[][]> list) {
+        // check if the list is null
+        Objects.requireNonNull(list, "list cannot be null");
+        return list.stream()
+                .map(MatrixOperations::copy)
+                .collect(Collectors.toList());
     }
-
 }

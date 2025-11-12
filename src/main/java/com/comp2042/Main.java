@@ -15,8 +15,10 @@ public class Main extends Application {
     public void start(Stage primaryStage) throws Exception {
 
         URL location = getClass().getClassLoader().getResource("gameLayout.fxml");
-        ResourceBundle resources = null;
-        FXMLLoader fxmlLoader = new FXMLLoader(location, resources);
+        if(location == null){
+            throw new IllegalAccessException("Unable to load FXML: gameLayout.fxml");
+        }
+        FXMLLoader fxmlLoader = new FXMLLoader(location,(ResourceBundle) null);
         Parent root = fxmlLoader.load();
         GuiController c = fxmlLoader.getController();
 

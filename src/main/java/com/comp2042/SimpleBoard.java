@@ -16,6 +16,8 @@ public class SimpleBoard implements Board {
     private int[][] currentGameMatrix;
     private Point currentOffset;
     private final Score score;
+    private Brick heldBrick;
+    private boolean holdUsed;
 
     public SimpleBoard(int width, int height) {
         this.width = width;
@@ -123,7 +125,60 @@ public class SimpleBoard implements Board {
     public void newGame() {
         currentGameMatrix = new int[height][width];
         score.reset();
+        heldBrick = null;
+        holdUsed = false;
         createNewBrick();
+    }
+
+    @Override
+    public boolean holdBrick() {
+        // Can only hold once per brick drop
+        if (holdUsed) {
+            return false;
+        }
+
+        // Get the current brick type
+        Brick currentBrick = brickRotator.getBrick();
+        if (currentBrick == null) {
+            return false;
+        }
+
+        Point spawnPoint = createSpawnPoint();
+
+        if (heldBrick == null) {
+            Brick nextBrick = brickGenerator.getBrick();
+            brickRotator.setBrick(nextBrick);
+            if (MatrixOperations.intersect(currentGameMatrix, brickRotator.getCurrentShape(), (int) spawnPoint.getX(), (int) spawnPoint.getY())) {
+                brickRotator.setBrick(currentBrick);
+                return false;
+            }
+            heldBrick = currentBrick;
+            currentOffset = spawnPoint;
+            holdUsed = true;
+            return true;
+        } else {
+            //swap with current
+            Brick temp = heldBrick;
+            brickRotator.setBrick(temp);
+            if (MatrixOperations.intersect(currentGameMatrix, brickRotator.getCurrentShape(), (int) spawnPoint.getX(), (int) spawnPoint.getY())) {
+                brickRotator.setBrick(currentBrick);
+                return false;
+            }
+            heldBrick = currentBrick;
+            currentOffset = spawnPoint;
+            holdUsed = true;
+            return true;
+        }
+    }
+
+    @Override
+    public Brick getHeldBrick() {
+        return heldBrick;
+    }
+
+    @Override
+    public void resetHoldUsage() {
+        holdUsed = false;
     }
 
     @Override

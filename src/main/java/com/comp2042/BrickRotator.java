@@ -33,6 +33,10 @@ public class BrickRotator {
         currentShape = 0;
     }
 
+    public Brick getBrick(){
+        return brick;
+    }
+
     private void BrickNotSet(){
         if(brick == null || shapeMatrices == null || shapeMatrices.isEmpty()){
             throw new IllegalStateException("Brick is not set.");

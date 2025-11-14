@@ -28,4 +28,22 @@ public interface Board {
     void newGame();
 
     List<Brick> getNextBricks(int count);
+
+    /**
+     * Holds the current brick and spawns the next one, or swaps with the held brick.
+     * Can only be used once per brick drop.
+     * @return true if hold was successful, false if hold was already used for this brick
+     */
+    boolean holdBrick();
+
+    /**
+     * Gets the currently held brick, or null if no brick is held.
+     * @return the held brick or null
+     */
+    Brick getHeldBrick();
+
+    /**
+     * Resets the hold usage flag (called when a brick is placed/fixed).
+     */
+    void resetHoldUsage();
 }

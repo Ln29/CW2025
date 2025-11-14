@@ -49,6 +49,7 @@ public class GuiController implements Initializable {
     private GameOverPanel gameOverPanel;
 
     private NextBrickPanel nextBrickPanel;
+    private HoldBrickPanel holdBrickPanel;
     private Board board;
 
     private boolean boardCentered = false;
@@ -99,6 +100,11 @@ public class GuiController implements Initializable {
                 }else{
                     updateNextBrickPanel();
                 }
+                if (holdBrickPanel == null) {
+                    initializeHoldBrickPanel();
+                } else {
+                    updateHoldBrickPanel();
+                }
             }
         });
 
@@ -120,6 +126,13 @@ public class GuiController implements Initializable {
                         keyEvent.consume();
                     } else if (code == KeyCode.DOWN || code == KeyCode.S) {
                         moveDown(new MoveEvent(EventType.DOWN, EventSource.USER));
+                        keyEvent.consume();
+                    } else if (code == KeyCode.F || code == KeyCode.SHIFT) {
+                        if (board != null && board.holdBrick()) {
+                            refreshBrick(board.getViewData());
+                            updateHoldBrickPanel();
+                            updateNextBrickPanel();
+                        }
                         keyEvent.consume();
                     }
                 }
@@ -257,6 +270,9 @@ public class GuiController implements Initializable {
             }
             refreshBrick(downData.getViewData());
             updateNextBrickPanel();
+            if (board != null) {
+                board.resetHoldUsage();
+            }
         }
         gamePanel.requestFocus();
     }
@@ -338,7 +354,7 @@ public class GuiController implements Initializable {
         double boardX = gameBoard.getLayoutX();
         double boardY = gameBoard.getLayoutY();
 
-        double panelX = boardX + boardWidth;
+        double panelX = boardX + boardWidth + 10;
         double panelY = boardY;
         double panelHeight = boardHeight / 2;
 
@@ -355,6 +371,43 @@ public class GuiController implements Initializable {
         }
     }
 
+    private void initializeHoldBrickPanel() {
+        holdBrickPanel = new HoldBrickPanel();
+        Platform.runLater(() -> {
+            Scene scene = gameBoard.getScene();
+            if (scene != null) {
+                Pane rootPane = (Pane) scene.getRoot();
+                rootPane.getChildren().add(holdBrickPanel);
+                positionHoldBrickPanel(scene);
+                updateHoldBrickPanel();
+            }
+        });
+    }
+
+    private void positionHoldBrickPanel(Scene scene) {
+        if (holdBrickPanel == null) return;
+
+        double boardHeight = 600 + 24; // 624px
+        double boardX = gameBoard.getLayoutX();
+        double boardY = gameBoard.getLayoutY();
+
+        double panelX = boardX - 95;
+        double panelY = boardY;
+        double panelHeight = boardHeight / 4;
+
+        holdBrickPanel.setLayoutX(panelX);
+        holdBrickPanel.setLayoutY(panelY);
+        holdBrickPanel.setPrefHeight(panelHeight);
+        holdBrickPanel.setMinHeight(panelHeight);
+        holdBrickPanel.setMaxHeight(panelHeight);
+    }
+
+    private void updateHoldBrickPanel() {
+        if (holdBrickPanel != null && board != null) {
+            holdBrickPanel.updateBrick(board.getHeldBrick());
+        }
+    }
+
     private void centerGameBoard(Scene scene) {
         // Board dimensions: 10 columns × 30px = 300px, 20 rows × 30px = 600px
         // Add border width (12px on each side = 24px total)
@@ -368,6 +421,7 @@ public class GuiController implements Initializable {
         gameBoard.setLayoutX(centerX);
         gameBoard.setLayoutY(centerY);
 
+        positionHoldBrickPanel(scene);
         positionNextBrickPanel(scene);
     }
 

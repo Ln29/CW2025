@@ -11,7 +11,7 @@
     <GridPane fx:id="brickPanel" vgap="1" hgap="1"/>
     <BorderPane styleClass="gameBoard" fx:id="gameBoard">
         <center>
-            <GridPane fx:id="gamePanel" hgap="1" vgap="1" layoutY="30" layoutX="40"/>
+            <GridPane fx:id="gamePanel" hgap="1" vgap="1"/>
         </center>
     </BorderPane>
 

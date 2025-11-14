@@ -8,7 +8,7 @@ public class GameController implements InputEventListener {
     private final GuiController viewGuiController;
 
     public GameController(GuiController guiController) {
-        this(guiController, new SimpleBoard(25, 10));
+        this(guiController, new SimpleBoard(10, 22));
     }
 
     GameController(GuiController guiController, Board board) {

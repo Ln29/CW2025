@@ -13,6 +13,10 @@ import javafx.scene.Group;
 import javafx.scene.effect.Reflection;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
+import javafx.application.Platform;
+import javafx.geometry.Pos;
+import javafx.scene.Scene;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
@@ -25,7 +29,11 @@ import java.util.ResourceBundle;
 
 public class GuiController implements Initializable {
 
-    private static final int BRICK_SIZE = 20;
+    private static final int BRICK_SIZE = 30;
+    private static final int HIDDEN_ROW_COUNT = 2;
+
+    @FXML
+    private BorderPane gameBoard;
 
     @FXML
     private GridPane gamePanel;
@@ -38,6 +46,9 @@ public class GuiController implements Initializable {
 
     @FXML
     private GameOverPanel gameOverPanel;
+
+    private boolean boardCentered = false;
+    private ViewData initialBrickData = null;
 
     private Rectangle[][] displayMatrix;
 
@@ -54,6 +65,33 @@ public class GuiController implements Initializable {
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         Font.loadFont(getClass().getClassLoader().getResource("digital.ttf").toExternalForm(), 38);
+        BorderPane.setAlignment(gamePanel, Pos.CENTER);
+        //prevent flashing at (0,0)
+        brickPanel.setVisible(false);
+
+        // Center the BorderPane in the root Pane
+        Platform.runLater(() -> {
+            Scene scene = gameBoard.getScene();
+            if (scene != null) {
+                centerGameBoard(scene);
+                centerNotificationGroup(scene);
+                boardCentered = true;
+                if (initialBrickData != null && rectangles != null && rectangles.length > 0) {
+                    refreshBrick(initialBrickData);
+                }
+                scene.widthProperty().addListener((obs, oldVal, newVal) -> {
+                    centerGameBoard(scene);
+                    centerNotificationGroup(scene);
+                    // Reposition brick after centering - refreshBrick no yet done
+                });
+                scene.heightProperty().addListener((obs, oldVal, newVal) -> {
+                    centerGameBoard(scene);
+                    centerNotificationGroup(scene);
+                    // Reposition brick after centering - not yet done
+                });
+            }
+        });
+
         gamePanel.setFocusTraversable(true);
         gamePanel.requestFocus();
         gamePanel.setOnKeyPressed(new EventHandler<KeyEvent>() {
@@ -90,12 +128,14 @@ public class GuiController implements Initializable {
 
     public void initGameView(int[][] boardMatrix, ViewData brick) {
         displayMatrix = new Rectangle[boardMatrix.length][boardMatrix[0].length];
-        for (int i = 2; i < boardMatrix.length; i++) {
+        // Only render rows 2-21 (visible 20 rows), rows 0-1 are hidden
+        // GridPane row = boardRow - HIDDEN_ROW_COUNT (so board row 2 maps to GridPane row 0)
+        for (int i = HIDDEN_ROW_COUNT; i <= 21 && i < boardMatrix.length; i++) {
             for (int j = 0; j < boardMatrix[i].length; j++) {
                 Rectangle rectangle = new Rectangle(BRICK_SIZE, BRICK_SIZE);
                 rectangle.setFill(Color.TRANSPARENT);
                 displayMatrix[i][j] = rectangle;
-                gamePanel.add(rectangle, j, i - 2);
+                gamePanel.add(rectangle, j, i - HIDDEN_ROW_COUNT);
             }
         }
 
@@ -108,8 +148,7 @@ public class GuiController implements Initializable {
                 brickPanel.add(rectangle, j, i);
             }
         }
-        positionBrickPanel(brick);
-
+        initialBrickData = brick;
 
         timeLine = new Timeline(new KeyFrame(
                 Duration.millis(400),
@@ -156,17 +195,33 @@ public class GuiController implements Initializable {
 
     private void refreshBrick(ViewData brick) {
         if (isPause.getValue() == Boolean.FALSE) {
-            positionBrickPanel(brick);
+            //only position and show brick if board is centered
+            if (boardCentered && gameBoard.getLayoutX() > 0) {
+                positionBrickPanel(brick);
+                brickPanel.setVisible(true);
+            } else {
+                //Hide brick until board is properly positioned
+                brickPanel.setVisible(false);
+            }
+            //hide cells that are in hidden rows
+            int brickY = brick.getyPosition();
             for (int i = 0; i < brick.getBrickData().length; i++) {
                 for (int j = 0; j < brick.getBrickData()[i].length; j++) {
-                    setRectangleData(brick.getBrickData()[i][j], rectangles[i][j]);
+                    int cellValue = brick.getBrickData()[i][j];
+                    int boardRow = brickY + i;
+                    //only show cells that are in visible rows
+                    if (boardRow >= HIDDEN_ROW_COUNT) {
+                        setRectangleData(cellValue, rectangles[i][j]);
+                    } else {
+                        rectangles[i][j].setFill(Color.TRANSPARENT);
+                    }
                 }
             }
         }
     }
 
     public void refreshGameBackground(int[][] board) {
-        for (int i = 2; i < board.length; i++) {
+        for (int i = HIDDEN_ROW_COUNT; i <= 21 && i < board.length; i++) {
             for (int j = 0; j < board[i].length; j++) {
                 setRectangleData(board[i][j], displayMatrix[i][j]);
             }
@@ -197,6 +252,13 @@ public class GuiController implements Initializable {
 
     public void setEventListener(InputEventListener eventListener) {
         this.eventListener = eventListener;
+        // After setting event listener, if board is already centered, refresh brick position
+        if (boardCentered && eventListener != null && rectangles != null && rectangles.length > 0) {
+            Platform.runLater(() -> {
+                // trigger a refresh by getting current ViewData
+                // not yet done
+            });
+        }
     }
 
     public void bindScore(IntegerProperty integerProperty) {
@@ -206,6 +268,12 @@ public class GuiController implements Initializable {
         timeLine.stop();
         gameOverPanel.setVisible(true);
         isGameOver.setValue(Boolean.TRUE);
+        Platform.runLater(() -> {
+            Scene scene = gameOverPanel.getScene();
+            if (scene != null) {
+                centerNotificationGroup(scene);
+            }
+        });
     }
 
     public void newGame(ActionEvent actionEvent) {
@@ -232,9 +300,45 @@ public class GuiController implements Initializable {
         gamePanel.requestFocus();
     }
 
+    private void centerGameBoard(Scene scene) {
+        // Board dimensions: 10 columns × 30px = 300px, 20 rows × 30px = 600px
+        // Add border width (12px on each side = 24px total)
+        double boardWidth = 300 + 24; // 324px
+        double boardHeight = 600 + 24; // 624px
+
+        // Center the BorderPane in the scene
+        double centerX = (scene.getWidth() - boardWidth) / 2;
+        double centerY = (scene.getHeight() - boardHeight) / 2;
+
+        gameBoard.setLayoutX(centerX);
+        gameBoard.setLayoutY(centerY);
+    }
+
+    private void centerNotificationGroup(Scene scene) {
+        // Center game over panel
+        double boardCenterX = gameBoard.getLayoutX() + (300 + 24) / 2;
+        double boardCenterY = gameBoard.getLayoutY() + (600 + 24) / 2;
+
+        double panelWidth = gameOverPanel.getBoundsInLocal().getWidth();
+        double panelHeight = gameOverPanel.getBoundsInLocal().getHeight();
+
+        // If bounds not available use default size
+        if (panelWidth == 0) {
+            panelWidth = 200; // Default width
+        }
+        if (panelHeight == 0) {
+            panelHeight = 100; // Default height
+        }
+
+        groupNotification.setLayoutX(boardCenterX - panelWidth / 2);
+        groupNotification.setLayoutY(boardCenterY - panelHeight / 2);
+    }
+
     private void positionBrickPanel(ViewData brick) {
-        double x = gamePanel.getLayoutX() + brick.getxPosition() * (brickPanel.getVgap() + BRICK_SIZE);
-        double y = -42 + gamePanel.getLayoutY() + brick.getyPosition() * (brickPanel.getHgap() + BRICK_SIZE);
+        double x = gameBoard.getLayoutX() + gamePanel.getLayoutX() + brick.getxPosition() * (brickPanel.getVgap() + BRICK_SIZE);
+        double cellSize = brickPanel.getHgap() + BRICK_SIZE;
+        double y = gameBoard.getLayoutY() + gamePanel.getLayoutY() + (brick.getyPosition() - HIDDEN_ROW_COUNT) * cellSize;
+
         brickPanel.setLayoutX(x);
         brickPanel.setLayoutY(y);
     }

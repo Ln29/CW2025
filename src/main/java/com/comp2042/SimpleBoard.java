@@ -19,7 +19,7 @@ public class SimpleBoard implements Board {
     public SimpleBoard(int width, int height) {
         this.width = width;
         this.height = height;
-        currentGameMatrix = new int[width][height];
+        currentGameMatrix = new int[height][width];
         brickGenerator = new SevenBagBrickGenerator();
         brickRotator = new BrickRotator();
         score = new Score();
@@ -120,16 +120,14 @@ public class SimpleBoard implements Board {
 
     @Override
     public void newGame() {
-        currentGameMatrix = new int[width][height];
+        currentGameMatrix = new int[height][width];
         score.reset();
         createNewBrick();
     }
 
     private Point createSpawnPoint() {
-        int maxX = Math.max(0, height - 4);
-        int spawnX = maxX / 2;
-        int maxY = Math.max(0, width - 4);
-        int spawnY = Math.max(0, Math.min(2, maxY));
+        int spawnX = (width-4) / 2;
+        int spawnY = 0;
         return new Point(spawnX, spawnY);
     }
 }

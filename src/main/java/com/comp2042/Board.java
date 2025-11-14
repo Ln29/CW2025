@@ -58,4 +58,10 @@ public interface Board {
      * @return true if lock delay has expired, false otherwise
      */
     boolean shouldLockPiece();
+
+    /**
+     * Gets the ghost brick position - where the current piece will land.
+     * @return GhostBrick representing the preview of where the piece will land, or null if no piece
+     */
+    GhostBrick getGhostBrick();
 }

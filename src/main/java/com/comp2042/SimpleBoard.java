@@ -248,6 +248,31 @@ public class SimpleBoard implements Board {
         return dropCount;
     }
 
+    @Override
+    public GhostBrick getGhostBrick() {
+        if (brickRotator.getCurrentShape() == null) {
+            return null;
+        }
+
+        int[][] currentShape = brickRotator.getCurrentShape();
+        int currentX = (int) currentOffset.getX();
+        int currentY = (int) currentOffset.getY();
+        int ghostY = currentY;
+        int[][] testMatrix = MatrixOperations.copy(currentGameMatrix);
+
+        while (true) {
+            int testY = ghostY + 1;
+            if (MatrixOperations.intersect(testMatrix, currentShape, currentX, testY)) {
+                break;
+            }
+            ghostY = testY;
+        }
+        if (ghostY == currentY) {
+            return null;
+        }
+        return new GhostBrick(currentShape, currentX, ghostY);
+    }
+
     private Point createSpawnPoint() {
         int spawnX = (width-4) / 2;
         int spawnY = 0;

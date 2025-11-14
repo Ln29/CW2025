@@ -51,6 +51,8 @@ public class GuiController implements Initializable {
 
     private NextBrickPanel nextBrickPanel;
     private HoldBrickPanel holdBrickPanel;
+    private GridPane ghostPanel;
+    private Rectangle[][] ghostRectangles;
     private Board board;
 
     private boolean boardCentered = false;
@@ -87,17 +89,6 @@ public class GuiController implements Initializable {
                 if (initialBrickData != null && rectangles != null && rectangles.length > 0) {
                     refreshBrick(initialBrickData);
                 }
-                scene.widthProperty().addListener((obs, oldVal, newVal) -> {
-                    centerGameBoard(scene);
-                    centerNotificationGroup(scene);
-                    // Reposition brick after centering - refreshBrick no yet done
-                });
-                scene.heightProperty().addListener((obs, oldVal, newVal) -> {
-                    centerGameBoard(scene);
-                    centerNotificationGroup(scene);
-                    // Reposition brick after centering - not yet done
-                });
-
                 if (nextBrickPanel == null) {
                     initializeNextBrickPanel();
                 } else {
@@ -179,6 +170,8 @@ public class GuiController implements Initializable {
         }
         initialBrickData = brick;
 
+        initializeGhostPanel(brick.getBrickData().length, brick.getBrickData()[0].length);
+
         drawGridLines();
 
         timeLine = new Timeline(new KeyFrame(
@@ -232,6 +225,18 @@ public class GuiController implements Initializable {
         return returnPaint;
     }
 
+    private Paint getGhostStrokeColor(int i) {
+        Paint baseColor = getFillColor(i);
+        if (baseColor == Color.TRANSPARENT) {
+            return Color.TRANSPARENT;
+        }
+        if (baseColor instanceof Color) {
+            Color color = (Color) baseColor;
+            return new Color(color.getRed(), color.getGreen(), color.getBlue(), 0.8);
+        }
+        return baseColor;
+    }
+
 
     private void refreshBrick(ViewData brick) {
         if (isPause.getValue() == Boolean.FALSE) {
@@ -258,6 +263,7 @@ public class GuiController implements Initializable {
                     }
                 }
             }
+            refreshGhostBrick();
         }
     }
 
@@ -551,10 +557,10 @@ public class GuiController implements Initializable {
 
         // If bounds not available use default size
         if (panelWidth == 0) {
-            panelWidth = 200; // Default width
+            panelWidth = 200;
         }
         if (panelHeight == 0) {
-            panelHeight = 100; // Default height
+            panelHeight = 100;
         }
 
         groupNotification.setLayoutX(boardCenterX - panelWidth / 2);
@@ -568,5 +574,93 @@ public class GuiController implements Initializable {
 
         brickPanel.setLayoutX(x);
         brickPanel.setLayoutY(y);
+    }
+
+    private void initializeGhostPanel(int rows, int cols) {
+        ghostPanel = new GridPane();
+        ghostPanel.setHgap(brickPanel.getHgap());
+        ghostPanel.setVgap(brickPanel.getVgap());
+        ghostPanel.setVisible(false);
+        ghostPanel.setMouseTransparent(true);
+
+        int maxSize = 4;
+        ghostRectangles = new Rectangle[maxSize][maxSize];
+        for (int i = 0; i < maxSize; i++) {
+            for (int j = 0; j < maxSize; j++) {
+                Rectangle rectangle = new Rectangle(BRICK_SIZE, BRICK_SIZE);
+                rectangle.setFill(Color.TRANSPARENT);
+                rectangle.setArcHeight(9);
+                rectangle.setArcWidth(9);
+                ghostRectangles[i][j] = rectangle;
+                ghostPanel.add(rectangle, j, i);
+            }
+        }
+
+        Platform.runLater(() -> {
+            Scene scene = gameBoard.getScene();
+            if (scene != null) {
+                Pane rootPane = (Pane) scene.getRoot();
+                rootPane.getChildren().add(ghostPanel);
+                ghostPanel.toBack();
+                brickPanel.toFront();
+            }
+        });
+    }
+
+    private void refreshGhostBrick() {
+        if (board == null || ghostPanel == null || ghostRectangles == null) {
+            return;
+        }
+
+        GhostBrick ghostBrick = board.getGhostBrick();
+
+        if (ghostBrick == null) {
+            ghostPanel.setVisible(false);
+            return;
+        }
+
+        //position
+        if (boardCentered && gameBoard.getLayoutX() > 0) {
+            double x = gameBoard.getLayoutX() + gamePanel.getLayoutX() + ghostBrick.getxPosition() * (ghostPanel.getVgap() + BRICK_SIZE);
+            double cellSize = ghostPanel.getHgap() + BRICK_SIZE;
+            double y = gameBoard.getLayoutY() + gamePanel.getLayoutY() + (ghostBrick.getyPosition() - HIDDEN_ROW_COUNT) * cellSize;
+
+            ghostPanel.setLayoutX(x);
+            ghostPanel.setLayoutY(y);
+            ghostPanel.setVisible(true);
+            ghostPanel.toBack();
+        } else {
+            ghostPanel.setVisible(false);
+        }
+
+        //update ghost brick cells
+        int[][] ghostData = ghostBrick.getBrickData();
+        int ghostY = ghostBrick.getyPosition();
+
+        //clear all ghost rectangles first
+        for (int i = 0; i < ghostRectangles.length; i++) {
+            for (int j = 0; j < ghostRectangles[i].length; j++) {
+                ghostRectangles[i][j].setFill(Color.TRANSPARENT);
+                ghostRectangles[i][j].setStroke(null);
+            }
+        }
+
+        for (int i = 0; i < ghostData.length && i < ghostRectangles.length; i++) {
+            for (int j = 0; j < ghostData[i].length && j < ghostRectangles[i].length; j++) {
+                int cellValue = ghostData[i][j];
+                int boardRow = ghostY + i;
+
+                if (boardRow >= HIDDEN_ROW_COUNT && cellValue != 0) {
+                    ghostRectangles[i][j].setFill(Color.TRANSPARENT);
+                    ghostRectangles[i][j].setStroke(getGhostStrokeColor(cellValue));
+                    ghostRectangles[i][j].setStrokeWidth(2.0);
+                    ghostRectangles[i][j].setArcHeight(9);
+                    ghostRectangles[i][j].setArcWidth(9);
+                }
+            }
+        }
+        //background < ghost < brick
+        ghostPanel.toBack();
+        brickPanel.toFront();
     }
 }

@@ -51,9 +51,40 @@ public class MatrixOperations {
                 || targetX >= matrix[targetY].length;
     }
 
+    // collision with wall, not with blocks
+    public static boolean isWallCollisionOnly(final int[][] matrix, final int[][] brick, int x, int y) {
+        Objects.requireNonNull(matrix, "matrix cannot be null");
+        Objects.requireNonNull(brick, "brick cannot be null");
+
+        boolean hasWallCollision = false;
+        boolean hasBlockCollision = false;
+
+        // loop through each cell of the brick
+        for (int row = 0; row < brick.length; row++) {
+            int[] brickRow = Objects.requireNonNull(brick[row], "brick row cannot be null");
+            for (int col = 0; col < brickRow.length; col++) {
+                int cell = brickRow[col];
+
+                if (cell == 0) {
+                    continue;
+                }
+
+                int targetX = x + col;
+                int targetY = y + row;
+
+                if (isOutOfBound(matrix, targetX, targetY)) {
+                    hasWallCollision = true;
+                } else if (matrix[targetY][targetX] != 0) {
+                    hasBlockCollision = true;
+                }
+            }
+        }
+
+        return hasWallCollision && !hasBlockCollision;
+    }
+
     // make a copy of the matrix
     public static int[][] copy(int[][] original) {
-        // check if the original matrix is null
         Objects.requireNonNull(original, "original matrix cannot be null");
 
         int[][] result = new int[original.length][];
@@ -70,7 +101,6 @@ public class MatrixOperations {
 
     // merge the brick into the board at a specific position
     public static int[][] merge(int[][] filledFields, int[][] brick, int x, int y) {
-        // check if brick is null
         Objects.requireNonNull(brick, "brick cannot be null");
 
         // make a copy first so we don't change the original

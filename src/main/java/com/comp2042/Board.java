@@ -52,4 +52,10 @@ public interface Board {
      * @return the number of rows the brick was dropped
      */
     int hardDropBrick();
+
+    /**
+     * Checks if the lock delay has expired and the piece should be locked.
+     * @return true if lock delay has expired, false otherwise
+     */
+    boolean shouldLockPiece();
 }

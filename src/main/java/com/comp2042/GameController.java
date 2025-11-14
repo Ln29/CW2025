@@ -31,24 +31,24 @@ public class GameController implements InputEventListener {
         ClearRow clearRow = null;
 
         if (!canMove) {
-            // Brick has landed, merge it to the board
-            board.mergeBrickToBackground();
-            clearRow = board.clearRows();
 
-            // Add score if lines were cleared
-            if (clearRow.getLinesRemoved() > 0) {
-                board.getScore().add(clearRow.getScoreBonus());
+            if (board.shouldLockPiece()) {
+                // Lock delay expired, lock the piece
+                board.mergeBrickToBackground();
+                clearRow = board.clearRows();
+
+                if (clearRow.getLinesRemoved() > 0) {
+                    board.getScore().add(clearRow.getScoreBonus());
+                }
+
+                if (board.createNewBrick()) {
+                    viewGuiController.gameOver();
+                }
+
+                viewGuiController.refreshGameBackground(board.getBoardMatrix());
             }
-
-            // Try to create new brick, check if game over
-            if (board.createNewBrick()) {
-                viewGuiController.gameOver();
-            }
-
-            // Update the display
-            viewGuiController.refreshGameBackground(board.getBoardMatrix());
+            // If lock delay hasn't expired, allow adjustment
         } else {
-            // Brick moved down successfully
             if (event.getEventSource() == EventSource.USER) {
                 board.getScore().add(1);
             }

@@ -63,6 +63,7 @@ public class GuiController implements Initializable {
     private Rectangle[][] rectangles;
 
     private Timeline timeLine;
+    private Timeline lockDelayCheckTimeline;
 
     private final BooleanProperty isPause = new SimpleBooleanProperty();
 
@@ -97,9 +98,9 @@ public class GuiController implements Initializable {
                     // Reposition brick after centering - not yet done
                 });
 
-                if (nextBrickPanel == null){
+                if (nextBrickPanel == null) {
                     initializeNextBrickPanel();
-                }else{
+                } else {
                     updateNextBrickPanel();
                 }
                 if (holdBrickPanel == null) {
@@ -186,7 +187,16 @@ public class GuiController implements Initializable {
         ));
         timeLine.setCycleCount(Timeline.INDEFINITE);
         timeLine.play();
+
+        lockDelayCheckTimeline = new Timeline(new KeyFrame(
+                Duration.millis(50),
+                ae -> checkLockDelay()
+        ));
+        lockDelayCheckTimeline.setCycleCount(Timeline.INDEFINITE);
+        lockDelayCheckTimeline.play();
     }
+
+
 
     private Paint getFillColor(int i) {
         Paint returnPaint;
@@ -305,6 +315,28 @@ public class GuiController implements Initializable {
         gamePanel.requestFocus();
     }
 
+    private void checkLockDelay() {
+        if (isPause.getValue() == Boolean.FALSE && board != null && eventListener != null) {
+            // Check if lock delay has expired
+            if (board.shouldLockPiece()) {
+                DownData downData = eventListener.onDownEvent(new MoveEvent(EventType.DOWN, EventSource.THREAD));
+                if (downData.getClearRow() != null && downData.getClearRow().getLinesRemoved() > 0) {
+                    NotificationPanel notificationPanel = new NotificationPanel("+" + downData.getClearRow().getScoreBonus());
+                    if (groupNotification.getChildren().size() > 5) {
+                        groupNotification.getChildren().remove(0);
+                    }
+                    groupNotification.getChildren().add(notificationPanel);
+                    notificationPanel.showScore(groupNotification.getChildren());
+                }
+                refreshBrick(downData.getViewData());
+                updateNextBrickPanel();
+                if (board != null) {
+                    board.resetHoldUsage();
+                }
+            }
+        }
+    }
+
     public void setEventListener(InputEventListener eventListener) {
         this.eventListener = eventListener;
         // After setting event listener, if board is already centered, refresh brick position
@@ -325,6 +357,9 @@ public class GuiController implements Initializable {
 
     public void gameOver() {
         timeLine.stop();
+        if (lockDelayCheckTimeline != null) {
+            lockDelayCheckTimeline.stop();
+        }
         gameOverPanel.setVisible(true);
         isGameOver.setValue(Boolean.TRUE);
         Platform.runLater(() -> {
@@ -337,11 +372,17 @@ public class GuiController implements Initializable {
 
     public void newGame(ActionEvent actionEvent) {
         timeLine.stop();
+        if (lockDelayCheckTimeline != null) {
+            lockDelayCheckTimeline.play();
+        }
         gameOverPanel.setVisible(false);
         eventListener.createNewGame();
         updateNextBrickPanel();
         gamePanel.requestFocus();
         timeLine.play();
+        if (lockDelayCheckTimeline != null) {
+            lockDelayCheckTimeline.play();
+        }
         isPause.setValue(Boolean.FALSE);
         isGameOver.setValue(Boolean.FALSE);
     }
@@ -352,9 +393,15 @@ public class GuiController implements Initializable {
         }
         if (Boolean.TRUE.equals(isPause.getValue())) {
             timeLine.play();
+            if (lockDelayCheckTimeline != null) {
+                lockDelayCheckTimeline.play();
+            }
             isPause.setValue(Boolean.FALSE);
         } else {
             timeLine.stop();
+            if (lockDelayCheckTimeline != null) {
+                lockDelayCheckTimeline.play();
+            }
             isPause.setValue(Boolean.TRUE);
         }
         gamePanel.requestFocus();

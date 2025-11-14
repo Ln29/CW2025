@@ -9,6 +9,8 @@ import java.util.List;
 
 public class SimpleBoard implements Board {
 
+    private static final long LOCK_DELAY_MS = 500;
+
     private final int width;
     private final int height;
     private final BrickGenerator brickGenerator;
@@ -18,6 +20,7 @@ public class SimpleBoard implements Board {
     private final Score score;
     private Brick heldBrick;
     private boolean holdUsed;
+    private Long lockDelayStartTime;
 
     public SimpleBoard(int width, int height) {
         this.width = width;
@@ -35,9 +38,13 @@ public class SimpleBoard implements Board {
         p.translate(0, 1);
         boolean conflict = MatrixOperations.intersect(currentMatrix, brickRotator.getCurrentShape(), (int) p.getX(), (int) p.getY());
         if (conflict) {
+            if (lockDelayStartTime == null) {
+                lockDelayStartTime = System.currentTimeMillis();
+            }
             return false;
         } else {
             currentOffset = p;
+            lockDelayStartTime = null;
             return true;
         }
     }
@@ -53,6 +60,7 @@ public class SimpleBoard implements Board {
             return false;
         } else {
             currentOffset = p;
+            resetLockDelayIfCanMoveDown();
             return true;
         }
     }
@@ -67,6 +75,7 @@ public class SimpleBoard implements Board {
             return false;
         } else {
             currentOffset = p;
+            resetLockDelayIfCanMoveDown();
             return true;
         }
     }
@@ -75,12 +84,53 @@ public class SimpleBoard implements Board {
     public boolean rotateLeftBrick() {
         int[][] currentMatrix = MatrixOperations.copy(currentGameMatrix);
         NextShapeInfo nextShape = brickRotator.getNextShape();
-        boolean conflict = MatrixOperations.intersect(currentMatrix, nextShape.getShape(), (int) currentOffset.getX(), (int) currentOffset.getY());
-        if (conflict) {
-            return false;
-        } else {
+        int currentX = (int) currentOffset.getX();
+        int currentY = (int) currentOffset.getY();
+
+        // Try normal rotation first
+        boolean conflict = MatrixOperations.intersect(currentMatrix, nextShape.getShape(), currentX, currentY);
+        if (!conflict) {
             brickRotator.setCurrentShape(nextShape.getPosition());
+            resetLockDelayIfCanMoveDown();
             return true;
+        }
+
+        if (MatrixOperations.isWallCollisionOnly(currentMatrix, nextShape.getShape(), currentX, currentY)) {
+            // Try wall kick offsets: r1, l1, r2, l2
+            int[] wallKickOffsets = {1, -1, 2, -2};
+
+            for (int offset : wallKickOffsets) {
+                int newX = currentX + offset;
+                if (!MatrixOperations.intersect(currentMatrix, nextShape.getShape(), newX, currentY)) {
+                    brickRotator.setCurrentShape(nextShape.getPosition());
+                    currentOffset = new Point(newX, currentY);
+                    resetLockDelayIfCanMoveDown();
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    public boolean shouldLockPiece() {
+        if (lockDelayStartTime == null) {
+            return false;
+        }
+        long elapsed = System.currentTimeMillis() - lockDelayStartTime;
+        return elapsed >= LOCK_DELAY_MS;
+    }
+
+    private void resetLockDelayIfCanMoveDown() {
+        // Check if piece can move down from current position
+        int[][] currentMatrix = MatrixOperations.copy(currentGameMatrix);
+        Point testPoint = new Point(currentOffset);
+        testPoint.translate(0, 1);
+        boolean canMoveDown = !MatrixOperations.intersect(currentMatrix, brickRotator.getCurrentShape(),
+                (int) testPoint.getX(), (int) testPoint.getY());
+        if (canMoveDown) {
+            // Piece can move down, reset lock delay
+            lockDelayStartTime = null;
         }
     }
 
@@ -89,6 +139,7 @@ public class SimpleBoard implements Board {
         Brick currentBrick = brickGenerator.getBrick();
         brickRotator.setBrick(currentBrick);
         currentOffset = createSpawnPoint();
+        lockDelayStartTime = null;
         return MatrixOperations.intersect(currentGameMatrix, brickRotator.getCurrentShape(), (int) currentOffset.getX(), (int) currentOffset.getY());
     }
 
@@ -127,6 +178,7 @@ public class SimpleBoard implements Board {
         score.reset();
         heldBrick = null;
         holdUsed = false;
+        lockDelayStartTime = null;
         createNewBrick();
     }
 

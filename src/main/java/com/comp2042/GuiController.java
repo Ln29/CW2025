@@ -21,6 +21,7 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
+import javafx.scene.shape.Line;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
 import javafx.util.Duration;
@@ -71,6 +72,7 @@ public class GuiController implements Initializable {
     public void initialize(URL location, ResourceBundle resources) {
         Font.loadFont(getClass().getClassLoader().getResource("digital.ttf").toExternalForm(), 38);
         BorderPane.setAlignment(gamePanel, Pos.CENTER);
+        gamePanel.setStyle("-fx-background-color: rgba(0, 0, 0, 0.3);");
         //prevent flashing at (0,0)
         brickPanel.setVisible(false);
 
@@ -152,13 +154,13 @@ public class GuiController implements Initializable {
     public void initGameView(int[][] boardMatrix, ViewData brick) {
         displayMatrix = new Rectangle[boardMatrix.length][boardMatrix[0].length];
         // Only render rows 2-21 (visible 20 rows), rows 0-1 are hidden
-        // GridPane row = boardRow - HIDDEN_ROW_COUNT (so board row 2 maps to GridPane row 0)
         for (int i = HIDDEN_ROW_COUNT; i <= 21 && i < boardMatrix.length; i++) {
             for (int j = 0; j < boardMatrix[i].length; j++) {
                 Rectangle rectangle = new Rectangle(BRICK_SIZE, BRICK_SIZE);
                 rectangle.setFill(Color.TRANSPARENT);
                 displayMatrix[i][j] = rectangle;
                 gamePanel.add(rectangle, j, i - HIDDEN_ROW_COUNT);
+                rectangle.toFront();
             }
         }
 
@@ -172,6 +174,8 @@ public class GuiController implements Initializable {
             }
         }
         initialBrickData = brick;
+
+        drawGridLines();
 
         timeLine = new Timeline(new KeyFrame(
                 Duration.millis(400),
@@ -222,6 +226,7 @@ public class GuiController implements Initializable {
             if (boardCentered && gameBoard.getLayoutX() > 0) {
                 positionBrickPanel(brick);
                 brickPanel.setVisible(true);
+                brickPanel.toFront();
             } else {
                 //Hide brick until board is properly positioned
                 brickPanel.setVisible(false);
@@ -405,6 +410,47 @@ public class GuiController implements Initializable {
     private void updateHoldBrickPanel() {
         if (holdBrickPanel != null && board != null) {
             holdBrickPanel.updateBrick(board.getHeldBrick());
+        }
+    }
+
+    private void drawGridLines() {
+        Color gridColor = Color.rgb(128, 128, 128, 0.5);
+
+        double hgap = gamePanel.getHgap();
+        double vgap = gamePanel.getVgap();
+        double cellWidth = BRICK_SIZE + hgap;
+        double cellHeight = BRICK_SIZE + vgap;
+        double totalWidth = 10 * BRICK_SIZE + 9 * hgap;
+        double totalHeight = 20 * BRICK_SIZE + 19 * vgap;
+
+        //vertical lines
+        for (int i = 0; i <= 10; i++) {
+            Line verticalLine = new Line();
+            double x = i * cellWidth;
+            verticalLine.setStartX(x);
+            verticalLine.setStartY(0);
+            verticalLine.setEndX(x);
+            verticalLine.setEndY(totalHeight);
+            verticalLine.setStroke(gridColor);
+            verticalLine.setStrokeWidth(1);
+            verticalLine.setManaged(false);
+            gamePanel.getChildren().add(0, verticalLine);
+            verticalLine.toBack();
+        }
+
+        //horizontal lines
+        for (int i = 0; i <= 20; i++) {
+            Line horizontalLine = new Line();
+            double y = i * cellHeight;
+            horizontalLine.setStartX(0);
+            horizontalLine.setStartY(y);
+            horizontalLine.setEndX(totalWidth);
+            horizontalLine.setEndY(y);
+            horizontalLine.setStroke(gridColor);
+            horizontalLine.setStrokeWidth(1);
+            horizontalLine.setManaged(false);
+            gamePanel.getChildren().add(0, horizontalLine);
+            horizontalLine.toBack();
         }
     }
 

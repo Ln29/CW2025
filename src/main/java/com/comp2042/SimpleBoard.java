@@ -5,6 +5,7 @@ import com.comp2042.logic.bricks.BrickGenerator;
 import com.comp2042.logic.bricks.SevenBagBrickGenerator;
 
 import java.awt.*;
+import java.util.List;
 
 public class SimpleBoard implements Board {
 
@@ -123,6 +124,11 @@ public class SimpleBoard implements Board {
         currentGameMatrix = new int[height][width];
         score.reset();
         createNewBrick();
+    }
+
+    @Override
+    public List<Brick> getNextBricks(int count) {
+        return brickGenerator.getNextBricks(count);
     }
 
     private Point createSpawnPoint() {

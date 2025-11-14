@@ -3,6 +3,7 @@ package com.comp2042.logic.bricks;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
+import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -18,7 +19,6 @@ public class SevenBagBrickGenerator implements BrickGenerator {
      * Constructor that initializes the generator with two bags of bricks.
      */
     public SevenBagBrickGenerator() {
-        // Fill initial queue with bricks
         addNewBag();
         addNewBag();
     }
@@ -46,6 +46,24 @@ public class SevenBagBrickGenerator implements BrickGenerator {
     @Override
     public Brick getNextBrick() {
         return nextBricks.peek();
+    }
+
+    /**
+     * Gets the next N bricks without removing them from the queue.
+     *
+     * @param count the number of bricks to peek at
+     * @return a list of the next N bricks
+     */
+    @Override
+    public List<Brick> getNextBricks(int count) {
+        List<Brick> result = new ArrayList<>();
+        Iterator<Brick> iterator = nextBricks.iterator();
+        int added = 0;
+        while (iterator.hasNext() && added < count) {
+            result.add(iterator.next());
+            added++;
+        }
+        return result;
     }
 
     /**

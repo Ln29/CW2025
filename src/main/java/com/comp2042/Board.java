@@ -1,5 +1,8 @@
 package com.comp2042;
 
+import com.comp2042.logic.bricks.Brick;
+import java.util.List;
+
 public interface Board {
 
     boolean moveBrickDown();
@@ -23,4 +26,6 @@ public interface Board {
     Score getScore();
 
     void newGame();
+
+    List<Brick> getNextBricks(int count);
 }

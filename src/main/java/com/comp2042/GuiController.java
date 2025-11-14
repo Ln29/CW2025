@@ -18,6 +18,7 @@ import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
 import javafx.scene.shape.Rectangle;
@@ -46,6 +47,9 @@ public class GuiController implements Initializable {
 
     @FXML
     private GameOverPanel gameOverPanel;
+
+    private NextBrickPanel nextBrickPanel;
+    private Board board;
 
     private boolean boardCentered = false;
     private ViewData initialBrickData = null;
@@ -89,6 +93,12 @@ public class GuiController implements Initializable {
                     centerNotificationGroup(scene);
                     // Reposition brick after centering - not yet done
                 });
+
+                if (nextBrickPanel == null){
+                    initializeNextBrickPanel();
+                }else{
+                    updateNextBrickPanel();
+                }
             }
         });
 
@@ -246,6 +256,7 @@ public class GuiController implements Initializable {
                 notificationPanel.showScore(groupNotification.getChildren());
             }
             refreshBrick(downData.getViewData());
+            updateNextBrickPanel();
         }
         gamePanel.requestFocus();
     }
@@ -259,6 +270,10 @@ public class GuiController implements Initializable {
                 // not yet done
             });
         }
+    }
+
+    public void setBoard(Board board) {
+        this.board = board;
     }
 
     public void bindScore(IntegerProperty integerProperty) {
@@ -280,6 +295,7 @@ public class GuiController implements Initializable {
         timeLine.stop();
         gameOverPanel.setVisible(false);
         eventListener.createNewGame();
+        updateNextBrickPanel();
         gamePanel.requestFocus();
         timeLine.play();
         isPause.setValue(Boolean.FALSE);
@@ -300,6 +316,45 @@ public class GuiController implements Initializable {
         gamePanel.requestFocus();
     }
 
+    private void initializeNextBrickPanel() {
+        nextBrickPanel = new NextBrickPanel();
+        // Add to root pane
+        Platform.runLater(() -> {
+            Scene scene = gameBoard.getScene();
+            if (scene != null) {
+                Pane rootPane = (Pane) scene.getRoot();
+                rootPane.getChildren().add(nextBrickPanel);
+                positionNextBrickPanel(scene);
+                updateNextBrickPanel();
+            }
+        });
+    }
+
+    private void positionNextBrickPanel(Scene scene) {
+        if (nextBrickPanel == null) return;
+
+        double boardWidth = 300 + 24; // 324px
+        double boardHeight = 600 + 24; // 624px
+        double boardX = gameBoard.getLayoutX();
+        double boardY = gameBoard.getLayoutY();
+
+        double panelX = boardX + boardWidth;
+        double panelY = boardY;
+        double panelHeight = boardHeight / 2;
+
+        nextBrickPanel.setLayoutX(panelX);
+        nextBrickPanel.setLayoutY(panelY);
+        nextBrickPanel.setPrefHeight(panelHeight);
+        nextBrickPanel.setMinHeight(panelHeight);
+        nextBrickPanel.setMaxHeight(panelHeight);
+    }
+
+    private void updateNextBrickPanel() {
+        if (nextBrickPanel != null && board != null) {
+            nextBrickPanel.updateBricks(board.getNextBricks(5));
+        }
+    }
+
     private void centerGameBoard(Scene scene) {
         // Board dimensions: 10 columns × 30px = 300px, 20 rows × 30px = 600px
         // Add border width (12px on each side = 24px total)
@@ -312,6 +367,8 @@ public class GuiController implements Initializable {
 
         gameBoard.setLayoutX(centerX);
         gameBoard.setLayoutY(centerY);
+
+        positionNextBrickPanel(scene);
     }
 
     private void centerNotificationGroup(Scene scene) {

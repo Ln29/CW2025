@@ -186,6 +186,16 @@ public class SimpleBoard implements Board {
         return brickGenerator.getNextBricks(count);
     }
 
+    @Override
+    public int hardDropBrick() {
+        int dropCount = 0;
+        // Keep moving the brick down until it can't move anymore
+        while (moveBrickDown()) {
+            dropCount++;
+        }
+        return dropCount;
+    }
+
     private Point createSpawnPoint() {
         int spawnX = (width-4) / 2;
         int spawnY = 0;

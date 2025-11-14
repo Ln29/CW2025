@@ -129,6 +129,9 @@ public class GuiController implements Initializable {
                     } else if (code == KeyCode.DOWN || code == KeyCode.S) {
                         moveDown(new MoveEvent(EventType.DOWN, EventSource.USER));
                         keyEvent.consume();
+                    } else if (code == KeyCode.SPACE) {
+                        hardDrop();
+                        keyEvent.consume();
                     } else if (code == KeyCode.F || code == KeyCode.SHIFT) {
                         if (board != null && board.holdBrick()) {
                             refreshBrick(board.getViewData());
@@ -265,6 +268,26 @@ public class GuiController implements Initializable {
     private void moveDown(MoveEvent event) {
         if (isPause.getValue() == Boolean.FALSE) {
             DownData downData = eventListener.onDownEvent(event);
+            if (downData.getClearRow() != null && downData.getClearRow().getLinesRemoved() > 0) {
+                NotificationPanel notificationPanel = new NotificationPanel("+" + downData.getClearRow().getScoreBonus());
+                if (groupNotification.getChildren().size() > 5) {
+                    groupNotification.getChildren().remove(0);
+                }
+                groupNotification.getChildren().add(notificationPanel);
+                notificationPanel.showScore(groupNotification.getChildren());
+            }
+            refreshBrick(downData.getViewData());
+            updateNextBrickPanel();
+            if (board != null) {
+                board.resetHoldUsage();
+            }
+        }
+        gamePanel.requestFocus();
+    }
+
+    private void hardDrop() {
+        if (isPause.getValue() == Boolean.FALSE) {
+            DownData downData = eventListener.onHardDropEvent();
             if (downData.getClearRow() != null && downData.getClearRow().getLinesRemoved() > 0) {
                 NotificationPanel notificationPanel = new NotificationPanel("+" + downData.getClearRow().getScoreBonus());
                 if (groupNotification.getChildren().size() > 5) {

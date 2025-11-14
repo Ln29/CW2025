@@ -46,4 +46,10 @@ public interface Board {
      * Resets the hold usage flag (called when a brick is placed/fixed).
      */
     void resetHoldUsage();
+
+    /**
+     * Hard drops the current brick to the bottom instantly.
+     * @return the number of rows the brick was dropped
+     */
+    int hardDropBrick();
 }

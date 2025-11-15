@@ -10,7 +10,6 @@ import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.Group;
-import javafx.scene.effect.Reflection;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.application.Platform;
@@ -46,10 +45,8 @@ public class GuiController implements Initializable {
     @FXML
     private GridPane brickPanel;
 
-    @FXML
-    private GameOverPanel gameOverPanel;
-
     private PauseMenu pauseMenu;
+    private GameOverMenu gameOverMenu;
     private NextBrickPanel nextBrickPanel;
     private HoldBrickPanel holdBrickPanel;
     private GridPane ghostPanel;
@@ -93,7 +90,6 @@ public class GuiController implements Initializable {
             Scene scene = gameBoard.getScene();
             if (scene != null) {
                 centerGameBoard(scene);
-                centerNotificationGroup(scene);
                 boardCentered = true;
                 if (initialBrickData != null && rectangles != null && rectangles.length > 0) {
                     refreshBrick(initialBrickData);
@@ -137,6 +133,11 @@ public class GuiController implements Initializable {
                     keyEvent.consume();
                     return;
                 }
+                if (Boolean.TRUE.equals(isGameOver.getValue()) && gameOverMenu != null && gameOverMenu.isVisible()) {
+                    gameOverMenu.fireEvent(keyEvent);
+                    keyEvent.consume();
+                    return;
+                }
                 if (Boolean.FALSE.equals(isPause.getValue()) && Boolean.FALSE.equals(isGameOver.getValue()) && eventListener != null) {
                     if (code == KeyCode.LEFT || code == KeyCode.A) {
                         refreshBrick(eventListener.onLeftEvent(new MoveEvent(EventType.LEFT, EventSource.USER)));
@@ -164,12 +165,6 @@ public class GuiController implements Initializable {
                 }
             }
         });
-        gameOverPanel.setVisible(false);
-
-        final Reflection reflection = new Reflection();
-        reflection.setFraction(0.8);
-        reflection.setTopOpacity(0.9);
-        reflection.setTopOffset(-12);
     }
 
     public void initGameView(int[][] boardMatrix, ViewData brick) {
@@ -336,6 +331,8 @@ public class GuiController implements Initializable {
         if (isPause.getValue() == Boolean.FALSE) {
             DownData downData = eventListener.onHardDropEvent();
             if (downData.getClearRow() != null && downData.getClearRow().getLinesRemoved() > 0) {
+                totalLinesCleared += downData.getClearRow().getLinesRemoved();
+                updateStatsPanel();
                 NotificationPanel notificationPanel = new NotificationPanel("+" + downData.getClearRow().getScoreBonus());
                 if (groupNotification.getChildren().size() > 5) {
                     groupNotification.getChildren().remove(0);
@@ -360,6 +357,8 @@ public class GuiController implements Initializable {
             if (board.shouldLockPiece()) {
                 DownData downData = eventListener.onDownEvent(new MoveEvent(EventType.DOWN, EventSource.THREAD));
                 if (downData.getClearRow() != null && downData.getClearRow().getLinesRemoved() > 0) {
+                    totalLinesCleared += downData.getClearRow().getLinesRemoved();
+                    updateStatsPanel();
                     NotificationPanel notificationPanel = new NotificationPanel("+" + downData.getClearRow().getScoreBonus());
                     if (groupNotification.getChildren().size() > 5) {
                         groupNotification.getChildren().remove(0);
@@ -369,6 +368,7 @@ public class GuiController implements Initializable {
                 }
                 refreshBrick(downData.getViewData());
                 updateNextBrickPanel();
+                updateStatsPanelRight();
                 if (board != null) {
                     board.resetHoldUsage();
                 }
@@ -378,13 +378,6 @@ public class GuiController implements Initializable {
 
     public void setEventListener(InputEventListener eventListener) {
         this.eventListener = eventListener;
-        // After setting event listener, if board is already centered, refresh brick position
-        if (boardCentered && eventListener != null && rectangles != null && rectangles.length > 0) {
-            Platform.runLater(() -> {
-                // trigger a refresh by getting current ViewData
-                // not yet done
-            });
-        }
     }
 
     public void setBoard(Board board) {
@@ -410,12 +403,20 @@ public class GuiController implements Initializable {
         if (lockDelayCheckTimeline != null) {
             lockDelayCheckTimeline.stop();
         }
-        gameOverPanel.setVisible(true);
-        isGameOver.setValue(Boolean.TRUE);
+        if (gameTimeTimeline != null) {
+            gameTimeTimeline.stop();
+        }
+        if (gameOverMenu == null) {
+            initializeGameOverMenu();
+        }
+
+        gameOverMenu.setVisible(true);
         Platform.runLater(() -> {
-            Scene scene = gameOverPanel.getScene();
+            Scene scene = gameBoard.getScene();
             if (scene != null) {
-                centerNotificationGroup(scene);
+                gameOverMenu.toFront();
+                centerGameOverMenu(scene);
+                gameOverMenu.requestFocusForNavigation();
             }
         });
     }
@@ -425,7 +426,6 @@ public class GuiController implements Initializable {
         if (lockDelayCheckTimeline != null) {
             lockDelayCheckTimeline.play();
         }
-        gameOverPanel.setVisible(false);
         eventListener.createNewGame();
         updateNextBrickPanel();
 
@@ -579,12 +579,47 @@ public class GuiController implements Initializable {
         if (pauseMenu != null) {
             centerPauseMenu(scene);
         }
+        if (gameOverMenu != null) {
+            centerGameOverMenu(scene);
+        }
+    }
+
+    private void initializeGameOverMenu() {
+        gameOverMenu = new GameOverMenu();
+        gameOverMenu.setVisible(false);
+        gameOverMenu.setOnRestart(() -> {
+            restartGame();
+        });
+
+        gameOverMenu.setOnMainMenu(() -> {
+            //to do
+            restartGame();
+        });
+
+        Platform.runLater(() -> {
+            Scene scene = gameBoard.getScene();
+            if (scene != null) {
+                Pane rootPane = (Pane) scene.getRoot();
+                rootPane.getChildren().add(gameOverMenu);
+                gameOverMenu.toFront();
+                centerGameOverMenu(scene);
+            }
+        });
+    }
+
+    private void centerGameOverMenu(Scene scene) {
+        if (gameOverMenu == null) return;
+
+        double boardCenterX = gameBoard.getLayoutX() + (300 + 24) / 2;
+        double boardCenterY = gameBoard.getLayoutY() + (600 + 24) / 2;
+
+        gameOverMenu.setLayoutX(boardCenterX - gameOverMenu.getPrefWidth() / 2);
+        gameOverMenu.setLayoutY(boardCenterY - gameOverMenu.getPrefHeight() / 2);
     }
 
     private void initializePauseMenu() {
         pauseMenu = new PauseMenu();
         pauseMenu.setVisible(false);
-
         pauseMenu.setOnResume(() -> {
             resumeGame();
         });
@@ -684,8 +719,9 @@ public class GuiController implements Initializable {
         if (pauseMenu != null) {
             pauseMenu.setVisible(false);
         }
-
-        gameOverPanel.setVisible(false);
+        if (gameOverMenu != null) {
+            gameOverMenu.setVisible(false);
+        }
         eventListener.createNewGame();
         updateNextBrickPanel();
 
@@ -702,26 +738,6 @@ public class GuiController implements Initializable {
         }
         isPause.setValue(Boolean.FALSE);
         isGameOver.setValue(Boolean.FALSE);
-    }
-
-    private void centerNotificationGroup(Scene scene) {
-        // Center game over panel
-        double boardCenterX = gameBoard.getLayoutX() + (300 + 24) / 2;
-        double boardCenterY = gameBoard.getLayoutY() + (600 + 24) / 2;
-
-        double panelWidth = gameOverPanel.getBoundsInLocal().getWidth();
-        double panelHeight = gameOverPanel.getBoundsInLocal().getHeight();
-
-        // If bounds not available use default size
-        if (panelWidth == 0) {
-            panelWidth = 200;
-        }
-        if (panelHeight == 0) {
-            panelHeight = 100;
-        }
-
-        groupNotification.setLayoutX(boardCenterX - panelWidth / 2);
-        groupNotification.setLayoutY(boardCenterY - panelHeight / 2);
     }
 
     private void positionBrickPanel(ViewData brick) {

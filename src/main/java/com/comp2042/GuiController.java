@@ -54,6 +54,14 @@ public class GuiController implements Initializable {
     private GridPane ghostPanel;
     private Rectangle[][] ghostRectangles;
     private Board board;
+    private StatsPanel statsPanel;
+    private StatsPanelRight statsPanelRight;
+
+    //stats track
+    private int totalLinesCleared = 0;
+    private int highScore = 0;
+    private long gameStartTime = 0;
+    private Timeline gameTimeTimeline;
 
     private boolean boardCentered = false;
     private ViewData initialBrickData = null;
@@ -98,6 +106,16 @@ public class GuiController implements Initializable {
                     initializeHoldBrickPanel();
                 } else {
                     updateHoldBrickPanel();
+                }
+                if (statsPanel == null) {
+                    initializeStatsPanel();
+                } else {
+                    updateStatsPanel();
+                }
+                if (statsPanelRight == null) {
+                    initializeStatsPanelRight();
+                } else {
+                    updateStatsPanelRight();
                 }
             }
         });
@@ -187,6 +205,7 @@ public class GuiController implements Initializable {
         ));
         lockDelayCheckTimeline.setCycleCount(Timeline.INDEFINITE);
         lockDelayCheckTimeline.play();
+        startGameTimer();
     }
 
 
@@ -285,6 +304,8 @@ public class GuiController implements Initializable {
         if (isPause.getValue() == Boolean.FALSE) {
             DownData downData = eventListener.onDownEvent(event);
             if (downData.getClearRow() != null && downData.getClearRow().getLinesRemoved() > 0) {
+                totalLinesCleared += downData.getClearRow().getLinesRemoved();
+                updateStatsPanel();
                 NotificationPanel notificationPanel = new NotificationPanel("+" + downData.getClearRow().getScoreBonus());
                 if (groupNotification.getChildren().size() > 5) {
                     groupNotification.getChildren().remove(0);
@@ -294,6 +315,8 @@ public class GuiController implements Initializable {
             }
             refreshBrick(downData.getViewData());
             updateNextBrickPanel();
+            updateStatsPanel();
+            updateStatsPanelRight();
             if (board != null) {
                 board.resetHoldUsage();
             }
@@ -314,6 +337,8 @@ public class GuiController implements Initializable {
             }
             refreshBrick(downData.getViewData());
             updateNextBrickPanel();
+            updateStatsPanel();
+            updateStatsPanelRight();
             if (board != null) {
                 board.resetHoldUsage();
             }
@@ -359,6 +384,17 @@ public class GuiController implements Initializable {
     }
 
     public void bindScore(IntegerProperty integerProperty) {
+        if (integerProperty != null) {
+            integerProperty.addListener((obs, oldVal, newVal) -> {
+                updateStatsPanelRight();
+                updateStatsPanel();
+                // Update high score if current score exceeds it
+                if (newVal.intValue() > highScore) {
+                    highScore = newVal.intValue();
+                    updateStatsPanel();
+                }
+            });
+        }
     }
 
     public void gameOver() {
@@ -384,10 +420,21 @@ public class GuiController implements Initializable {
         gameOverPanel.setVisible(false);
         eventListener.createNewGame();
         updateNextBrickPanel();
+
+        // Reset game stats
+        totalLinesCleared = 0;
+        gameStartTime = System.currentTimeMillis();
+        updateStatsPanel();
+        updateStatsPanelRight();
+        startGameTimer();
+
         gamePanel.requestFocus();
         timeLine.play();
         if (lockDelayCheckTimeline != null) {
             lockDelayCheckTimeline.play();
+        }
+        if (gameTimeTimeline != null) {
+            gameTimeTimeline.stop();
         }
         isPause.setValue(Boolean.FALSE);
         isGameOver.setValue(Boolean.FALSE);
@@ -402,11 +449,17 @@ public class GuiController implements Initializable {
             if (lockDelayCheckTimeline != null) {
                 lockDelayCheckTimeline.play();
             }
+            if (gameTimeTimeline != null) {
+                gameTimeTimeline.play();
+            }
             isPause.setValue(Boolean.FALSE);
         } else {
             timeLine.stop();
             if (lockDelayCheckTimeline != null) {
                 lockDelayCheckTimeline.play();
+            }
+            if (gameTimeTimeline != null) {
+                gameTimeTimeline.play();
             }
             isPause.setValue(Boolean.TRUE);
         }
@@ -435,15 +488,7 @@ public class GuiController implements Initializable {
         double boardX = gameBoard.getLayoutX();
         double boardY = gameBoard.getLayoutY();
 
-        double panelX = boardX + boardWidth + 10;
-        double panelY = boardY;
-        double panelHeight = boardHeight / 2;
-
-        nextBrickPanel.setLayoutX(panelX);
-        nextBrickPanel.setLayoutY(panelY);
-        nextBrickPanel.setPrefHeight(panelHeight);
-        nextBrickPanel.setMinHeight(panelHeight);
-        nextBrickPanel.setMaxHeight(panelHeight);
+        nextBrickPanel.position(boardX, boardY, boardWidth, boardHeight);
     }
 
     private void updateNextBrickPanel() {
@@ -468,19 +513,12 @@ public class GuiController implements Initializable {
     private void positionHoldBrickPanel(Scene scene) {
         if (holdBrickPanel == null) return;
 
+        double boardWidth = 300 + 24;
         double boardHeight = 600 + 24; // 624px
         double boardX = gameBoard.getLayoutX();
         double boardY = gameBoard.getLayoutY();
 
-        double panelX = boardX - 95;
-        double panelY = boardY;
-        double panelHeight = boardHeight / 4;
-
-        holdBrickPanel.setLayoutX(panelX);
-        holdBrickPanel.setLayoutY(panelY);
-        holdBrickPanel.setPrefHeight(panelHeight);
-        holdBrickPanel.setMinHeight(panelHeight);
-        holdBrickPanel.setMaxHeight(panelHeight);
+        holdBrickPanel.position(boardX, boardY, boardWidth, boardHeight);
     }
 
     private void updateHoldBrickPanel() {
@@ -545,6 +583,13 @@ public class GuiController implements Initializable {
 
         positionHoldBrickPanel(scene);
         positionNextBrickPanel(scene);
+
+        if (statsPanel != null) {
+            positionStatsPanel(scene);
+        }
+        if (statsPanelRight != null) {
+            positionStatsPanelRight(scene);
+        }
     }
 
     private void centerNotificationGroup(Scene scene) {
@@ -662,5 +707,98 @@ public class GuiController implements Initializable {
         //background < ghost < brick
         ghostPanel.toBack();
         brickPanel.toFront();
+    }
+
+    private void initializeStatsPanel() {
+        statsPanel = new StatsPanel();
+        Platform.runLater(() -> {
+            Scene scene = gameBoard.getScene();
+            if (scene != null) {
+                Pane rootPane = (Pane) scene.getRoot();
+                rootPane.getChildren().add(statsPanel);
+                positionStatsPanel(scene);
+                updateStatsPanel();
+            }
+        });
+    }
+
+    private void positionStatsPanel(Scene scene) {
+        if (statsPanel == null) return;
+
+        double boardWidth = 300 + 24; // 324px
+        double boardHeight = 600 + 24; // 624px
+        double boardX = gameBoard.getLayoutX();
+        double boardY = gameBoard.getLayoutY();
+
+        statsPanel.position(boardX, boardY, boardWidth, boardHeight);
+    }
+
+    private void updateStatsPanel() {
+        if (statsPanel == null) return;
+
+        // Update lines
+        statsPanel.updateLines(totalLinesCleared);
+
+        // Update level (placeholder - showing 1 for now)
+        statsPanel.updateLevel(1);
+
+        // Update high score
+        statsPanel.updateHighScore(highScore);
+    }
+
+    private void updateStatsPanelRight() {
+        if (statsPanelRight != null && board != null) {
+            int currentScore = board.getScore().scoreProperty().getValue();
+            statsPanelRight.updateScore(currentScore);
+        }
+    }
+
+    private void startGameTimer() {
+        if (gameTimeTimeline != null) {
+            gameTimeTimeline.stop();
+        }
+
+        gameStartTime = System.currentTimeMillis();
+        gameTimeTimeline = new Timeline(new KeyFrame(
+                Duration.millis(1000), // Update every second
+                ae -> updateGameTime()
+        ));
+        gameTimeTimeline.setCycleCount(Timeline.INDEFINITE);
+        gameTimeTimeline.play();
+    }
+
+    private void updateGameTime() {
+        if (statsPanel == null || gameStartTime == 0) return;
+
+        long elapsed = System.currentTimeMillis() - gameStartTime;
+        long seconds = elapsed / 1000;
+        long minutes = seconds / 60;
+        seconds = seconds % 60;
+
+        String timeString = String.format("%02d:%02d", minutes, seconds);
+        statsPanel.updateTime(timeString);
+    }
+
+    private void initializeStatsPanelRight() {
+        statsPanelRight = new StatsPanelRight();
+        Platform.runLater(() -> {
+            Scene scene = gameBoard.getScene();
+            if (scene != null) {
+                statsPanelRight.addToScene(scene);
+                positionStatsPanelRight(scene);
+                updateStatsPanelRight();
+            }
+        });
+    }
+
+    private void positionStatsPanelRight(Scene scene) {
+        if (statsPanelRight == null) return;
+
+        double boardWidth = 300 + 24; // 324px
+        double boardHeight = 600 + 24; // 624px
+        double boardX = gameBoard.getLayoutX();
+        double boardY = gameBoard.getLayoutY();
+
+        statsPanelRight.position(boardX, boardY, boardWidth, boardHeight);
     }
 }

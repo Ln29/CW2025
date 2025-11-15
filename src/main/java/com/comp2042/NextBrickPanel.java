@@ -131,4 +131,16 @@ public class NextBrickPanel extends VBox {
                 return Color.WHITE;
         }
     }
+
+    public void position(double boardX, double boardY, double boardWidth, double boardHeight) {
+        double panelX = boardX + boardWidth + 10;
+        double panelY = boardY;
+        double panelHeight = boardHeight / 2;
+
+        setLayoutX(panelX);
+        setLayoutY(panelY);
+        setPrefHeight(panelHeight);
+        setMinHeight(panelHeight);
+        setMaxHeight(panelHeight);
+    }
 }

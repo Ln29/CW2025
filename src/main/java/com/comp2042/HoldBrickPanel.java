@@ -113,4 +113,16 @@ public class HoldBrickPanel extends VBox {
                 return Color.WHITE;
         }
     }
+
+    public void position(double boardX, double boardY, double boardWidth, double boardHeight) {
+        double panelX = boardX - 95;
+        double panelY = boardY;
+        double panelHeight = boardHeight / 4;
+
+        setLayoutX(panelX);
+        setLayoutY(panelY);
+        setPrefHeight(panelHeight);
+        setMinHeight(panelHeight);
+        setMaxHeight(panelHeight);
+    }
 }

@@ -31,7 +31,6 @@ public class GameController implements InputEventListener {
         ClearRow clearRow = null;
 
         if (!canMove) {
-
             if (board.shouldLockPiece()) {
                 // Lock delay expired, lock the piece
                 board.mergeBrickToBackground();
@@ -46,11 +45,6 @@ public class GameController implements InputEventListener {
                 }
 
                 viewGuiController.refreshGameBackground(board.getBoardMatrix());
-            }
-            // If lock delay hasn't expired, allow adjustment
-        } else {
-            if (event.getEventSource() == EventSource.USER) {
-                board.getScore().add(1);
             }
         }
 
@@ -77,7 +71,7 @@ public class GameController implements InputEventListener {
 
     @Override
     public DownData onHardDropEvent() {
-        int dropCount = board.hardDropBrick();
+        board.hardDropBrick();
 
         board.mergeBrickToBackground();
         ClearRow clearRow = board.clearRows();

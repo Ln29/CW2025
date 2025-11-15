@@ -23,6 +23,7 @@ import javafx.scene.paint.Paint;
 import javafx.scene.shape.Line;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
+import javafx.stage.Stage;
 import javafx.util.Duration;
 
 import java.net.URL;
@@ -46,12 +47,14 @@ public class GuiController implements Initializable {
     private GridPane brickPanel;
 
     private PauseMenu pauseMenu;
+    private MainMenu mainMenu;
     private GameOverMenu gameOverMenu;
     private NextBrickPanel nextBrickPanel;
     private HoldBrickPanel holdBrickPanel;
     private GridPane ghostPanel;
     private Rectangle[][] ghostRectangles;
     private Board board;
+    private Stage primaryStage;
     private StatsPanel statsPanel;
     private StatsPanelRight statsPanelRight;
 
@@ -200,15 +203,13 @@ public class GuiController implements Initializable {
                 ae -> moveDown(new MoveEvent(EventType.DOWN, EventSource.THREAD))
         ));
         timeLine.setCycleCount(Timeline.INDEFINITE);
-        timeLine.play();
 
         lockDelayCheckTimeline = new Timeline(new KeyFrame(
                 Duration.millis(50),
                 ae -> checkLockDelay()
         ));
         lockDelayCheckTimeline.setCycleCount(Timeline.INDEFINITE);
-        lockDelayCheckTimeline.play();
-        startGameTimer();
+        isPause.setValue(Boolean.TRUE);
     }
 
 
@@ -406,6 +407,7 @@ public class GuiController implements Initializable {
         if (gameTimeTimeline != null) {
             gameTimeTimeline.stop();
         }
+        isGameOver.setValue(Boolean.TRUE);
         if (gameOverMenu == null) {
             initializeGameOverMenu();
         }
@@ -424,7 +426,10 @@ public class GuiController implements Initializable {
     public void newGame(ActionEvent actionEvent) {
         timeLine.stop();
         if (lockDelayCheckTimeline != null) {
-            lockDelayCheckTimeline.play();
+            lockDelayCheckTimeline.stop();
+        }
+        if (gameTimeTimeline != null) {
+            gameTimeTimeline.stop();
         }
         eventListener.createNewGame();
         updateNextBrickPanel();
@@ -440,9 +445,6 @@ public class GuiController implements Initializable {
         timeLine.play();
         if (lockDelayCheckTimeline != null) {
             lockDelayCheckTimeline.play();
-        }
-        if (gameTimeTimeline != null) {
-            gameTimeTimeline.stop();
         }
         isPause.setValue(Boolean.FALSE);
         isGameOver.setValue(Boolean.FALSE);
@@ -582,6 +584,9 @@ public class GuiController implements Initializable {
         if (gameOverMenu != null) {
             centerGameOverMenu(scene);
         }
+        if (mainMenu != null) {
+            centerMainMenu(scene);
+        }
     }
 
     private void initializeGameOverMenu() {
@@ -592,8 +597,9 @@ public class GuiController implements Initializable {
         });
 
         gameOverMenu.setOnMainMenu(() -> {
-            //to do
             restartGame();
+            hideMainMenu(); //hidden first
+            showMainMenu();
         });
 
         Platform.runLater(() -> {
@@ -630,6 +636,8 @@ public class GuiController implements Initializable {
 
         pauseMenu.setOnMainMenu(() -> {
             restartGame();
+            hideMainMenu();
+            showMainMenu();
         });
 
         Platform.runLater(() -> {
@@ -738,6 +746,126 @@ public class GuiController implements Initializable {
         }
         isPause.setValue(Boolean.FALSE);
         isGameOver.setValue(Boolean.FALSE);
+    }
+
+    private void initializeMainMenu() {
+        mainMenu = new MainMenu();
+        mainMenu.setVisible(false);
+
+        // Set up button callbacks
+        mainMenu.setOnStart(() -> {
+            startGame();
+        });
+
+        mainMenu.setOnSettings(() -> {
+            // to do
+        });
+
+        mainMenu.setOnExit(() -> {
+            exitGame();
+        });
+
+        Platform.runLater(() -> {
+            Scene scene = gameBoard.getScene();
+            if (scene != null) {
+                Pane rootPane = (Pane) scene.getRoot();
+                if (rootPane.getChildren().contains(mainMenu)) {
+                    rootPane.getChildren().remove(mainMenu);
+                }
+                rootPane.getChildren().add(mainMenu);
+                mainMenu.toFront();
+                centerMainMenu(scene);
+            }
+        });
+    }
+
+    private void centerMainMenu(Scene scene) {
+        if (mainMenu == null) return;
+
+        double sceneWidth = scene.getWidth();
+        double sceneHeight = scene.getHeight();
+
+        mainMenu.setLayoutX((sceneWidth - mainMenu.getPrefWidth()) / 2);
+        mainMenu.setLayoutY((sceneHeight - mainMenu.getPrefHeight()) / 2);
+    }
+
+    public void showMainMenu() {
+        if (mainMenu == null) {
+            initializeMainMenu();
+        }
+
+        isPause.setValue(Boolean.TRUE);
+        if (timeLine != null) {
+            timeLine.stop();
+        }
+        if (lockDelayCheckTimeline != null) {
+            lockDelayCheckTimeline.stop();
+        }
+        if (gameTimeTimeline != null) {
+            gameTimeTimeline.stop();
+        }
+        if (brickPanel != null) {
+            brickPanel.setVisible(false);
+        }
+
+        mainMenu.setVisible(true);
+        Platform.runLater(() -> {
+            Scene scene = gameBoard.getScene();
+            if (scene != null) {
+                Pane rootPane = (Pane) scene.getRoot();
+                if (rootPane.getChildren().contains(mainMenu)) {
+                    rootPane.getChildren().remove(mainMenu);
+                }
+                rootPane.getChildren().add(mainMenu);
+                mainMenu.toFront();
+                centerMainMenu(scene);
+                mainMenu.requestFocusForNavigation();
+            }
+        });
+    }
+
+    public void hideMainMenu() {
+        if (mainMenu != null) {
+            mainMenu.setVisible(false);
+        }
+    }
+
+    private void startGame() {
+        hideMainMenu();
+
+        isPause.setValue(Boolean.FALSE);
+        if (timeLine != null) {
+            timeLine.play();
+        }
+        if (lockDelayCheckTimeline != null) {
+            lockDelayCheckTimeline.play();
+        }
+        startGameTimer();
+
+        totalLinesCleared = 0;
+        gameStartTime = System.currentTimeMillis();
+        updateStatsPanel();
+        updateStatsPanelRight();
+
+        gamePanel.requestFocus();
+    }
+
+    private void exitGame() {
+        if (primaryStage != null) {
+            primaryStage.close();
+        } else {
+            Scene scene = gameBoard.getScene();
+            if (scene != null) {
+                Stage stage = (Stage) scene.getWindow();
+                if (stage != null) {
+                    stage.close();
+                }
+            }
+        }
+    }
+
+    public void setPrimaryStage(Stage stage) {
+        this.primaryStage = stage;
     }
 
     private void positionBrickPanel(ViewData brick) {

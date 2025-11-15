@@ -49,6 +49,8 @@ public class GuiController implements Initializable {
     private PauseMenu pauseMenu;
     private MainMenu mainMenu;
     private SettingsMenu settingsMenu;
+    private KeyBindingsMenu keyBindingsMenu;
+    private KeyBindingsConfig keyBindingsConfig;
     private GameOverMenu gameOverMenu;
     private NextBrickPanel nextBrickPanel;
     private HoldBrickPanel holdBrickPanel;
@@ -89,6 +91,8 @@ public class GuiController implements Initializable {
         //prevent flashing at (0,0)
         brickPanel.setVisible(false);
 
+        keyBindingsConfig = KeyBindingsConfig.getInstance();
+
         // Center the BorderPane in the root Pane
         Platform.runLater(() -> {
             Scene scene = gameBoard.getScene();
@@ -127,11 +131,16 @@ public class GuiController implements Initializable {
             @Override
             public void handle(KeyEvent keyEvent) {
                 KeyCode code = keyEvent.getCode();
-                if (code == KeyCode.ESCAPE && Boolean.FALSE.equals(isGameOver.getValue())) {
-                    togglePauseMenu();
-                    keyEvent.consume();
-                    return;
+
+                KeyBindingsConfig.Action pauseAction = keyBindingsConfig != null ? keyBindingsConfig.getAction(code) : null;
+                if ((code == KeyCode.ESCAPE || (pauseAction == KeyBindingsConfig.Action.PAUSE)) && Boolean.FALSE.equals(isGameOver.getValue())) {
+                    if (keyBindingsMenu == null || !keyBindingsMenu.isVisible()) {
+                        togglePauseMenu();
+                        keyEvent.consume();
+                        return;
+                    }
                 }
+
                 if (Boolean.TRUE.equals(isPause.getValue()) && pauseMenu != null && pauseMenu.isVisible()) {
                     pauseMenu.fireEvent(keyEvent);
                     keyEvent.consume();
@@ -142,29 +151,53 @@ public class GuiController implements Initializable {
                     keyEvent.consume();
                     return;
                 }
+                if (settingsMenu != null && settingsMenu.isVisible()) {
+                    settingsMenu.fireEvent(keyEvent);
+                    keyEvent.consume();
+                    return;
+                }
+                if (keyBindingsMenu != null && keyBindingsMenu.isVisible()) {
+                    keyBindingsMenu.fireEvent(keyEvent);
+                    keyEvent.consume();
+                    return;
+                }
                 if (Boolean.FALSE.equals(isPause.getValue()) && Boolean.FALSE.equals(isGameOver.getValue()) && eventListener != null) {
-                    if (code == KeyCode.LEFT || code == KeyCode.A) {
-                        refreshBrick(eventListener.onLeftEvent(new MoveEvent(EventType.LEFT, EventSource.USER)));
-                        keyEvent.consume();
-                    } else if (code == KeyCode.RIGHT || code == KeyCode.D) {
-                        refreshBrick(eventListener.onRightEvent(new MoveEvent(EventType.RIGHT, EventSource.USER)));
-                        keyEvent.consume();
-                    } else if (code == KeyCode.UP || code == KeyCode.W) {
-                        refreshBrick(eventListener.onRotateEvent(new MoveEvent(EventType.ROTATE, EventSource.USER)));
-                        keyEvent.consume();
-                    } else if (code == KeyCode.DOWN || code == KeyCode.S) {
-                        moveDown(new MoveEvent(EventType.DOWN, EventSource.USER));
-                        keyEvent.consume();
-                    } else if (code == KeyCode.SPACE) {
-                        hardDrop();
-                        keyEvent.consume();
-                    } else if (code == KeyCode.F || code == KeyCode.SHIFT) {
-                        if (board != null && board.holdBrick()) {
-                            refreshBrick(board.getViewData());
-                            updateHoldBrickPanel();
-                            updateNextBrickPanel();
+                    KeyBindingsConfig.Action action = keyBindingsConfig.getAction(code);
+                    if (action != null) {
+                        switch (action) {
+                            case MOVE_LEFT:
+                                refreshBrick(eventListener.onLeftEvent(new MoveEvent(EventType.LEFT, EventSource.USER)));
+                                keyEvent.consume();
+                                break;
+                            case MOVE_RIGHT:
+                                refreshBrick(eventListener.onRightEvent(new MoveEvent(EventType.RIGHT, EventSource.USER)));
+                                keyEvent.consume();
+                                break;
+                            case ROTATE:
+                                refreshBrick(eventListener.onRotateEvent(new MoveEvent(EventType.ROTATE, EventSource.USER)));
+                                keyEvent.consume();
+                                break;
+                            case SOFT_DROP:
+                                moveDown(new MoveEvent(EventType.DOWN, EventSource.USER));
+                                keyEvent.consume();
+                                break;
+                            case HARD_DROP:
+                                hardDrop();
+                                keyEvent.consume();
+                                break;
+                            case HOLD:
+                                if (board != null && board.holdBrick()) {
+                                    refreshBrick(board.getViewData());
+                                    updateHoldBrickPanel();
+                                    updateNextBrickPanel();
+                                }
+                                keyEvent.consume();
+                                break;
+                            case PAUSE:
+                                togglePauseMenu();
+                                keyEvent.consume();
+                                break;
                         }
-                        keyEvent.consume();
                     }
                 }
             }
@@ -870,7 +903,8 @@ public class GuiController implements Initializable {
         settingsMenu.setVisible(false);
 
         settingsMenu.setOnKeyBindings(() -> {
-            // to do
+            hideSettingsMenu();
+            showKeyBindingsMenu();
         });
 
         settingsMenu.setOnThemeSelection(() -> {
@@ -929,6 +963,71 @@ public class GuiController implements Initializable {
     public void hideSettingsMenu() {
         if (settingsMenu != null) {
             settingsMenu.setVisible(false);
+        }
+    }
+
+    private void initializeKeyBindingsMenu() {
+        keyBindingsMenu = new KeyBindingsMenu();
+        keyBindingsMenu.setVisible(false);
+
+        keyBindingsMenu.setOnBack(() -> {
+            hideKeyBindingsMenu();
+            showSettingsMenu();
+        });
+
+        keyBindingsMenu.setOnBindingsChanged(() -> {
+            // The key handling will automatically use the new bindings
+        });
+
+        Platform.runLater(() -> {
+            Scene scene = gameBoard.getScene();
+            if (scene != null) {
+                Pane rootPane = (Pane) scene.getRoot();
+                if (rootPane.getChildren().contains(keyBindingsMenu)) {
+                    rootPane.getChildren().remove(keyBindingsMenu);
+                }
+                rootPane.getChildren().add(keyBindingsMenu);
+                keyBindingsMenu.toFront();
+                centerKeyBindingsMenu(scene);
+            }
+        });
+    }
+
+    private void centerKeyBindingsMenu(Scene scene) {
+        if (keyBindingsMenu == null) return;
+
+        double sceneWidth = scene.getWidth();
+        double sceneHeight = scene.getHeight();
+
+        keyBindingsMenu.setLayoutX((sceneWidth - keyBindingsMenu.getPrefWidth()) / 2);
+        keyBindingsMenu.setLayoutY((sceneHeight - keyBindingsMenu.getPrefHeight()) / 2);
+    }
+
+    public void showKeyBindingsMenu() {
+        if (keyBindingsMenu == null) {
+            initializeKeyBindingsMenu();
+        }
+
+        keyBindingsMenu.setVisible(true);
+        keyBindingsMenu.refreshBindings();
+        Platform.runLater(() -> {
+            Scene scene = gameBoard.getScene();
+            if (scene != null) {
+                Pane rootPane = (Pane) scene.getRoot();
+                if (rootPane.getChildren().contains(keyBindingsMenu)) {
+                    rootPane.getChildren().remove(keyBindingsMenu);
+                }
+                rootPane.getChildren().add(keyBindingsMenu);
+                keyBindingsMenu.toFront();
+                centerKeyBindingsMenu(scene);
+                keyBindingsMenu.requestFocusForNavigation();
+            }
+        });
+    }
+
+    public void hideKeyBindingsMenu() {
+        if (keyBindingsMenu != null) {
+            keyBindingsMenu.setVisible(false);
         }
     }
 

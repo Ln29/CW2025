@@ -121,16 +121,22 @@ public class MainMenu extends VBox {
 
     private void handleKeyPress(KeyEvent event) {
         KeyCode code = event.getCode();
+        KeyBindingsConfig config = KeyBindingsConfig.getInstance();
 
-        if (code == KeyCode.UP || code == KeyCode.W) {
+        KeyBindingsConfig.Action action = config.getAction(code);
+        boolean isUp = (code == KeyCode.UP) || (action == KeyBindingsConfig.Action.ROTATE);
+        boolean isDown = (code == KeyCode.DOWN) || (action == KeyBindingsConfig.Action.SOFT_DROP);
+        boolean isSelect = (code == KeyCode.ENTER || code == KeyCode.SPACE) || (action == KeyBindingsConfig.Action.HARD_DROP);
+
+        if (isUp) {
             selectedIndex = (selectedIndex - 1 + buttons.length) % buttons.length;
             updateButtonStyles();
             event.consume();
-        } else if (code == KeyCode.DOWN || code == KeyCode.S) {
+        } else if (isDown) {
             selectedIndex = (selectedIndex + 1) % buttons.length;
             updateButtonStyles();
             event.consume();
-        } else if (code == KeyCode.ENTER || code == KeyCode.SPACE) {
+        } else if (isSelect) {
             buttons[selectedIndex].fire();
             event.consume();
         }

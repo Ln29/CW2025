@@ -4,7 +4,6 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.control.ScrollPane;
 import javafx.scene.control.Slider;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
@@ -15,8 +14,6 @@ import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 
 public class SettingsMenu extends VBox {
-
-    private VBox contentBox;
 
     private Button keyBindingsButton;
     private Button themeSelectionButton;
@@ -30,13 +27,10 @@ public class SettingsMenu extends VBox {
 
     public SettingsMenu() {
         setAlignment(Pos.CENTER);
-        setPadding(new Insets(20));
+        setSpacing(20);
+        setPadding(new Insets(40, 60, 40, 60));
         setStyle("-fx-background-color: rgba(0, 0, 0, 0.9); -fx-background-radius: 10;");
 
-        //scrollable
-        contentBox = new VBox(20);
-        contentBox.setAlignment(Pos.TOP_CENTER);
-        contentBox.setPadding(new Insets(30, 50, 30, 50));
 
         Label titleLabel = new Label("SETTINGS");
         titleLabel.setTextFill(Color.RED);
@@ -94,25 +88,13 @@ public class SettingsMenu extends VBox {
         buttons = new Button[]{keyBindingsButton, themeSelectionButton, backButton};
         updateButtonStyles();
 
-        // Add all content to contentBox
-        contentBox.getChildren().addAll(titleLabel, audioSection, bottomButtonsBox, backButton);
-
-        // Wrap contentBox in ScrollPane for scrollability
-        ScrollPane scrollPane = new ScrollPane(contentBox);
-        scrollPane.setFitToWidth(true);
-        scrollPane.setFitToHeight(false);
-        scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
-        scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
-        scrollPane.setStyle("-fx-background: transparent; -fx-background-color: transparent;");
-        scrollPane.setPadding(new Insets(0));
-
-        getChildren().add(scrollPane);
+        getChildren().addAll(titleLabel, audioSection, bottomButtonsBox, backButton);
 
         //keyboard navigation
         setOnKeyPressed(this::handleKeyPress);
         setFocusTraversable(true);
-        setPrefWidth(500);
-        setPrefHeight(600);
+        setPrefWidth(600);
+        setPrefHeight(700);
         setViewOrder(-1);
     }
 
@@ -185,16 +167,25 @@ public class SettingsMenu extends VBox {
 
     private void handleKeyPress(KeyEvent event) {
         KeyCode code = event.getCode();
+        KeyBindingsConfig config = KeyBindingsConfig.getInstance();
 
-        if (code == KeyCode.UP || code == KeyCode.W) {
+        KeyBindingsConfig.Action action = config.getAction(code);
+        boolean isUp = (code == KeyCode.UP) || (action == KeyBindingsConfig.Action.ROTATE);
+        boolean isDown = (code == KeyCode.DOWN) || (action == KeyBindingsConfig.Action.SOFT_DROP);
+        boolean isLeft = (code == KeyCode.LEFT) || (action == KeyBindingsConfig.Action.MOVE_LEFT);
+        boolean isRight = (code == KeyCode.RIGHT) || (action == KeyBindingsConfig.Action.MOVE_RIGHT);
+        boolean isSelect = (code == KeyCode.ENTER || code == KeyCode.SPACE) || (action == KeyBindingsConfig.Action.HARD_DROP);
+        boolean isBack = (code == KeyCode.ESCAPE) || (action == KeyBindingsConfig.Action.PAUSE);
+
+        if (isUp) {
             selectedIndex = (selectedIndex - 1 + buttons.length) % buttons.length;
             updateButtonStyles();
             event.consume();
-        } else if (code == KeyCode.DOWN || code == KeyCode.S) {
+        } else if (isDown) {
             selectedIndex = (selectedIndex + 1) % buttons.length;
             updateButtonStyles();
             event.consume();
-        } else if (code == KeyCode.LEFT || code == KeyCode.A) {
+        } else if (isLeft) {
             if (selectedIndex == 0) {
                 selectedIndex = 1;
             } else if (selectedIndex == 1) {
@@ -202,7 +193,7 @@ public class SettingsMenu extends VBox {
             }
             updateButtonStyles();
             event.consume();
-        } else if (code == KeyCode.RIGHT || code == KeyCode.D) {
+        } else if (isRight) {
             if (selectedIndex == 0) {
                 selectedIndex = 1;
             } else if (selectedIndex == 1) {
@@ -210,10 +201,10 @@ public class SettingsMenu extends VBox {
             }
             updateButtonStyles();
             event.consume();
-        } else if (code == KeyCode.ENTER || code == KeyCode.SPACE) {
+        } else if (isSelect) {
             buttons[selectedIndex].fire();
             event.consume();
-        } else if (code == KeyCode.ESCAPE) {
+        } else if (isBack) {
             if (onBack != null) {
                 onBack.run();
             }

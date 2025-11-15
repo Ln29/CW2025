@@ -51,6 +51,7 @@ public class GuiController implements Initializable {
     private SettingsMenu settingsMenu;
     private KeyBindingsMenu keyBindingsMenu;
     private KeyBindingsConfig keyBindingsConfig;
+    private AudioManager audioManager;
     private GameOverMenu gameOverMenu;
     private NextBrickPanel nextBrickPanel;
     private HoldBrickPanel holdBrickPanel;
@@ -92,6 +93,7 @@ public class GuiController implements Initializable {
         brickPanel.setVisible(false);
 
         keyBindingsConfig = KeyBindingsConfig.getInstance();
+        audioManager = AudioManager.getInstance();
 
         // Center the BorderPane in the root Pane
         Platform.runLater(() -> {
@@ -341,15 +343,28 @@ public class GuiController implements Initializable {
     private void moveDown(MoveEvent event) {
         if (isPause.getValue() == Boolean.FALSE) {
             DownData downData = eventListener.onDownEvent(event);
-            if (downData.getClearRow() != null && downData.getClearRow().getLinesRemoved() > 0) {
-                totalLinesCleared += downData.getClearRow().getLinesRemoved();
-                updateStatsPanel();
-                NotificationPanel notificationPanel = new NotificationPanel("+" + downData.getClearRow().getScoreBonus());
-                if (groupNotification.getChildren().size() > 5) {
-                    groupNotification.getChildren().remove(0);
+
+            if (downData.getClearRow() != null) {
+                if (downData.getClearRow().getLinesRemoved() > 0) {
+                    // Lines were cleared
+                    totalLinesCleared += downData.getClearRow().getLinesRemoved();
+                    updateStatsPanel();
+                    NotificationPanel notificationPanel = new NotificationPanel("+" + downData.getClearRow().getScoreBonus());
+                    if (groupNotification.getChildren().size() > 5) {
+                        groupNotification.getChildren().remove(0);
+                    }
+                    groupNotification.getChildren().add(notificationPanel);
+                    notificationPanel.showScore(groupNotification.getChildren());
+                    // Play clear line sound effect
+                    if (audioManager != null) {
+                        audioManager.playSoundEffect("clearline.wav");
+                    }
+                } else {
+                    // Block locked but no lines cleared
+                    if (audioManager != null) {
+                        audioManager.playSoundEffect("blockfall.wav");
+                    }
                 }
-                groupNotification.getChildren().add(notificationPanel);
-                notificationPanel.showScore(groupNotification.getChildren());
             }
             refreshBrick(downData.getViewData());
             updateNextBrickPanel();
@@ -365,15 +380,27 @@ public class GuiController implements Initializable {
     private void hardDrop() {
         if (isPause.getValue() == Boolean.FALSE) {
             DownData downData = eventListener.onHardDropEvent();
-            if (downData.getClearRow() != null && downData.getClearRow().getLinesRemoved() > 0) {
-                totalLinesCleared += downData.getClearRow().getLinesRemoved();
-                updateStatsPanel();
-                NotificationPanel notificationPanel = new NotificationPanel("+" + downData.getClearRow().getScoreBonus());
-                if (groupNotification.getChildren().size() > 5) {
-                    groupNotification.getChildren().remove(0);
+            if (downData.getClearRow() != null) {
+                if (downData.getClearRow().getLinesRemoved() > 0) {
+                    // Lines were cleared
+                    totalLinesCleared += downData.getClearRow().getLinesRemoved();
+                    updateStatsPanel();
+                    NotificationPanel notificationPanel = new NotificationPanel("+" + downData.getClearRow().getScoreBonus());
+                    if (groupNotification.getChildren().size() > 5) {
+                        groupNotification.getChildren().remove(0);
+                    }
+                    groupNotification.getChildren().add(notificationPanel);
+                    notificationPanel.showScore(groupNotification.getChildren());
+                    // Play clear line sound effect
+                    if (audioManager != null) {
+                        audioManager.playSoundEffect("clearline.wav");
+                    }
+                } else {
+                    // Block locked but no lines cleared
+                    if (audioManager != null) {
+                        audioManager.playSoundEffect("blockfall.wav");
+                    }
                 }
-                groupNotification.getChildren().add(notificationPanel);
-                notificationPanel.showScore(groupNotification.getChildren());
             }
             refreshBrick(downData.getViewData());
             updateNextBrickPanel();
@@ -440,6 +467,9 @@ public class GuiController implements Initializable {
         }
         if (gameTimeTimeline != null) {
             gameTimeTimeline.stop();
+        }
+        if (audioManager != null) {
+            audioManager.playSoundEffect("lose.wav");
         }
         isGameOver.setValue(Boolean.TRUE);
         if (gameOverMenu == null) {
@@ -627,6 +657,9 @@ public class GuiController implements Initializable {
         gameOverMenu = new GameOverMenu();
         gameOverMenu.setVisible(false);
         gameOverMenu.setOnRestart(() -> {
+            if (audioManager != null) {
+                audioManager.playSoundEffect("click.wav");
+            }
             restartGame();
         });
 
@@ -661,14 +694,23 @@ public class GuiController implements Initializable {
         pauseMenu = new PauseMenu();
         pauseMenu.setVisible(false);
         pauseMenu.setOnResume(() -> {
+            if (audioManager != null) {
+                audioManager.playSoundEffect("click.wav");
+            }
             resumeGame();
         });
 
         pauseMenu.setOnRestart(() -> {
+            if (audioManager != null) {
+                audioManager.playSoundEffect("click.wav");
+            }
             restartGame();
         });
 
         pauseMenu.setOnMainMenu(() -> {
+            if (audioManager != null) {
+                audioManager.playSoundEffect("click.wav");
+            }
             restartGame();
             hideMainMenu();
             showMainMenu();
@@ -788,6 +830,9 @@ public class GuiController implements Initializable {
 
         // Set up button callbacks
         mainMenu.setOnStart(() -> {
+            if (audioManager != null) {
+                audioManager.playSoundEffect("click.wav");
+            }
             startGame();
         });
 
@@ -841,6 +886,9 @@ public class GuiController implements Initializable {
         if (brickPanel != null) {
             brickPanel.setVisible(false);
         }
+        if (audioManager != null) {
+            audioManager.playMainMenuMusic();
+        }
 
         mainMenu.setVisible(true);
         Platform.runLater(() -> {
@@ -866,6 +914,10 @@ public class GuiController implements Initializable {
 
     private void startGame() {
         hideMainMenu();
+
+        if (audioManager != null) {
+            audioManager.playGameMusic();
+        }
 
         isPause.setValue(Boolean.FALSE);
         if (timeLine != null) {
@@ -902,16 +954,41 @@ public class GuiController implements Initializable {
         settingsMenu = new SettingsMenu();
         settingsMenu.setVisible(false);
 
+        settingsMenu.getMasterVolumeSlider().valueProperty().addListener((obs, oldVal, newVal) -> {
+            audioManager.setMasterVolume(newVal.doubleValue());
+        });
+        settingsMenu.getMusicVolumeSlider().valueProperty().addListener((obs, oldVal, newVal) -> {
+            audioManager.setMusicVolume(newVal.doubleValue());
+        });
+        settingsMenu.getSoundEffectVolumeSlider().valueProperty().addListener((obs, oldVal, newVal) -> {
+            audioManager.setSoundEffectVolume(newVal.doubleValue());
+        });
+
+        // Set initial slider values from audio manager
+        settingsMenu.getMasterVolumeSlider().setValue(audioManager.getMasterVolume());
+        settingsMenu.getMusicVolumeSlider().setValue(audioManager.getMusicVolume());
+        settingsMenu.getSoundEffectVolumeSlider().setValue(audioManager.getSoundEffectVolume());
+
+
         settingsMenu.setOnKeyBindings(() -> {
+            if (audioManager != null) {
+                audioManager.playSoundEffect("click.wav");
+            }
             hideSettingsMenu();
             showKeyBindingsMenu();
         });
 
         settingsMenu.setOnThemeSelection(() -> {
+            if (audioManager != null) {
+                audioManager.playSoundEffect("click.wav");
+            }
             // to do
         });
 
         settingsMenu.setOnBack(() -> {
+            if (audioManager != null) {
+                audioManager.playSoundEffect("click.wav");
+            }
             hideSettingsMenu();
         });
 
@@ -971,6 +1048,9 @@ public class GuiController implements Initializable {
         keyBindingsMenu.setVisible(false);
 
         keyBindingsMenu.setOnBack(() -> {
+            if (audioManager != null) {
+                audioManager.playSoundEffect("click.wav");
+            }
             hideKeyBindingsMenu();
             showSettingsMenu();
         });

@@ -49,6 +49,7 @@ public class GuiController implements Initializable {
     @FXML
     private GameOverPanel gameOverPanel;
 
+    private PauseMenu pauseMenu;
     private NextBrickPanel nextBrickPanel;
     private HoldBrickPanel holdBrickPanel;
     private GridPane ghostPanel;
@@ -125,8 +126,18 @@ public class GuiController implements Initializable {
         gamePanel.setOnKeyPressed(new EventHandler<KeyEvent>() {
             @Override
             public void handle(KeyEvent keyEvent) {
+                KeyCode code = keyEvent.getCode();
+                if (code == KeyCode.ESCAPE && Boolean.FALSE.equals(isGameOver.getValue())) {
+                    togglePauseMenu();
+                    keyEvent.consume();
+                    return;
+                }
+                if (Boolean.TRUE.equals(isPause.getValue()) && pauseMenu != null && pauseMenu.isVisible()) {
+                    pauseMenu.fireEvent(keyEvent);
+                    keyEvent.consume();
+                    return;
+                }
                 if (Boolean.FALSE.equals(isPause.getValue()) && Boolean.FALSE.equals(isGameOver.getValue()) && eventListener != null) {
-                    KeyCode code = keyEvent.getCode();
                     if (code == KeyCode.LEFT || code == KeyCode.A) {
                         refreshBrick(eventListener.onLeftEvent(new MoveEvent(EventType.LEFT, EventSource.USER)));
                         keyEvent.consume();
@@ -150,9 +161,6 @@ public class GuiController implements Initializable {
                         }
                         keyEvent.consume();
                     }
-                }
-                if (keyEvent.getCode() == KeyCode.N) {
-                    newGame(null);
                 }
             }
         });
@@ -441,29 +449,7 @@ public class GuiController implements Initializable {
     }
 
     public void pauseGame(ActionEvent actionEvent) {
-        if (timeLine == null) {
-            return;
-        }
-        if (Boolean.TRUE.equals(isPause.getValue())) {
-            timeLine.play();
-            if (lockDelayCheckTimeline != null) {
-                lockDelayCheckTimeline.play();
-            }
-            if (gameTimeTimeline != null) {
-                gameTimeTimeline.play();
-            }
-            isPause.setValue(Boolean.FALSE);
-        } else {
-            timeLine.stop();
-            if (lockDelayCheckTimeline != null) {
-                lockDelayCheckTimeline.play();
-            }
-            if (gameTimeTimeline != null) {
-                gameTimeTimeline.play();
-            }
-            isPause.setValue(Boolean.TRUE);
-        }
-        gamePanel.requestFocus();
+        togglePauseMenu();
     }
 
     private void initializeNextBrickPanel() {
@@ -590,6 +576,132 @@ public class GuiController implements Initializable {
         if (statsPanelRight != null) {
             positionStatsPanelRight(scene);
         }
+        if (pauseMenu != null) {
+            centerPauseMenu(scene);
+        }
+    }
+
+    private void initializePauseMenu() {
+        pauseMenu = new PauseMenu();
+        pauseMenu.setVisible(false);
+
+        pauseMenu.setOnResume(() -> {
+            resumeGame();
+        });
+
+        pauseMenu.setOnRestart(() -> {
+            restartGame();
+        });
+
+        pauseMenu.setOnMainMenu(() -> {
+            restartGame();
+        });
+
+        Platform.runLater(() -> {
+            Scene scene = gameBoard.getScene();
+            if (scene != null) {
+                Pane rootPane = (Pane) scene.getRoot();
+                rootPane.getChildren().add(pauseMenu);
+                pauseMenu.toFront();
+                centerPauseMenu(scene);
+            }
+        });
+    }
+
+    private void centerPauseMenu(Scene scene) {
+        if (pauseMenu == null) return;
+
+        double boardCenterX = gameBoard.getLayoutX() + (300 + 24) / 2;
+        double boardCenterY = gameBoard.getLayoutY() + (600 + 24) / 2;
+
+        pauseMenu.setLayoutX(boardCenterX - pauseMenu.getPrefWidth() / 2);
+        pauseMenu.setLayoutY(boardCenterY - pauseMenu.getPrefHeight() / 2);
+    }
+
+    private void togglePauseMenu() {
+        if (timeLine == null) {
+            return;
+        }
+
+        if (Boolean.TRUE.equals(isPause.getValue())) {
+            resumeGame();
+        } else {
+            pauseGame();
+        }
+    }
+
+    private void pauseGame() {
+        timeLine.stop();
+        if (lockDelayCheckTimeline != null) {
+            lockDelayCheckTimeline.stop();
+        }
+        if (gameTimeTimeline != null) {
+            gameTimeTimeline.stop();
+        }
+        isPause.setValue(Boolean.TRUE);
+
+        if (pauseMenu == null) {
+            initializePauseMenu();
+        }
+
+        pauseMenu.setVisible(true);
+        Platform.runLater(() -> {
+            Scene scene = gameBoard.getScene();
+            if (scene != null) {
+                pauseMenu.toFront();
+                centerPauseMenu(scene);
+                pauseMenu.requestFocusForNavigation();
+            }
+        });
+    }
+
+    private void resumeGame() {
+        timeLine.play();
+        if (lockDelayCheckTimeline != null) {
+            lockDelayCheckTimeline.play();
+        }
+        if (gameTimeTimeline != null) {
+            gameTimeTimeline.play();
+        }
+        isPause.setValue(Boolean.FALSE);
+
+        if (pauseMenu != null) {
+            pauseMenu.setVisible(false);
+        }
+
+        gamePanel.requestFocus();
+    }
+
+    private void restartGame() {
+        timeLine.stop();
+        if (lockDelayCheckTimeline != null) {
+            lockDelayCheckTimeline.stop();
+        }
+        if (gameTimeTimeline != null) {
+            gameTimeTimeline.stop();
+        }
+
+        if (pauseMenu != null) {
+            pauseMenu.setVisible(false);
+        }
+
+        gameOverPanel.setVisible(false);
+        eventListener.createNewGame();
+        updateNextBrickPanel();
+
+        totalLinesCleared = 0;
+        gameStartTime = System.currentTimeMillis();
+        updateStatsPanel();
+        updateStatsPanelRight();
+        startGameTimer();
+
+        gamePanel.requestFocus();
+        timeLine.play();
+        if (lockDelayCheckTimeline != null) {
+            lockDelayCheckTimeline.play();
+        }
+        isPause.setValue(Boolean.FALSE);
+        isGameOver.setValue(Boolean.FALSE);
     }
 
     private void centerNotificationGroup(Scene scene) {

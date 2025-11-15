@@ -1,5 +1,5 @@
 .root {
-    -fx-background-image: url("background_image.png");
+    -fx-background-image: url("assets/images/default.png");
 }
 
 .nextBrick {

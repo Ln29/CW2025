@@ -48,6 +48,7 @@ public class GuiController implements Initializable {
 
     private PauseMenu pauseMenu;
     private MainMenu mainMenu;
+    private SettingsMenu settingsMenu;
     private GameOverMenu gameOverMenu;
     private NextBrickPanel nextBrickPanel;
     private HoldBrickPanel holdBrickPanel;
@@ -758,7 +759,7 @@ public class GuiController implements Initializable {
         });
 
         mainMenu.setOnSettings(() -> {
-            // to do
+            showSettingsMenu();
         });
 
         mainMenu.setOnExit(() -> {
@@ -861,6 +862,73 @@ public class GuiController implements Initializable {
                     stage.close();
                 }
             }
+        }
+    }
+
+    private void initializeSettingsMenu() {
+        settingsMenu = new SettingsMenu();
+        settingsMenu.setVisible(false);
+
+        settingsMenu.setOnKeyBindings(() -> {
+            // to do
+        });
+
+        settingsMenu.setOnThemeSelection(() -> {
+            // to do
+        });
+
+        settingsMenu.setOnBack(() -> {
+            hideSettingsMenu();
+        });
+
+        Platform.runLater(() -> {
+            Scene scene = gameBoard.getScene();
+            if (scene != null) {
+                Pane rootPane = (Pane) scene.getRoot();
+                if (rootPane.getChildren().contains(settingsMenu)) {
+                    rootPane.getChildren().remove(settingsMenu);
+                }
+                rootPane.getChildren().add(settingsMenu);
+                settingsMenu.toFront();
+                centerSettingsMenu(scene);
+            }
+        });
+    }
+
+    private void centerSettingsMenu(Scene scene) {
+        if (settingsMenu == null) return;
+
+        double sceneWidth = scene.getWidth();
+        double sceneHeight = scene.getHeight();
+
+        settingsMenu.setLayoutX((sceneWidth - settingsMenu.getPrefWidth()) / 2);
+        settingsMenu.setLayoutY((sceneHeight - settingsMenu.getPrefHeight()) / 2);
+    }
+
+    public void showSettingsMenu() {
+        if (settingsMenu == null) {
+            initializeSettingsMenu();
+        }
+
+        settingsMenu.setVisible(true);
+        Platform.runLater(() -> {
+            Scene scene = gameBoard.getScene();
+            if (scene != null) {
+                Pane rootPane = (Pane) scene.getRoot();
+                if (rootPane.getChildren().contains(settingsMenu)) {
+                    rootPane.getChildren().remove(settingsMenu);
+                }
+                rootPane.getChildren().add(settingsMenu);
+                settingsMenu.toFront();
+                centerSettingsMenu(scene);
+                settingsMenu.requestFocusForNavigation();
+            }
+        });
+    }
+
+    public void hideSettingsMenu() {
+        if (settingsMenu != null) {
+            settingsMenu.setVisible(false);
         }
     }
 

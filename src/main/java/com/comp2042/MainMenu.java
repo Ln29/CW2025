@@ -22,7 +22,7 @@ public class MainMenu extends VBox {
 
     public MainMenu() {
         try {
-            Image bgImage = new Image(getClass().getClassLoader().getResource("main_menu.png").toExternalForm());
+            Image bgImage = new Image(getClass().getClassLoader().getResource("assets/images/main_menu.png").toExternalForm());
             BackgroundImage backgroundImage = new BackgroundImage(
                     bgImage,
                     BackgroundRepeat.NO_REPEAT,

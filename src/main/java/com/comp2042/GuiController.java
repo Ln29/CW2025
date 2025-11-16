@@ -32,7 +32,7 @@ import java.util.ResourceBundle;
 public class GuiController implements Initializable {
 
     private static final int BRICK_SIZE = 30;
-    private static final int HIDDEN_ROW_COUNT = 2;
+    private static final int HIDDEN_ROW_COUNT = 2; // Top 2 rows are hidden
 
     @FXML
     private BorderPane gameBoard;
@@ -47,22 +47,24 @@ public class GuiController implements Initializable {
     private GridPane brickPanel;
 
     private PauseMenu pauseMenu;
+    private GameOverMenu gameOverMenu;
     private MainMenu mainMenu;
     private SettingsMenu settingsMenu;
     private KeyBindingsMenu keyBindingsMenu;
+    private ThemeMenu themeMenu;
     private KeyBindingsConfig keyBindingsConfig;
+    private ThemeConfig themeConfig;
     private AudioManager audioManager;
-    private GameOverMenu gameOverMenu;
     private NextBrickPanel nextBrickPanel;
     private HoldBrickPanel holdBrickPanel;
-    private GridPane ghostPanel;
-    private Rectangle[][] ghostRectangles;
-    private Board board;
     private Stage primaryStage;
     private StatsPanel statsPanel;
     private StatsPanelRight statsPanelRight;
+    private GridPane ghostPanel;
+    private Rectangle[][] ghostRectangles;
+    private Board board;
 
-    //stats track
+    // Game stats
     private int totalLinesCleared = 0;
     private int highScore = 0;
     private long gameStartTime = 0;
@@ -72,16 +74,12 @@ public class GuiController implements Initializable {
     private ViewData initialBrickData = null;
 
     private Rectangle[][] displayMatrix;
-
     private InputEventListener eventListener;
-
     private Rectangle[][] rectangles;
-
     private Timeline timeLine;
     private Timeline lockDelayCheckTimeline;
 
     private final BooleanProperty isPause = new SimpleBooleanProperty();
-
     private final BooleanProperty isGameOver = new SimpleBooleanProperty();
 
     @Override
@@ -89,13 +87,14 @@ public class GuiController implements Initializable {
         Font.loadFont(getClass().getClassLoader().getResource("digital.ttf").toExternalForm(), 38);
         BorderPane.setAlignment(gamePanel, Pos.CENTER);
         gamePanel.setStyle("-fx-background-color: rgba(0, 0, 0, 0.3);");
-        //prevent flashing at (0,0)
-        brickPanel.setVisible(false);
+        brickPanel.setVisible(false); // Prevent flashing at (0,0)
 
         keyBindingsConfig = KeyBindingsConfig.getInstance();
+        themeConfig = ThemeConfig.getInstance();
+        updateBackgroundImage();
         audioManager = AudioManager.getInstance();
 
-        // Center the BorderPane in the root Pane
+        // Center game board after scene is ready
         Platform.runLater(() -> {
             Scene scene = gameBoard.getScene();
             if (scene != null) {
@@ -104,9 +103,10 @@ public class GuiController implements Initializable {
                 if (initialBrickData != null && rectangles != null && rectangles.length > 0) {
                     refreshBrick(initialBrickData);
                 }
-                if (nextBrickPanel == null) {
+
+                if (nextBrickPanel == null){
                     initializeNextBrickPanel();
-                } else {
+                }else{
                     updateNextBrickPanel();
                 }
                 if (holdBrickPanel == null) {
@@ -134,6 +134,7 @@ public class GuiController implements Initializable {
             public void handle(KeyEvent keyEvent) {
                 KeyCode code = keyEvent.getCode();
 
+                // Handle pause key
                 KeyBindingsConfig.Action pauseAction = keyBindingsConfig != null ? keyBindingsConfig.getAction(code) : null;
                 if ((code == KeyCode.ESCAPE || (pauseAction == KeyBindingsConfig.Action.PAUSE)) && Boolean.FALSE.equals(isGameOver.getValue())) {
                     if (keyBindingsMenu == null || !keyBindingsMenu.isVisible()) {
@@ -143,26 +144,44 @@ public class GuiController implements Initializable {
                     }
                 }
 
+                // Route events to active menu
                 if (Boolean.TRUE.equals(isPause.getValue()) && pauseMenu != null && pauseMenu.isVisible()) {
                     pauseMenu.fireEvent(keyEvent);
                     keyEvent.consume();
                     return;
                 }
+
                 if (Boolean.TRUE.equals(isGameOver.getValue()) && gameOverMenu != null && gameOverMenu.isVisible()) {
                     gameOverMenu.fireEvent(keyEvent);
                     keyEvent.consume();
                     return;
                 }
+
                 if (settingsMenu != null && settingsMenu.isVisible()) {
                     settingsMenu.fireEvent(keyEvent);
                     keyEvent.consume();
                     return;
                 }
+
                 if (keyBindingsMenu != null && keyBindingsMenu.isVisible()) {
                     keyBindingsMenu.fireEvent(keyEvent);
                     keyEvent.consume();
                     return;
                 }
+
+                if (themeMenu != null && themeMenu.isVisible()) {
+                    themeMenu.fireEvent(keyEvent);
+                    keyEvent.consume();
+                    return;
+                }
+
+                if (mainMenu != null && mainMenu.isVisible()) {
+                    mainMenu.fireEvent(keyEvent);
+                    keyEvent.consume();
+                    return;
+                }
+
+                // Handle game controls
                 if (Boolean.FALSE.equals(isPause.getValue()) && Boolean.FALSE.equals(isGameOver.getValue()) && eventListener != null) {
                     KeyBindingsConfig.Action action = keyBindingsConfig.getAction(code);
                     if (action != null) {
@@ -207,8 +226,8 @@ public class GuiController implements Initializable {
     }
 
     public void initGameView(int[][] boardMatrix, ViewData brick) {
+        // Initialize display matrix (visible rows only)
         displayMatrix = new Rectangle[boardMatrix.length][boardMatrix[0].length];
-        // Only render rows 2-21 (visible 20 rows), rows 0-1 are hidden
         for (int i = HIDDEN_ROW_COUNT; i <= 21 && i < boardMatrix.length; i++) {
             for (int j = 0; j < boardMatrix[i].length; j++) {
                 Rectangle rectangle = new Rectangle(BRICK_SIZE, BRICK_SIZE);
@@ -219,6 +238,7 @@ public class GuiController implements Initializable {
             }
         }
 
+        // Initialize brick rectangles
         rectangles = new Rectangle[brick.getBrickData().length][brick.getBrickData()[0].length];
         for (int i = 0; i < brick.getBrickData().length; i++) {
             for (int j = 0; j < brick.getBrickData()[i].length; j++) {
@@ -231,59 +251,47 @@ public class GuiController implements Initializable {
         initialBrickData = brick;
 
         initializeGhostPanel(brick.getBrickData().length, brick.getBrickData()[0].length);
-
         drawGridLines();
 
+        // Main game loop
         timeLine = new Timeline(new KeyFrame(
                 Duration.millis(400),
                 ae -> moveDown(new MoveEvent(EventType.DOWN, EventSource.THREAD))
         ));
         timeLine.setCycleCount(Timeline.INDEFINITE);
 
+        // Lock delay checker
         lockDelayCheckTimeline = new Timeline(new KeyFrame(
                 Duration.millis(50),
                 ae -> checkLockDelay()
         ));
         lockDelayCheckTimeline.setCycleCount(Timeline.INDEFINITE);
+
+        // Start paused (wait for main menu)
         isPause.setValue(Boolean.TRUE);
     }
 
-
-
     private Paint getFillColor(int i) {
+        if (themeConfig != null) {
+            return themeConfig.getBrickColor(i);
+        }
+        // Default colors
         Paint returnPaint;
         switch (i) {
-            case 0:
-                returnPaint = Color.TRANSPARENT;
-                break;
-            case 1:
-                returnPaint = Color.AQUA;
-                break;
-            case 2:
-                returnPaint = Color.BLUEVIOLET;
-                break;
-            case 3:
-                returnPaint = Color.DARKGREEN;
-                break;
-            case 4:
-                returnPaint = Color.YELLOW;
-                break;
-            case 5:
-                returnPaint = Color.RED;
-                break;
-            case 6:
-                returnPaint = Color.BEIGE;
-                break;
-            case 7:
-                returnPaint = Color.BURLYWOOD;
-                break;
-            default:
-                returnPaint = Color.WHITE;
-                break;
+            case 0: returnPaint = Color.TRANSPARENT; break;
+            case 1: returnPaint = Color.AQUA; break;
+            case 2: returnPaint = Color.BLUEVIOLET; break;
+            case 3: returnPaint = Color.DARKGREEN; break;
+            case 4: returnPaint = Color.YELLOW; break;
+            case 5: returnPaint = Color.RED; break;
+            case 6: returnPaint = Color.BEIGE; break;
+            case 7: returnPaint = Color.BURLYWOOD; break;
+            default: returnPaint = Color.WHITE; break;
         }
         return returnPaint;
     }
 
+    // Get semi-transparent color for ghost brick outline
     private Paint getGhostStrokeColor(int i) {
         Paint baseColor = getFillColor(i);
         if (baseColor == Color.TRANSPARENT) {
@@ -296,25 +304,23 @@ public class GuiController implements Initializable {
         return baseColor;
     }
 
-
     private void refreshBrick(ViewData brick) {
         if (isPause.getValue() == Boolean.FALSE) {
-            //only position and show brick if board is centered
+            // Position brick panel only when board is centered
             if (boardCentered && gameBoard.getLayoutX() > 0) {
                 positionBrickPanel(brick);
                 brickPanel.setVisible(true);
                 brickPanel.toFront();
             } else {
-                //Hide brick until board is properly positioned
                 brickPanel.setVisible(false);
             }
-            //hide cells that are in hidden rows
+
+            // Only show cells in visible rows
             int brickY = brick.getyPosition();
             for (int i = 0; i < brick.getBrickData().length; i++) {
                 for (int j = 0; j < brick.getBrickData()[i].length; j++) {
                     int cellValue = brick.getBrickData()[i][j];
                     int boardRow = brickY + i;
-                    //only show cells that are in visible rows
                     if (boardRow >= HIDDEN_ROW_COUNT) {
                         setRectangleData(cellValue, rectangles[i][j]);
                     } else {
@@ -322,6 +328,7 @@ public class GuiController implements Initializable {
                     }
                 }
             }
+
             refreshGhostBrick();
         }
     }
@@ -343,10 +350,8 @@ public class GuiController implements Initializable {
     private void moveDown(MoveEvent event) {
         if (isPause.getValue() == Boolean.FALSE) {
             DownData downData = eventListener.onDownEvent(event);
-
             if (downData.getClearRow() != null) {
                 if (downData.getClearRow().getLinesRemoved() > 0) {
-                    // Lines were cleared
                     totalLinesCleared += downData.getClearRow().getLinesRemoved();
                     updateStatsPanel();
                     NotificationPanel notificationPanel = new NotificationPanel("+" + downData.getClearRow().getScoreBonus());
@@ -355,12 +360,10 @@ public class GuiController implements Initializable {
                     }
                     groupNotification.getChildren().add(notificationPanel);
                     notificationPanel.showScore(groupNotification.getChildren());
-                    // Play clear line sound effect
                     if (audioManager != null) {
                         audioManager.playSoundEffect("clearline.wav");
                     }
                 } else {
-                    // Block locked but no lines cleared
                     if (audioManager != null) {
                         audioManager.playSoundEffect("blockfall.wav");
                     }
@@ -382,7 +385,6 @@ public class GuiController implements Initializable {
             DownData downData = eventListener.onHardDropEvent();
             if (downData.getClearRow() != null) {
                 if (downData.getClearRow().getLinesRemoved() > 0) {
-                    // Lines were cleared
                     totalLinesCleared += downData.getClearRow().getLinesRemoved();
                     updateStatsPanel();
                     NotificationPanel notificationPanel = new NotificationPanel("+" + downData.getClearRow().getScoreBonus());
@@ -391,12 +393,10 @@ public class GuiController implements Initializable {
                     }
                     groupNotification.getChildren().add(notificationPanel);
                     notificationPanel.showScore(groupNotification.getChildren());
-                    // Play clear line sound effect
                     if (audioManager != null) {
                         audioManager.playSoundEffect("clearline.wav");
                     }
                 } else {
-                    // Block locked but no lines cleared
                     if (audioManager != null) {
                         audioManager.playSoundEffect("blockfall.wav");
                     }
@@ -415,7 +415,6 @@ public class GuiController implements Initializable {
 
     private void checkLockDelay() {
         if (isPause.getValue() == Boolean.FALSE && board != null && eventListener != null) {
-            // Check if lock delay has expired
             if (board.shouldLockPiece()) {
                 DownData downData = eventListener.onDownEvent(new MoveEvent(EventType.DOWN, EventSource.THREAD));
                 if (downData.getClearRow() != null && downData.getClearRow().getLinesRemoved() > 0) {
@@ -451,7 +450,6 @@ public class GuiController implements Initializable {
             integerProperty.addListener((obs, oldVal, newVal) -> {
                 updateStatsPanelRight();
                 updateStatsPanel();
-                // Update high score if current score exceeds it
                 if (newVal.intValue() > highScore) {
                     highScore = newVal.intValue();
                     updateStatsPanel();
@@ -468,10 +466,13 @@ public class GuiController implements Initializable {
         if (gameTimeTimeline != null) {
             gameTimeTimeline.stop();
         }
+        isGameOver.setValue(Boolean.TRUE);
+
         if (audioManager != null) {
+            audioManager.stopAllMusic();
             audioManager.playSoundEffect("lose.wav");
         }
-        isGameOver.setValue(Boolean.TRUE);
+
         if (gameOverMenu == null) {
             initializeGameOverMenu();
         }
@@ -498,7 +499,6 @@ public class GuiController implements Initializable {
         eventListener.createNewGame();
         updateNextBrickPanel();
 
-        // Reset game stats
         totalLinesCleared = 0;
         gameStartTime = System.currentTimeMillis();
         updateStatsPanel();
@@ -520,7 +520,6 @@ public class GuiController implements Initializable {
 
     private void initializeNextBrickPanel() {
         nextBrickPanel = new NextBrickPanel();
-        // Add to root pane
         Platform.runLater(() -> {
             Scene scene = gameBoard.getScene();
             if (scene != null) {
@@ -535,8 +534,8 @@ public class GuiController implements Initializable {
     private void positionNextBrickPanel(Scene scene) {
         if (nextBrickPanel == null) return;
 
-        double boardWidth = 300 + 24; // 324px
-        double boardHeight = 600 + 24; // 624px
+        double boardWidth = 300 + 24;
+        double boardHeight = 600 + 24;
         double boardX = gameBoard.getLayoutX();
         double boardY = gameBoard.getLayoutY();
 
@@ -566,7 +565,7 @@ public class GuiController implements Initializable {
         if (holdBrickPanel == null) return;
 
         double boardWidth = 300 + 24;
-        double boardHeight = 600 + 24; // 624px
+        double boardHeight = 600 + 24;
         double boardX = gameBoard.getLayoutX();
         double boardY = gameBoard.getLayoutY();
 
@@ -589,7 +588,7 @@ public class GuiController implements Initializable {
         double totalWidth = 10 * BRICK_SIZE + 9 * hgap;
         double totalHeight = 20 * BRICK_SIZE + 19 * vgap;
 
-        //vertical lines
+        // Vertical lines
         for (int i = 0; i <= 10; i++) {
             Line verticalLine = new Line();
             double x = i * cellWidth;
@@ -604,7 +603,7 @@ public class GuiController implements Initializable {
             verticalLine.toBack();
         }
 
-        //horizontal lines
+        // Horizontal lines
         for (int i = 0; i <= 20; i++) {
             Line horizontalLine = new Line();
             double y = i * cellHeight;
@@ -621,12 +620,9 @@ public class GuiController implements Initializable {
     }
 
     private void centerGameBoard(Scene scene) {
-        // Board dimensions: 10 columns × 30px = 300px, 20 rows × 30px = 600px
-        // Add border width (12px on each side = 24px total)
-        double boardWidth = 300 + 24; // 324px
-        double boardHeight = 600 + 24; // 624px
+        double boardWidth = 300 + 24;
+        double boardHeight = 600 + 24;
 
-        // Center the BorderPane in the scene
         double centerX = (scene.getWidth() - boardWidth) / 2;
         double centerY = (scene.getHeight() - boardHeight) / 2;
 
@@ -635,7 +631,6 @@ public class GuiController implements Initializable {
 
         positionHoldBrickPanel(scene);
         positionNextBrickPanel(scene);
-
         if (statsPanel != null) {
             positionStatsPanel(scene);
         }
@@ -656,6 +651,7 @@ public class GuiController implements Initializable {
     private void initializeGameOverMenu() {
         gameOverMenu = new GameOverMenu();
         gameOverMenu.setVisible(false);
+
         gameOverMenu.setOnRestart(() -> {
             if (audioManager != null) {
                 audioManager.playSoundEffect("click.wav");
@@ -664,8 +660,11 @@ public class GuiController implements Initializable {
         });
 
         gameOverMenu.setOnMainMenu(() -> {
+            if (audioManager != null) {
+                audioManager.playSoundEffect("click.wav");
+            }
             restartGame();
-            hideMainMenu(); //hidden first
+            hideMainMenu();
             showMainMenu();
         });
 
@@ -693,6 +692,7 @@ public class GuiController implements Initializable {
     private void initializePauseMenu() {
         pauseMenu = new PauseMenu();
         pauseMenu.setVisible(false);
+
         pauseMenu.setOnResume(() -> {
             if (audioManager != null) {
                 audioManager.playSoundEffect("click.wav");
@@ -759,6 +759,10 @@ public class GuiController implements Initializable {
         }
         isPause.setValue(Boolean.TRUE);
 
+        if (audioManager != null) {
+            audioManager.pauseAllMusic();
+        }
+
         if (pauseMenu == null) {
             initializePauseMenu();
         }
@@ -784,6 +788,10 @@ public class GuiController implements Initializable {
         }
         isPause.setValue(Boolean.FALSE);
 
+        if (audioManager != null) {
+            audioManager.resumeAllMusic();
+        }
+
         if (pauseMenu != null) {
             pauseMenu.setVisible(false);
         }
@@ -803,6 +811,7 @@ public class GuiController implements Initializable {
         if (pauseMenu != null) {
             pauseMenu.setVisible(false);
         }
+
         if (gameOverMenu != null) {
             gameOverMenu.setVisible(false);
         }
@@ -814,6 +823,13 @@ public class GuiController implements Initializable {
         updateStatsPanel();
         updateStatsPanelRight();
         startGameTimer();
+
+        if (audioManager != null) {
+            String musicFile = (themeConfig != null && themeConfig.getMusicFile() != null)
+                    ? themeConfig.getMusicFile()
+                    : "default.wav";
+            audioManager.playGameMusic(musicFile);
+        }
 
         gamePanel.requestFocus();
         timeLine.play();
@@ -828,7 +844,6 @@ public class GuiController implements Initializable {
         mainMenu = new MainMenu();
         mainMenu.setVisible(false);
 
-        // Set up button callbacks
         mainMenu.setOnStart(() -> {
             if (audioManager != null) {
                 audioManager.playSoundEffect("click.wav");
@@ -837,10 +852,16 @@ public class GuiController implements Initializable {
         });
 
         mainMenu.setOnSettings(() -> {
+            if (audioManager != null) {
+                audioManager.playSoundEffect("click.wav");
+            }
             showSettingsMenu();
         });
 
         mainMenu.setOnExit(() -> {
+            if (audioManager != null) {
+                audioManager.playSoundEffect("click.wav");
+            }
             exitGame();
         });
 
@@ -883,9 +904,11 @@ public class GuiController implements Initializable {
         if (gameTimeTimeline != null) {
             gameTimeTimeline.stop();
         }
+
         if (brickPanel != null) {
             brickPanel.setVisible(false);
         }
+
         if (audioManager != null) {
             audioManager.playMainMenuMusic();
         }
@@ -916,7 +939,10 @@ public class GuiController implements Initializable {
         hideMainMenu();
 
         if (audioManager != null) {
-            audioManager.playGameMusic();
+            String musicFile = (themeConfig != null && themeConfig.getMusicFile() != null)
+                    ? themeConfig.getMusicFile()
+                    : "default.wav";
+            audioManager.playGameMusic(musicFile);
         }
 
         isPause.setValue(Boolean.FALSE);
@@ -954,6 +980,7 @@ public class GuiController implements Initializable {
         settingsMenu = new SettingsMenu();
         settingsMenu.setVisible(false);
 
+        // Link volume sliders to audio manager
         settingsMenu.getMasterVolumeSlider().valueProperty().addListener((obs, oldVal, newVal) -> {
             audioManager.setMasterVolume(newVal.doubleValue());
         });
@@ -964,11 +991,9 @@ public class GuiController implements Initializable {
             audioManager.setSoundEffectVolume(newVal.doubleValue());
         });
 
-        // Set initial slider values from audio manager
         settingsMenu.getMasterVolumeSlider().setValue(audioManager.getMasterVolume());
         settingsMenu.getMusicVolumeSlider().setValue(audioManager.getMusicVolume());
         settingsMenu.getSoundEffectVolumeSlider().setValue(audioManager.getSoundEffectVolume());
-
 
         settingsMenu.setOnKeyBindings(() -> {
             if (audioManager != null) {
@@ -982,7 +1007,8 @@ public class GuiController implements Initializable {
             if (audioManager != null) {
                 audioManager.playSoundEffect("click.wav");
             }
-            // to do
+            hideSettingsMenu();
+            showThemeMenu();
         });
 
         settingsMenu.setOnBack(() -> {
@@ -1056,7 +1082,7 @@ public class GuiController implements Initializable {
         });
 
         keyBindingsMenu.setOnBindingsChanged(() -> {
-            // The key handling will automatically use the new bindings
+            // Key bindings changed
         });
 
         Platform.runLater(() -> {
@@ -1111,6 +1137,125 @@ public class GuiController implements Initializable {
         }
     }
 
+    private void initializeThemeMenu() {
+        themeMenu = new ThemeMenu();
+        themeMenu.setVisible(false);
+
+        themeMenu.setOnBack(() -> {
+            if (audioManager != null) {
+                audioManager.playSoundEffect("click.wav");
+            }
+            hideThemeMenu();
+            showSettingsMenu();
+            if (audioManager != null && (Boolean.TRUE.equals(isPause.getValue()) || Boolean.TRUE.equals(isGameOver.getValue()))) {
+                audioManager.playMainMenuMusic();
+            }
+        });
+
+        themeMenu.setOnThemeSelected((theme) -> {
+            if (audioManager != null) {
+                audioManager.playSoundEffect("click.wav");
+            }
+            if (themeConfig != null) {
+                themeConfig.setTheme(theme);
+                updateBackgroundImage();
+                if (audioManager != null) {
+                    audioManager.playGameMusic(theme.getMusicFile());
+                }
+                refreshAllBrickDisplays();
+            }
+        });
+
+        Platform.runLater(() -> {
+            Scene scene = gameBoard.getScene();
+            if (scene != null) {
+                Pane rootPane = (Pane) scene.getRoot();
+                if (rootPane.getChildren().contains(themeMenu)) {
+                    rootPane.getChildren().remove(themeMenu);
+                }
+                rootPane.getChildren().add(themeMenu);
+                themeMenu.toFront();
+                centerThemeMenu(scene);
+            }
+        });
+    }
+
+    private void centerThemeMenu(Scene scene) {
+        if (themeMenu == null) return;
+
+        double sceneWidth = scene.getWidth();
+        double sceneHeight = scene.getHeight();
+
+        themeMenu.setLayoutX((sceneWidth - themeMenu.getPrefWidth()) / 2);
+        themeMenu.setLayoutY((sceneHeight - themeMenu.getPrefHeight()) / 2);
+    }
+
+    public void showThemeMenu() {
+        if (themeMenu == null) {
+            initializeThemeMenu();
+        }
+
+        themeMenu.setVisible(true);
+        Platform.runLater(() -> {
+            Scene scene = gameBoard.getScene();
+            if (scene != null) {
+                Pane rootPane = (Pane) scene.getRoot();
+                if (rootPane.getChildren().contains(themeMenu)) {
+                    rootPane.getChildren().remove(themeMenu);
+                }
+                rootPane.getChildren().add(themeMenu);
+                themeMenu.toFront();
+                centerThemeMenu(scene);
+                themeMenu.requestFocusForNavigation();
+            }
+        });
+    }
+
+    public void hideThemeMenu() {
+        if (themeMenu != null) {
+            themeMenu.setVisible(false);
+        }
+    }
+
+    private void updateBackgroundImage() {
+        if (themeConfig != null) {
+            String imagePath = themeConfig.getBackgroundImage();
+            if (imagePath != null) {
+                try {
+                    javafx.scene.image.Image bgImage = new javafx.scene.image.Image(
+                            getClass().getClassLoader().getResource("assets/images/" + imagePath).toExternalForm()
+                    );
+                    javafx.scene.layout.BackgroundImage backgroundImage = new javafx.scene.layout.BackgroundImage(
+                            bgImage,
+                            javafx.scene.layout.BackgroundRepeat.NO_REPEAT,
+                            javafx.scene.layout.BackgroundRepeat.NO_REPEAT,
+                            javafx.scene.layout.BackgroundPosition.CENTER,
+                            new javafx.scene.layout.BackgroundSize(javafx.scene.layout.BackgroundSize.AUTO, javafx.scene.layout.BackgroundSize.AUTO, false, false, true, true)
+                    );
+                    Platform.runLater(() -> {
+                        Scene scene = gameBoard.getScene();
+                        if (scene != null) {
+                            Pane rootPane = (Pane) scene.getRoot();
+                            rootPane.setBackground(new javafx.scene.layout.Background(backgroundImage));
+                        }
+                    });
+                } catch (Exception e) {
+                    System.err.println("Error updating background image: " + e.getMessage());
+                }
+            }
+        }
+    }
+
+    private void refreshAllBrickDisplays() {
+        if (board != null) {
+            refreshBrick(board.getViewData());
+            refreshGameBackground(board.getBoardMatrix());
+        }
+        updateNextBrickPanel();
+        updateHoldBrickPanel();
+        refreshGhostBrick();
+    }
+
     public void setPrimaryStage(Stage stage) {
         this.primaryStage = stage;
     }
@@ -1124,6 +1269,7 @@ public class GuiController implements Initializable {
         brickPanel.setLayoutY(y);
     }
 
+    // Initialize ghost brick panel (4x4 max size)
     private void initializeGhostPanel(int rows, int cols) {
         ghostPanel = new GridPane();
         ghostPanel.setHgap(brickPanel.getHgap());
@@ -1155,6 +1301,7 @@ public class GuiController implements Initializable {
         });
     }
 
+    // Update ghost brick display
     private void refreshGhostBrick() {
         if (board == null || ghostPanel == null || ghostRectangles == null) {
             return;
@@ -1167,7 +1314,7 @@ public class GuiController implements Initializable {
             return;
         }
 
-        //position
+        // Position ghost panel
         if (boardCentered && gameBoard.getLayoutX() > 0) {
             double x = gameBoard.getLayoutX() + gamePanel.getLayoutX() + ghostBrick.getxPosition() * (ghostPanel.getVgap() + BRICK_SIZE);
             double cellSize = ghostPanel.getHgap() + BRICK_SIZE;
@@ -1181,11 +1328,10 @@ public class GuiController implements Initializable {
             ghostPanel.setVisible(false);
         }
 
-        //update ghost brick cells
         int[][] ghostData = ghostBrick.getBrickData();
         int ghostY = ghostBrick.getyPosition();
 
-        //clear all ghost rectangles first
+        // Clear all ghost cells
         for (int i = 0; i < ghostRectangles.length; i++) {
             for (int j = 0; j < ghostRectangles[i].length; j++) {
                 ghostRectangles[i][j].setFill(Color.TRANSPARENT);
@@ -1193,6 +1339,7 @@ public class GuiController implements Initializable {
             }
         }
 
+        // Draw ghost outline
         for (int i = 0; i < ghostData.length && i < ghostRectangles.length; i++) {
             for (int j = 0; j < ghostData[i].length && j < ghostRectangles[i].length; j++) {
                 int cellValue = ghostData[i][j];
@@ -1207,7 +1354,7 @@ public class GuiController implements Initializable {
                 }
             }
         }
-        //background < ghost < brick
+
         ghostPanel.toBack();
         brickPanel.toFront();
     }
@@ -1228,8 +1375,8 @@ public class GuiController implements Initializable {
     private void positionStatsPanel(Scene scene) {
         if (statsPanel == null) return;
 
-        double boardWidth = 300 + 24; // 324px
-        double boardHeight = 600 + 24; // 624px
+        double boardWidth = 300 + 24;
+        double boardHeight = 600 + 24;
         double boardX = gameBoard.getLayoutX();
         double boardY = gameBoard.getLayoutY();
 
@@ -1239,13 +1386,8 @@ public class GuiController implements Initializable {
     private void updateStatsPanel() {
         if (statsPanel == null) return;
 
-        // Update lines
         statsPanel.updateLines(totalLinesCleared);
-
-        // Update level (placeholder - showing 1 for now)
         statsPanel.updateLevel(1);
-
-        // Update high score
         statsPanel.updateHighScore(highScore);
     }
 
@@ -1263,7 +1405,7 @@ public class GuiController implements Initializable {
 
         gameStartTime = System.currentTimeMillis();
         gameTimeTimeline = new Timeline(new KeyFrame(
-                Duration.millis(1000), // Update every second
+                Duration.millis(1000),
                 ae -> updateGameTime()
         ));
         gameTimeTimeline.setCycleCount(Timeline.INDEFINITE);
@@ -1297,8 +1439,8 @@ public class GuiController implements Initializable {
     private void positionStatsPanelRight(Scene scene) {
         if (statsPanelRight == null) return;
 
-        double boardWidth = 300 + 24; // 324px
-        double boardHeight = 600 + 24; // 624px
+        double boardWidth = 300 + 24;
+        double boardHeight = 600 + 24;
         double boardX = gameBoard.getLayoutX();
         double boardY = gameBoard.getLayoutY();
 

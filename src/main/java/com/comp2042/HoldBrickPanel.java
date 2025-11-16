@@ -92,6 +92,10 @@ public class HoldBrickPanel extends VBox {
     }
 
     private Paint getFillColor(int colorCode) {
+        ThemeConfig themeConfig = ThemeConfig.getInstance();
+        if (themeConfig != null) {
+            return themeConfig.getBrickColor(colorCode);
+        }
         switch (colorCode) {
             case 0:
                 return Color.TRANSPARENT;

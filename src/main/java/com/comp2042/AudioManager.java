@@ -12,7 +12,7 @@ public class AudioManager {
     private MediaPlayer musicPlayer;
     private MediaPlayer menuMusicPlayer;
     private double masterVolume = 1.0;
-    private double musicVolume = 1.0;
+    private double musicVolume = 0.5;
     private double soundEffectVolume = 1.0;
 
     private AudioManager() {
@@ -43,9 +43,13 @@ public class AudioManager {
     }
 
     public void playGameMusic() {
+        playGameMusic("default.wav");
+    }
+
+    public void playGameMusic(String musicFile) {
         stopAllMusic();
         try {
-            URL resource = getClass().getClassLoader().getResource("assets/sound/Music/default.wav");
+            URL resource = getClass().getClassLoader().getResource("assets/sound/Music/" + musicFile);
             if (resource != null) {
                 Media media = new Media(resource.toExternalForm());
                 musicPlayer = new MediaPlayer(media);
@@ -66,6 +70,26 @@ public class AudioManager {
         if (menuMusicPlayer != null) {
             menuMusicPlayer.stop();
             menuMusicPlayer = null;
+        }
+    }
+
+    public void pauseAllMusic() {
+        if (musicPlayer != null) {
+            musicPlayer.pause();
+        }
+        if (menuMusicPlayer != null) {
+            menuMusicPlayer.pause();
+        }
+    }
+
+    public void resumeAllMusic() {
+        if (musicPlayer != null) {
+            musicPlayer.play();
+            updateGameMusicVolume();
+        }
+        if (menuMusicPlayer != null) {
+            menuMusicPlayer.play();
+            updateMenuMusicVolume();
         }
     }
 

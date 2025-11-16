@@ -13,7 +13,6 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
-import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
 
@@ -43,13 +42,12 @@ public class GuiController implements Initializable {
     private AudioManager audioManager;
     private GameLifecycle gameLifecycle;
     private PanelManager panelManager;
-    private GridRenderer gridRenderer = new GridRenderer();
     private ThemeApplier themeApplier;
     // menus managed by MenuController
     private Stage primaryStage;
     // stats/side panels managed by PanelManager
     private InputHandler inputHandler;
-    private GhostRenderer ghostRenderer;
+    private GameRenderer gameRenderer;
     private Board board;
     private NotificationService notificationService;
 
@@ -57,12 +55,7 @@ public class GuiController implements Initializable {
     private GameState gameState = new GameState();
     private StatsUpdater statsUpdater = new StatsUpdater();
 
-    private boolean boardCentered = false;
-    private ViewData initialBrickData = null;
-
-    private Rectangle[][] displayMatrix;
     private InputEventListener eventListener;
-    private Rectangle[][] rectangles;
 
     private final BooleanProperty isPause = new SimpleBooleanProperty();
     private final BooleanProperty isGameOver = new SimpleBooleanProperty();
@@ -82,6 +75,18 @@ public class GuiController implements Initializable {
         // Apply current theme visuals once at startup (no game music yet)
         applyTheme(themeConfig.getCurrentTheme(), false);
         notificationService = new NotificationService(audioManager, groupNotification, GameConstants.NOTIFICATION_MAX);
+        // Renderer (panelManager attached when ready in Ui.run)
+        gameRenderer = new GameRenderer(
+                gameBoard,
+                gamePanel,
+                brickPanel,
+                BRICK_SIZE,
+                HIDDEN_ROW_COUNT,
+                this::getFillColor,
+                isPause,
+                () -> board,
+                null
+        );
         // Menus factory with callbacks
         MenuFactory menuFactory = new MenuFactory(audioManager, new MenuCallbacks() {
             @Override
@@ -183,10 +188,13 @@ public class GuiController implements Initializable {
                     menuController.setMenuManager(MenuManager.ensure(null, gameBoard));
                 }
                 panelManager = new PanelManager(gameBoard, board, statsUpdater, gameState);
+                if (gameRenderer != null) {
+                    gameRenderer.setPanelManager(panelManager);
+                }
                 centerGameBoard(scene);
-                boardCentered = true;
-                if (initialBrickData != null && rectangles != null && rectangles.length > 0) {
-                    refreshBrick(initialBrickData);
+                if (gameRenderer != null) {
+                    gameRenderer.setBoardCentered(true);
+                    gameRenderer.refreshAfterCenter();
                 }
 
                 panelManager.initializeNextBrickPanel(scene);
@@ -203,19 +211,19 @@ public class GuiController implements Initializable {
             @Override
             public void moveLeft() {
                 if (eventListener != null) {
-                    postMoveRefresh(eventListener.onLeftEvent(new MoveEvent(EventType.LEFT, EventSource.USER)));
+                    gameRenderer.postMoveRefresh(eventListener.onLeftEvent(new MoveEvent(EventType.LEFT, EventSource.USER)));
                 }
             }
             @Override
             public void moveRight() {
                 if (eventListener != null) {
-                    postMoveRefresh(eventListener.onRightEvent(new MoveEvent(EventType.RIGHT, EventSource.USER)));
+                    gameRenderer.postMoveRefresh(eventListener.onRightEvent(new MoveEvent(EventType.RIGHT, EventSource.USER)));
                 }
             }
             @Override
             public void rotate() {
                 if (eventListener != null) {
-                    postMoveRefresh(eventListener.onRotateEvent(new MoveEvent(EventType.ROTATE, EventSource.USER)));
+                    gameRenderer.postMoveRefresh(eventListener.onRotateEvent(new MoveEvent(EventType.ROTATE, EventSource.USER)));
                 }
             }
             @Override
@@ -229,7 +237,7 @@ public class GuiController implements Initializable {
             @Override
             public void hold() {
                 if (board != null && board.holdBrick()) {
-                    refreshBrick(board.getViewData());
+                    gameRenderer.refreshBrick(board.getViewData());
                     if (panelManager != null) {
                         panelManager.updateHoldBrickPanel();
                         panelManager.updateNextBrickPanel();
@@ -251,39 +259,9 @@ public class GuiController implements Initializable {
     }
 
     public void initGameView(int[][] boardMatrix, ViewData brick) {
-        // Initialize display matrix (visible rows only)
-        displayMatrix = new Rectangle[boardMatrix.length][boardMatrix[0].length];
-        for (int i = HIDDEN_ROW_COUNT; i <= 21 && i < boardMatrix.length; i++) {
-            for (int j = 0; j < boardMatrix[i].length; j++) {
-                Rectangle rectangle = new Rectangle(BRICK_SIZE, BRICK_SIZE);
-                rectangle.setFill(Color.TRANSPARENT);
-                displayMatrix[i][j] = rectangle;
-                gamePanel.add(rectangle, j, i - HIDDEN_ROW_COUNT);
-                rectangle.toFront();
-            }
+        if (gameRenderer != null) {
+            gameRenderer.initGameView(boardMatrix, brick);
         }
-
-        // Initialize brick rectangles
-        rectangles = new Rectangle[brick.getBrickData().length][brick.getBrickData()[0].length];
-        for (int i = 0; i < brick.getBrickData().length; i++) {
-            for (int j = 0; j < brick.getBrickData()[i].length; j++) {
-                Rectangle rectangle = new Rectangle(BRICK_SIZE, BRICK_SIZE);
-                rectangle.setFill(getFillColor(brick.getBrickData()[i][j]));
-                rectangles[i][j] = rectangle;
-                brickPanel.add(rectangle, j, i);
-            }
-        }
-        initialBrickData = brick;
-
-        // Initialize ghost renderer
-        ghostRenderer = new GhostRenderer(gameBoard, gamePanel, brickPanel, BRICK_SIZE, HIDDEN_ROW_COUNT, this::getFillColor);
-        Ui.run(() -> {
-            Scene scene = gameBoard.getScene();
-            if (scene != null) {
-                ghostRenderer.addToScene(scene);
-            }
-        });
-        gridRenderer.drawGridLines(gamePanel, BRICK_SIZE);
 
         // Initialize timers in lifecycle
         if (gameLifecycle != null) {
@@ -322,56 +300,7 @@ public class GuiController implements Initializable {
         return returnPaint;
     }
 
-    // Ghost stroke color computed in GhostRenderer
-
-    private void refreshBrick(ViewData brick) {
-        if (isPause.getValue() == Boolean.FALSE) {
-            // Position brick panel only when board is centered
-            if (boardCentered && gameBoard.getLayoutX() > 0) {
-                positionBrickPanel(brick);
-                brickPanel.setVisible(true);
-                brickPanel.toFront();
-            } else {
-                brickPanel.setVisible(false);
-            }
-
-            // Only show cells in visible rows
-            int brickY = brick.getyPosition();
-            for (int i = 0; i < brick.getBrickData().length; i++) {
-                for (int j = 0; j < brick.getBrickData()[i].length; j++) {
-                    int cellValue = brick.getBrickData()[i][j];
-                    int boardRow = brickY + i;
-                    if (boardRow >= HIDDEN_ROW_COUNT) {
-                        setRectangleData(cellValue, rectangles[i][j]);
-                    } else {
-                        rectangles[i][j].setFill(Color.TRANSPARENT);
-                    }
-                }
-            }
-
-            if (ghostRenderer != null && board != null) {
-                ghostRenderer.render(board.getGhostBrick(), boardCentered);
-            }
-        }
-    }
-
-    private void postMoveRefresh(ViewData viewData) {
-        refreshBrick(viewData);
-        if (panelManager != null) panelManager.updateNextBrickPanel();
-        if (panelManager != null) panelManager.updateStatsPanels();
-    }
-
-    public void refreshGameBackground(int[][] board) {
-        if (gridRenderer != null) {
-            gridRenderer.refreshGameBackground(board, displayMatrix, this::getFillColor, HIDDEN_ROW_COUNT);
-        }
-    }
-
-    private void setRectangleData(int color, Rectangle rectangle) {
-        if (gridRenderer != null) {
-            gridRenderer.setRectangleData(color, rectangle, this::getFillColor);
-        }
-    }
+    // Ghost stroke color computed in GhostRenderer (via GameRenderer)
 
     private void moveDown(MoveEvent event) {
         if (isPause.getValue() == Boolean.FALSE) {
@@ -387,7 +316,7 @@ public class GuiController implements Initializable {
                     notificationService.onLinesCleared(removed, bonus);
                 }
             }
-            postMoveRefresh(downData.getViewData());
+            if (gameRenderer != null) gameRenderer.postMoveRefresh(downData.getViewData());
             if (board != null) {
                 board.resetHoldUsage();
             }
@@ -409,7 +338,7 @@ public class GuiController implements Initializable {
                     notificationService.onLinesCleared(removed, bonus);
                 }
             }
-            postMoveRefresh(downData.getViewData());
+            if (gameRenderer != null) gameRenderer.postMoveRefresh(downData.getViewData());
             if (board != null) {
                 board.resetHoldUsage();
             }
@@ -428,7 +357,7 @@ public class GuiController implements Initializable {
                         notificationService.onLinesCleared(downData.getClearRow().getLinesRemoved(), downData.getClearRow().getScoreBonus());
                     }
                 }
-                postMoveRefresh(downData.getViewData());
+                if (gameRenderer != null) gameRenderer.postMoveRefresh(downData.getViewData());
                 if (board != null) {
                     board.resetHoldUsage();
                 }
@@ -635,25 +564,24 @@ public class GuiController implements Initializable {
 
     private void refreshAllBrickDisplays() {
         if (board != null) {
-            refreshBrick(board.getViewData());
-            refreshGameBackground(board.getBoardMatrix());
+            if (gameRenderer != null) {
+                gameRenderer.refreshBrick(board.getViewData());
+                gameRenderer.refreshGameBackground(board.getBoardMatrix());
+            }
         }
         if (panelManager != null) panelManager.updateNextBrickPanel();
         if (panelManager != null) panelManager.updateHoldBrickPanel();
-        if (ghostRenderer != null && board != null) {
-            ghostRenderer.render(board.getGhostBrick(), boardCentered);
+    }
+
+    // Backwards-compatible delegation for existing callers
+    public void refreshGameBackground(int[][] boardMatrix) {
+        if (gameRenderer != null) {
+            gameRenderer.refreshGameBackground(boardMatrix);
         }
     }
 
     public void setPrimaryStage(Stage stage) {
         this.primaryStage = stage;
-    }
-
-    private void positionBrickPanel(ViewData brick) {
-        if (panelManager != null) {
-            // Use underlying PanelPositioner via PanelManager for brick panel positioning
-            new PanelPositioner(gameBoard).positionBrickPanel(brickPanel, gamePanel, brick);
-        }
     }
 
 }

@@ -104,7 +104,7 @@ public class GameLifecycle {
         if (isGameOver != null) isGameOver.setValue(Boolean.TRUE);
         if (audioManager != null) {
             audioManager.stopAllMusic();
-            audioManager.playSoundEffect("lose.wav");
+            audioManager.playSoundEffect(GameConstants.SFX_LOSE);
         }
     }
 
@@ -113,7 +113,7 @@ public class GameLifecycle {
         if (isGameOver != null) isGameOver.setValue(Boolean.TRUE);
         if (audioManager != null) {
             audioManager.stopAllMusic();
-            audioManager.playSoundEffect("lose.wav");
+            audioManager.playSoundEffect(GameConstants.SFX_LOSE);
         }
     }
 }

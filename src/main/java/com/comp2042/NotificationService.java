@@ -28,12 +28,12 @@ public class NotificationService {
     public void onLinesCleared(int linesRemoved, int bonus) {
         if (linesRemoved > 0) {
             if (audioManager != null) {
-                audioManager.playSoundEffect("clearline.wav");
+                audioManager.playSoundEffect(GameConstants.SFX_CLEAR_LINE);
             }
             showScoreBonus(bonus);
         } else {
             if (audioManager != null) {
-                audioManager.playSoundEffect("blockfall.wav");
+                audioManager.playSoundEffect(GameConstants.SFX_BLOCK_FALL);
             }
         }
     }

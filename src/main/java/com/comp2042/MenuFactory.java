@@ -117,7 +117,7 @@ public class MenuFactory {
 
     private void click() {
         if (audioManager != null) {
-            audioManager.playSoundEffect("click.wav");
+            audioManager.playSoundEffect(GameConstants.SFX_CLICK);
         }
     }
 }

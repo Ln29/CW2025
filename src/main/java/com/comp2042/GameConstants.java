@@ -24,4 +24,10 @@ public final class GameConstants {
 
     // Notifications
     public static final int NOTIFICATION_MAX = 5;
+
+    // Sound effects file names
+    public static final String SFX_CLICK = "click.wav";
+    public static final String SFX_CLEAR_LINE = "clearline.wav";
+    public static final String SFX_BLOCK_FALL = "blockfall.wav";
+    public static final String SFX_LOSE = "lose.wav";
 }

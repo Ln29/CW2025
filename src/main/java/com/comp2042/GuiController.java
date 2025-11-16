@@ -211,13 +211,13 @@ public class GuiController implements Initializable {
         // Build input action map
         java.util.Map<KeyBindingsConfig.Action, Runnable> actionHandlers = new java.util.EnumMap<>(KeyBindingsConfig.Action.class);
         actionHandlers.put(KeyBindingsConfig.Action.MOVE_LEFT, () -> {
-            refreshBrick(eventListener.onLeftEvent(new MoveEvent(EventType.LEFT, EventSource.USER)));
+            postMoveRefresh(eventListener.onLeftEvent(new MoveEvent(EventType.LEFT, EventSource.USER)));
         });
         actionHandlers.put(KeyBindingsConfig.Action.MOVE_RIGHT, () -> {
-            refreshBrick(eventListener.onRightEvent(new MoveEvent(EventType.RIGHT, EventSource.USER)));
+            postMoveRefresh(eventListener.onRightEvent(new MoveEvent(EventType.RIGHT, EventSource.USER)));
         });
         actionHandlers.put(KeyBindingsConfig.Action.ROTATE, () -> {
-            refreshBrick(eventListener.onRotateEvent(new MoveEvent(EventType.ROTATE, EventSource.USER)));
+            postMoveRefresh(eventListener.onRotateEvent(new MoveEvent(EventType.ROTATE, EventSource.USER)));
         });
         actionHandlers.put(KeyBindingsConfig.Action.SOFT_DROP, () -> {
             moveDown(new MoveEvent(EventType.DOWN, EventSource.USER));
@@ -369,6 +369,12 @@ public class GuiController implements Initializable {
         }
     }
 
+    private void postMoveRefresh(ViewData viewData) {
+        refreshBrick(viewData);
+        updateNextBrickPanel();
+        statsUpdater.updateAllStats(gameState, board, statsPanel, statsPanelRight);
+    }
+
     public void refreshGameBackground(int[][] board) {
         if (gridRenderer != null) {
             gridRenderer.refreshGameBackground(board, displayMatrix, this::getFillColor, HIDDEN_ROW_COUNT);
@@ -395,9 +401,7 @@ public class GuiController implements Initializable {
                     notificationService.onLinesCleared(removed, bonus);
                 }
             }
-            refreshBrick(downData.getViewData());
-            updateNextBrickPanel();
-            statsUpdater.updateAllStats(gameState, board, statsPanel, statsPanelRight);
+            postMoveRefresh(downData.getViewData());
             if (board != null) {
                 board.resetHoldUsage();
             }
@@ -419,9 +423,7 @@ public class GuiController implements Initializable {
                     notificationService.onLinesCleared(removed, bonus);
                 }
             }
-            refreshBrick(downData.getViewData());
-            updateNextBrickPanel();
-            statsUpdater.updateAllStats(gameState, board, statsPanel, statsPanelRight);
+            postMoveRefresh(downData.getViewData());
             if (board != null) {
                 board.resetHoldUsage();
             }
@@ -440,9 +442,7 @@ public class GuiController implements Initializable {
                         notificationService.onLinesCleared(downData.getClearRow().getLinesRemoved(), downData.getClearRow().getScoreBonus());
                     }
                 }
-                refreshBrick(downData.getViewData());
-                updateNextBrickPanel();
-                updateStatsPanelRight();
+                postMoveRefresh(downData.getViewData());
                 if (board != null) {
                     board.resetHoldUsage();
                 }

@@ -75,7 +75,7 @@ public class GuiController implements Initializable {
     private GameRenderer gameRenderer;
     private Board board;
     private NotificationService notificationService;
-    
+
     // Game state
     private GameState gameState = new GameState();
     private StatsUpdater statsUpdater = new StatsUpdater();
@@ -91,7 +91,7 @@ public class GuiController implements Initializable {
         BorderPane.setAlignment(gamePanel, Pos.CENTER);
         gamePanel.setStyle("-fx-background-color: rgba(0, 0, 0, 0.3);");
         brickPanel.setVisible(false); // Prevent flashing at (0,0)
-        
+
         keyBindingsConfig = KeyBindingsConfig.getInstance();
         themeConfig = ThemeConfig.getInstance();
         audioManager = AudioManager.getInstance();
@@ -300,7 +300,7 @@ public class GuiController implements Initializable {
                     }
             );
         }
-        
+
         // Start paused (wait for main menu)
         isPause.setValue(Boolean.TRUE);
     }
@@ -342,9 +342,6 @@ public class GuiController implements Initializable {
                 }
             }
             if (gameRenderer != null) gameRenderer.postMoveRefresh(downData.getViewData());
-            if (board != null) {
-                board.resetHoldUsage();
-            }
         }
         gamePanel.requestFocus();
     }
@@ -364,9 +361,6 @@ public class GuiController implements Initializable {
                 }
             }
             if (gameRenderer != null) gameRenderer.postMoveRefresh(downData.getViewData());
-            if (board != null) {
-                board.resetHoldUsage();
-            }
         }
         gamePanel.requestFocus();
     }
@@ -383,9 +377,6 @@ public class GuiController implements Initializable {
                     }
                 }
                 if (gameRenderer != null) gameRenderer.postMoveRefresh(downData.getViewData());
-                if (board != null) {
-                    board.resetHoldUsage();
-                }
             }
         }
     }
@@ -421,16 +412,16 @@ public class GuiController implements Initializable {
         }
         eventListener.createNewGame();
         if (panelManager != null) panelManager.updateNextBrickPanel();
-        
+
         gameState.resetLines();
         gameState.setGameStartTimeNow();
         if (panelManager != null) panelManager.updateStatsPanels();
         statsUpdater.startTimer(gameState);
-        
+
         if (gameLifecycle != null) {
             gameLifecycle.startTimers();
-        isPause.setValue(Boolean.FALSE);
-        isGameOver.setValue(Boolean.FALSE);
+            isPause.setValue(Boolean.FALSE);
+            isGameOver.setValue(Boolean.FALSE);
         }
         gamePanel.requestFocus();
     }
@@ -467,47 +458,47 @@ public class GuiController implements Initializable {
             if (menuController != null) menuController.showPauseMenu(gameBoard);
         }
     }
-    
+
     private void restartGame() {
         if (gameLifecycle != null) {
             gameLifecycle.stopTimers();
         }
-        
+
         if (menuController != null) {
             menuController.hidePauseMenu();
             menuController.hideGameOverMenu();
         }
         eventListener.createNewGame();
         if (panelManager != null) panelManager.updateNextBrickPanel();
-        
+
         gameState.resetLines();
         gameState.setGameStartTimeNow();
         if (panelManager != null) panelManager.updateStatsPanels();
         statsUpdater.startTimer(gameState);
-        
+
         if (audioManager != null) {
             String musicFile = (themeConfig != null && themeConfig.getMusicFile() != null)
                     ? themeConfig.getMusicFile()
                     : "default.wav";
             audioManager.playGameMusic(musicFile);
         }
-        
+
         if (gameLifecycle != null) {
             gameLifecycle.startTimers();
-        isPause.setValue(Boolean.FALSE);
-        isGameOver.setValue(Boolean.FALSE);
+            isPause.setValue(Boolean.FALSE);
+            isGameOver.setValue(Boolean.FALSE);
         }
         gamePanel.requestFocus();
     }
-    
+
     public void showMainMenu() {
         if (menuController != null) menuController.showMainMenu(gameBoard);
     }
-    
+
     public void hideMainMenu() {
         if (menuController != null) menuController.hideMainMenu();
     }
-    
+
     private void startGame() {
         hideMainMenu();
         // create first brick and refresh display
@@ -524,7 +515,7 @@ public class GuiController implements Initializable {
             panelManager.updateNextBrickPanel();
             panelManager.updateHoldBrickPanel();
         }
-        
+
         if (audioManager != null) {
             String musicFile = (themeConfig != null && themeConfig.getMusicFile() != null)
                     ? themeConfig.getMusicFile()
@@ -538,7 +529,7 @@ public class GuiController implements Initializable {
         if (panelManager != null) Ui.run(() -> panelManager.updateStatsPanels());
 
         statsUpdater.startTimer(gameState);
-        
+
         if (gameLifecycle != null) {
             gameLifecycle.startTimers();
             isPause.setValue(Boolean.FALSE);
@@ -546,7 +537,7 @@ public class GuiController implements Initializable {
         }
         gamePanel.requestFocus();
     }
-    
+
     private void exitGame() {
         if (primaryStage != null) {
             primaryStage.close();
@@ -560,33 +551,33 @@ public class GuiController implements Initializable {
             }
         }
     }
-    
+
     public void showSettingsMenu() {
         if (menuController != null) menuController.showSettingsMenu(gameBoard);
     }
-    
+
     public void hideSettingsMenu() {
         if (menuController != null) menuController.hideSettingsMenu();
     }
-    
+
     public void showKeyBindingsMenu() {
         if (menuController != null) menuController.showKeyBindingsMenu(gameBoard);
         KeyBindingsMenu km = menuController != null ? menuController.getKeyBindingsMenu() : null;
         if (km != null) km.refreshBindings();
     }
-    
+
     public void hideKeyBindingsMenu() {
         if (menuController != null) menuController.hideKeyBindingsMenu();
     }
-    
+
     public void showThemeMenu() {
         if (menuController != null) menuController.showThemeMenu(gameBoard);
     }
-    
+
     public void hideThemeMenu() {
         if (menuController != null) menuController.hideThemeMenu();
     }
-    
+
     // Theme background/music/brick colors are applied via applyTheme(...)
 
     // Single entry point for applying a theme consistently
@@ -600,7 +591,7 @@ public class GuiController implements Initializable {
             themeApplier.apply(theme, scene, this::refreshAllBrickDisplays, playMusic);
         }
     }
-    
+
     private void refreshAllBrickDisplays() {
         if (board != null) {
             if (gameRenderer != null) {
@@ -611,14 +602,14 @@ public class GuiController implements Initializable {
         if (panelManager != null) panelManager.updateNextBrickPanel();
         if (panelManager != null) panelManager.updateHoldBrickPanel();
     }
-    
+
     // Backwards-compatible delegation for existing callers
     public void refreshGameBackground(int[][] boardMatrix) {
         if (gameRenderer != null) {
             gameRenderer.refreshGameBackground(boardMatrix);
         }
     }
-    
+
     public void setPrimaryStage(Stage stage) {
         this.primaryStage = stage;
     }

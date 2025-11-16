@@ -16,4 +16,12 @@ public final class GameConstants {
     // Timings (ms)
     public static final int GAME_TICK_MS = 400;
     public static final int LOCK_CHECK_MS = 50;
+
+    // UI styling
+    public static final int RECT_ARC_RADIUS = 9;
+    public static final int GRID_STROKE_WIDTH = 1;
+    public static final int GHOST_STROKE_WIDTH = 2;
+
+    // Notifications
+    public static final int NOTIFICATION_MAX = 5;
 }

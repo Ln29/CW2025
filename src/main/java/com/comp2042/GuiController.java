@@ -19,7 +19,6 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
-import javafx.scene.shape.Line;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
@@ -101,7 +100,7 @@ public class GuiController implements Initializable {
         themeApplier = new ThemeApplier(themeConfig, audioManager);
         // Apply current theme visuals once at startup (no game music yet)
         applyTheme(themeConfig.getCurrentTheme(), false);
-        notificationService = new NotificationService(audioManager, groupNotification, 5);
+        notificationService = new NotificationService(audioManager, groupNotification, GameConstants.NOTIFICATION_MAX);
         // Menus factory with callbacks
         menuFactory = new MenuFactory(audioManager, new MenuCallbacks() {
             @Override
@@ -215,19 +214,39 @@ public class GuiController implements Initializable {
 
         gamePanel.setFocusTraversable(true);
         gamePanel.requestFocus();
+        // Build input action map
+        java.util.Map<KeyBindingsConfig.Action, Runnable> actionHandlers = new java.util.EnumMap<>(KeyBindingsConfig.Action.class);
+        actionHandlers.put(KeyBindingsConfig.Action.MOVE_LEFT, () -> {
+            refreshBrick(eventListener.onLeftEvent(new MoveEvent(EventType.LEFT, EventSource.USER)));
+        });
+        actionHandlers.put(KeyBindingsConfig.Action.MOVE_RIGHT, () -> {
+            refreshBrick(eventListener.onRightEvent(new MoveEvent(EventType.RIGHT, EventSource.USER)));
+        });
+        actionHandlers.put(KeyBindingsConfig.Action.ROTATE, () -> {
+            refreshBrick(eventListener.onRotateEvent(new MoveEvent(EventType.ROTATE, EventSource.USER)));
+        });
+        actionHandlers.put(KeyBindingsConfig.Action.SOFT_DROP, () -> {
+            moveDown(new MoveEvent(EventType.DOWN, EventSource.USER));
+        });
+        actionHandlers.put(KeyBindingsConfig.Action.HARD_DROP, this::hardDrop);
+        actionHandlers.put(KeyBindingsConfig.Action.HOLD, () -> {
+            if (board != null && board.holdBrick()) {
+                refreshBrick(board.getViewData());
+                updateHoldBrickPanel();
+                updateNextBrickPanel();
+            }
+        });
+
         gamePanel.setOnKeyPressed(new EventHandler<KeyEvent>() {
             @Override
             public void handle(KeyEvent keyEvent) {
                 KeyCode code = keyEvent.getCode();
 
-                // Handle pause key
-                KeyBindingsConfig.Action pauseAction = keyBindingsConfig != null ? keyBindingsConfig.getAction(code) : null;
-                if ((code == KeyCode.ESCAPE || (pauseAction == KeyBindingsConfig.Action.PAUSE)) && Boolean.FALSE.equals(isGameOver.getValue())) {
-                    if (keyBindingsMenu == null || !keyBindingsMenu.isVisible()) {
-                        togglePauseMenu();
-                        keyEvent.consume();
-                        return;
-                    }
+                // Handle pause key via InputRouter
+                boolean kbVisible = keyBindingsMenu != null && keyBindingsMenu.isVisible();
+                if (InputRouter.shouldTogglePause(keyEvent, keyBindingsConfig, Boolean.TRUE.equals(isGameOver.getValue()), kbVisible)) {
+                    togglePauseMenu();
+                    return;
                 }
 
                 // Route events to active overlay
@@ -243,45 +262,13 @@ public class GuiController implements Initializable {
                     return;
                 }
 
-                // Handle game controls
+                // Handle game controls via action map
                 if (Boolean.FALSE.equals(isPause.getValue()) && Boolean.FALSE.equals(isGameOver.getValue()) && eventListener != null) {
                     KeyBindingsConfig.Action action = keyBindingsConfig.getAction(code);
-                    if (action != null) {
-                        switch (action) {
-                            case MOVE_LEFT:
-                                refreshBrick(eventListener.onLeftEvent(new MoveEvent(EventType.LEFT, EventSource.USER)));
-                                keyEvent.consume();
-                                break;
-                            case MOVE_RIGHT:
-                                refreshBrick(eventListener.onRightEvent(new MoveEvent(EventType.RIGHT, EventSource.USER)));
-                                keyEvent.consume();
-                                break;
-                            case ROTATE:
-                                refreshBrick(eventListener.onRotateEvent(new MoveEvent(EventType.ROTATE, EventSource.USER)));
-                                keyEvent.consume();
-                                break;
-                            case SOFT_DROP:
-                                moveDown(new MoveEvent(EventType.DOWN, EventSource.USER));
-                                keyEvent.consume();
-                                break;
-                            case HARD_DROP:
-                                hardDrop();
-                                keyEvent.consume();
-                                break;
-                            case HOLD:
-                                if (board != null && board.holdBrick()) {
-                                    refreshBrick(board.getViewData());
-                                    updateHoldBrickPanel();
-                                    updateNextBrickPanel();
-                                }
-                                keyEvent.consume();
-                                break;
-                            case PAUSE:
-                                togglePauseMenu();
-                                keyEvent.consume();
-                                break;
-                        }
-                    }
+                    java.util.Optional.ofNullable(actionHandlers.get(action)).ifPresent(r -> {
+                        r.run();
+                        keyEvent.consume();
+                    });
                 }
             }
         });
@@ -320,7 +307,7 @@ public class GuiController implements Initializable {
                 ghostRenderer.addToScene(scene);
             }
         });
-        drawGridLines();
+        gridRenderer.drawGridLines(gamePanel, BRICK_SIZE);
 
         // Main game loop
         timeLine = new Timeline(new KeyFrame(
@@ -585,46 +572,7 @@ public class GuiController implements Initializable {
         }
     }
 
-    private void drawGridLines() {
-        Color gridColor = Color.rgb(128, 128, 128, 0.5);
-
-        double hgap = gamePanel.getHgap();
-        double vgap = gamePanel.getVgap();
-        double cellWidth = BRICK_SIZE + hgap;
-        double cellHeight = BRICK_SIZE + vgap;
-        double totalWidth = 10 * BRICK_SIZE + 9 * hgap;
-        double totalHeight = 20 * BRICK_SIZE + 19 * vgap;
-
-        // Vertical lines
-        for (int i = 0; i <= 10; i++) {
-            Line verticalLine = new Line();
-            double x = i * cellWidth;
-            verticalLine.setStartX(x);
-            verticalLine.setStartY(0);
-            verticalLine.setEndX(x);
-            verticalLine.setEndY(totalHeight);
-            verticalLine.setStroke(gridColor);
-            verticalLine.setStrokeWidth(1);
-            verticalLine.setManaged(false);
-            gamePanel.getChildren().add(0, verticalLine);
-            verticalLine.toBack();
-        }
-
-        // Horizontal lines
-        for (int i = 0; i <= 20; i++) {
-            Line horizontalLine = new Line();
-            double y = i * cellHeight;
-            horizontalLine.setStartX(0);
-            horizontalLine.setStartY(y);
-            horizontalLine.setEndX(totalWidth);
-            horizontalLine.setEndY(y);
-            horizontalLine.setStroke(gridColor);
-            horizontalLine.setStrokeWidth(1);
-            horizontalLine.setManaged(false);
-            gamePanel.getChildren().add(0, horizontalLine);
-            horizontalLine.toBack();
-        }
-    }
+    // Grid lines are drawn by GridRenderer.drawGridLines
 
     private void centerGameBoard(Scene scene) {
         LayoutHelper.centerGameBoard(scene, gameBoard);

@@ -16,6 +16,21 @@ public final class InputRouter {
         GAME_OVER
     }
 
+    public static boolean shouldTogglePause(KeyEvent keyEvent,
+                                            KeyBindingsConfig bindings,
+                                            boolean isGameOver,
+                                            boolean keyBindingsVisible) {
+        if (isGameOver) return false;
+        final var code = keyEvent.getCode();
+        KeyBindingsConfig.Action mapped = bindings != null ? bindings.getAction(code) : null;
+        boolean isPauseKey = (code == javafx.scene.input.KeyCode.ESCAPE) || (mapped == KeyBindingsConfig.Action.PAUSE);
+        if (isPauseKey && !keyBindingsVisible) {
+            keyEvent.consume();
+            return true;
+        }
+        return false;
+    }
+
     public static boolean route(Overlay overlay,
                                 KeyEvent keyEvent,
                                 MainMenu mainMenu,

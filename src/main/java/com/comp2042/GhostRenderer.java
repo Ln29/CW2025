@@ -50,8 +50,8 @@ public class GhostRenderer {
             for (int j = 0; j < maxSize; j++) {
                 Rectangle rect = new Rectangle(brickSize, brickSize);
                 rect.setFill(Color.TRANSPARENT);
-                rect.setArcHeight(9);
-                rect.setArcWidth(9);
+                rect.setArcHeight(GameConstants.RECT_ARC_RADIUS);
+                rect.setArcWidth(GameConstants.RECT_ARC_RADIUS);
                 ghostRectangles[i][j] = rect;
                 ghostPanel.add(rect, j, i);
             }

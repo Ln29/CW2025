@@ -178,9 +178,9 @@ public class GuiController implements Initializable {
 
         // Center game board after scene is ready
         Ui.run(() -> {
-            Scene scene = gameBoard.getScene();
+            Scene scene = SceneAccessor.sceneOf(gameBoard);
             if (scene != null) {
-                Pane rootPane = (Pane) scene.getRoot();
+                Pane rootPane = SceneAccessor.rootOf(gameBoard);
                 menuManager = new MenuManager(rootPane, gameBoard);
                 panelPositioner = new PanelPositioner(gameBoard);
                 centerGameBoard(scene);
@@ -487,10 +487,10 @@ public class GuiController implements Initializable {
         }
 
         Ui.run(() -> {
-            Scene scene = gameBoard.getScene();
+            Scene scene = SceneAccessor.sceneOf(gameBoard);
             if (scene != null) {
                 if (menuManager == null) {
-                    menuManager = new MenuManager((Pane) scene.getRoot(), gameBoard);
+                    menuManager = new MenuManager(SceneAccessor.rootOf(gameBoard), gameBoard);
                 }
                 menuManager.showCenteredOnBoard(gameOverMenu);
                 gameOverMenu.requestFocusForNavigation();
@@ -523,9 +523,9 @@ public class GuiController implements Initializable {
     private void initializeNextBrickPanel() {
         nextBrickPanel = new NextBrickPanel();
         Ui.run(() -> {
-            Scene scene = gameBoard.getScene();
+            Scene scene = SceneAccessor.sceneOf(gameBoard);
             if (scene != null) {
-                Pane rootPane = (Pane) scene.getRoot();
+                Pane rootPane = SceneAccessor.rootOf(gameBoard);
                 rootPane.getChildren().add(nextBrickPanel);
                 positionNextBrickPanel(scene);
                 updateNextBrickPanel();
@@ -549,9 +549,9 @@ public class GuiController implements Initializable {
     private void initializeHoldBrickPanel() {
         holdBrickPanel = new HoldBrickPanel();
         Ui.run(() -> {
-            Scene scene = gameBoard.getScene();
+            Scene scene = SceneAccessor.sceneOf(gameBoard);
             if (scene != null) {
-                Pane rootPane = (Pane) scene.getRoot();
+                Pane rootPane = SceneAccessor.rootOf(gameBoard);
                 rootPane.getChildren().add(holdBrickPanel);
                 positionHoldBrickPanel(scene);
                 updateHoldBrickPanel();
@@ -664,10 +664,10 @@ public class GuiController implements Initializable {
         }
 
         Ui.run(() -> {
-            Scene scene = gameBoard.getScene();
+            Scene scene = SceneAccessor.sceneOf(gameBoard);
             if (scene != null) {
                 if (menuManager == null) {
-                    menuManager = new MenuManager((Pane) scene.getRoot(), gameBoard);
+                    menuManager = new MenuManager(SceneAccessor.rootOf(gameBoard), gameBoard);
                 }
                 menuManager.showAndFocusOnBoard(pauseMenu, () -> pauseMenu.requestFocusForNavigation());
             }
@@ -725,9 +725,9 @@ public class GuiController implements Initializable {
         mainMenu = menuFactory.ensureMainMenu();
 
         Ui.run(() -> {
-            Scene scene = gameBoard.getScene();
+            Scene scene = SceneAccessor.sceneOf(gameBoard);
             if (scene != null) {
-                Pane rootPane = (Pane) scene.getRoot();
+                Pane rootPane = SceneAccessor.rootOf(gameBoard);
                 if (menuManager == null) {
                     menuManager = new MenuManager(rootPane, gameBoard);
                 }
@@ -762,9 +762,9 @@ public class GuiController implements Initializable {
         }
 
         Ui.run(() -> {
-            Scene scene = gameBoard.getScene();
+            Scene scene = SceneAccessor.sceneOf(gameBoard);
             if (scene != null) {
-                Pane rootPane = (Pane) scene.getRoot();
+                Pane rootPane = SceneAccessor.rootOf(gameBoard);
                 if (menuManager == null) {
                     menuManager = new MenuManager(rootPane, gameBoard);
                 }
@@ -839,9 +839,9 @@ public class GuiController implements Initializable {
         settingsMenu.getSoundEffectVolumeSlider().setValue(audioManager.getSoundEffectVolume());
 
         Ui.run(() -> {
-            Scene scene = gameBoard.getScene();
+            Scene scene = SceneAccessor.sceneOf(gameBoard);
             if (scene != null) {
-                Pane rootPane = (Pane) scene.getRoot();
+                Pane rootPane = SceneAccessor.rootOf(gameBoard);
                 if (menuManager == null) {
                     menuManager = new MenuManager(rootPane, gameBoard);
                 }
@@ -857,9 +857,9 @@ public class GuiController implements Initializable {
         }
 
         Ui.run(() -> {
-            Scene scene = gameBoard.getScene();
+            Scene scene = SceneAccessor.sceneOf(gameBoard);
             if (scene != null) {
-                Pane rootPane = (Pane) scene.getRoot();
+                Pane rootPane = SceneAccessor.rootOf(gameBoard);
                 if (menuManager == null) {
                     menuManager = new MenuManager(rootPane, gameBoard);
                 }
@@ -886,9 +886,9 @@ public class GuiController implements Initializable {
         keyBindingsMenu = menuFactory.ensureKeyBindingsMenu();
 
         Ui.run(() -> {
-            Scene scene = gameBoard.getScene();
+            Scene scene = SceneAccessor.sceneOf(gameBoard);
             if (scene != null) {
-                Pane rootPane = (Pane) scene.getRoot();
+                Pane rootPane = SceneAccessor.rootOf(gameBoard);
                 if (menuManager == null) {
                     menuManager = new MenuManager(rootPane, gameBoard);
                 }
@@ -906,9 +906,9 @@ public class GuiController implements Initializable {
         keyBindingsMenu.setVisible(true);
         keyBindingsMenu.refreshBindings();
         Ui.run(() -> {
-            Scene scene = gameBoard.getScene();
+            Scene scene = SceneAccessor.sceneOf(gameBoard);
             if (scene != null) {
-                Pane rootPane = (Pane) scene.getRoot();
+                Pane rootPane = SceneAccessor.rootOf(gameBoard);
                 if (menuManager == null) {
                     menuManager = new MenuManager(rootPane, gameBoard);
                 }
@@ -931,9 +931,9 @@ public class GuiController implements Initializable {
         themeMenu = menuFactory.ensureThemeMenu();
 
         Ui.run(() -> {
-            Scene scene = gameBoard.getScene();
+            Scene scene = SceneAccessor.sceneOf(gameBoard);
             if (scene != null) {
-                Pane rootPane = (Pane) scene.getRoot();
+                Pane rootPane = SceneAccessor.rootOf(gameBoard);
                 if (menuManager == null) {
                     menuManager = new MenuManager(rootPane, gameBoard);
                 }
@@ -949,9 +949,9 @@ public class GuiController implements Initializable {
         }
 
         Ui.run(() -> {
-            Scene scene = gameBoard.getScene();
+            Scene scene = SceneAccessor.sceneOf(gameBoard);
             if (scene != null) {
-                Pane rootPane = (Pane) scene.getRoot();
+                Pane rootPane = SceneAccessor.rootOf(gameBoard);
                 if (menuManager == null) {
                     menuManager = new MenuManager(rootPane, gameBoard);
                 }
@@ -978,7 +978,7 @@ public class GuiController implements Initializable {
     }
 
     private void applyTheme(ThemeMenu.Theme theme, boolean playMusic) {
-        Scene scene = gameBoard != null ? gameBoard.getScene() : null;
+        Scene scene = SceneAccessor.sceneOf(gameBoard);
         if (themeApplier != null) {
             themeApplier.apply(theme, scene, this::refreshAllBrickDisplays, playMusic);
         }
@@ -1012,9 +1012,9 @@ public class GuiController implements Initializable {
     private void initializeStatsPanel() {
         statsPanel = new StatsPanel();
         Ui.run(() -> {
-            Scene scene = gameBoard.getScene();
+            Scene scene = SceneAccessor.sceneOf(gameBoard);
             if (scene != null) {
-                Pane rootPane = (Pane) scene.getRoot();
+                Pane rootPane = SceneAccessor.rootOf(gameBoard);
                 rootPane.getChildren().add(statsPanel);
                 positionStatsPanel(scene);
                 updateStatsPanel();
@@ -1066,7 +1066,7 @@ public class GuiController implements Initializable {
     private void initializeStatsPanelRight() {
         statsPanelRight = new StatsPanelRight();
         Ui.run(() -> {
-            Scene scene = gameBoard.getScene();
+            Scene scene = SceneAccessor.sceneOf(gameBoard);
             if (scene != null) {
                 statsPanelRight.addToScene(scene);
                 positionStatsPanelRight(scene);

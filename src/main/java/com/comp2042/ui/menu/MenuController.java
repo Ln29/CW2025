@@ -14,6 +14,7 @@ public class MenuController {
     private SettingsMenu settingsMenu;
     private KeyBindingsMenu keyBindingsMenu;
     private ThemeMenu themeMenu;
+    private ModeSelectionMenu modeSelectionMenu;
 
     private MenuManager menuManager;
     private final MenuFactory menuFactory;
@@ -276,6 +277,40 @@ public class MenuController {
 
     public ThemeMenu getThemeMenu() {
         return themeMenu;
+    }
+
+    public void initializeModeSelectionMenu(BorderPane gameBoard) {
+        if (modeSelectionMenu == null) {
+            modeSelectionMenu = menuFactory.ensureModeSelectionMenu();
+            Pane root = SceneAccessor.rootOf(gameBoard);
+            if (root != null && !root.getChildren().contains(modeSelectionMenu)) {
+                root.getChildren().add(modeSelectionMenu);
+            }
+        }
+    }
+
+    public void showModeSelectionMenu(BorderPane gameBoard) {
+        ensureManager(gameBoard);
+        initializeModeSelectionMenu(gameBoard);
+        if (menuManager != null && modeSelectionMenu != null) {
+            Scene scene = SceneAccessor.sceneOf(gameBoard);
+            menuManager.showCenteredOnScene(modeSelectionMenu, scene);
+            modeSelectionMenu.requestFocus();
+            activeOverlay = InputRouter.Overlay.MAIN_MENU; // Use MAIN_MENU overlay for now
+        }
+    }
+
+    public void hideModeSelectionMenu() {
+        if (menuManager != null && modeSelectionMenu != null) {
+            menuManager.hideIfVisible(modeSelectionMenu);
+        }
+        if (activeOverlay == InputRouter.Overlay.MAIN_MENU) {
+            activeOverlay = InputRouter.Overlay.NONE;
+        }
+    }
+
+    public ModeSelectionMenu getModeSelectionMenu() {
+        return modeSelectionMenu;
     }
 }
 

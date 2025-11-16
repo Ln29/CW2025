@@ -1,5 +1,6 @@
 package com.comp2042.ui.panels;
 
+import com.comp2042.controller.GameModeController;
 import com.comp2042.controller.GameState;
 import com.comp2042.core.Board;
 import com.comp2042.ui.SceneAccessor;
@@ -15,6 +16,7 @@ public class PanelManager {
     private final StatsUpdater statsUpdater;
     private final GameState gameState;
     private final PanelPositioner panelPositioner;
+    private GameModeController gameModeController;
 
     private NextBrickPanel nextBrickPanel;
     private HoldBrickPanel holdBrickPanel;
@@ -27,6 +29,10 @@ public class PanelManager {
         this.statsUpdater = statsUpdater;
         this.gameState = gameState;
         this.panelPositioner = new PanelPositioner(gameBoard);
+    }
+
+    public void setGameModeController(GameModeController gameModeController) {
+        this.gameModeController = gameModeController;
     }
 
     // Next Panel
@@ -128,7 +134,7 @@ public class PanelManager {
 
     // Combined Stats update
     public void updateStatsPanels() {
-        statsUpdater.updateAllStats(gameState, board, statsPanel, statsPanelRight);
+        statsUpdater.updateAllStats(gameState, board, statsPanel, statsPanelRight, gameModeController);
     }
 
     // Expose for timer updates
@@ -136,5 +142,3 @@ public class PanelManager {
         return statsPanel;
     }
 }
-
-

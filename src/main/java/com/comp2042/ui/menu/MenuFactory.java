@@ -14,6 +14,7 @@ public class MenuFactory {
     private ThemeMenu themeMenu;
     private PauseMenu pauseMenu;
     private GameOverMenu gameOverMenu;
+    private ModeSelectionMenu modeSelectionMenu;
 
     public MenuFactory(AudioManager audioManager, MenuCallbacks callbacks) {
         this.audioManager = audioManager;
@@ -26,7 +27,7 @@ public class MenuFactory {
         mainMenu.setVisible(false);
         mainMenu.setOnStart(() -> {
             click();
-            callbacks.onStartGame();
+            callbacks.onOpenModeSelection();
         });
         mainMenu.setOnSettings(() -> {
             click();
@@ -144,6 +145,22 @@ public class MenuFactory {
         });
         return gameOverMenu;
     }
+
+    public ModeSelectionMenu ensureModeSelectionMenu() {
+        if (modeSelectionMenu != null) return modeSelectionMenu;
+        modeSelectionMenu = new ModeSelectionMenu();
+        modeSelectionMenu.setVisible(false);
+        modeSelectionMenu.setOnStart(() -> {
+            click();
+            callbacks.onModeSelected();
+        });
+        modeSelectionMenu.setOnBack(() -> {
+            click();
+            callbacks.onBackFromModeSelection();
+        });
+        return modeSelectionMenu;
+    }
+
 
     private void click() {
         if (audioManager != null) {

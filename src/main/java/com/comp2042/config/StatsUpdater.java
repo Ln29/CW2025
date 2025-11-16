@@ -1,5 +1,6 @@
 package com.comp2042.config;
 
+import com.comp2042.controller.GameModeController;
 import com.comp2042.controller.GameState;
 import com.comp2042.core.Board;
 import com.comp2042.ui.panels.StatsPanel;
@@ -8,6 +9,10 @@ import com.comp2042.ui.panels.StatsPanelRight;
 public class StatsUpdater {
 
     public void updateAllStats(GameState state, Board board, StatsPanel statsPanel, StatsPanelRight statsPanelRight) {
+        updateAllStats(state, board, statsPanel, statsPanelRight, null);
+    }
+
+    public void updateAllStats(GameState state, Board board, StatsPanel statsPanel, StatsPanelRight statsPanelRight, GameModeController gameModeController) {
         if (state == null) return;
 
         // Update high score from current score if higher
@@ -18,8 +23,12 @@ public class StatsUpdater {
 
         if (statsPanel != null) {
             statsPanel.updateLines(state.getTotalLinesCleared());
-            // Level not tracked; keep 1 for now
-            statsPanel.updateLevel(1);
+            // Get level from game mode controller if available
+            int level = 1;
+            if (gameModeController != null) {
+                level = gameModeController.getCurrentLevel();
+            }
+            statsPanel.updateLevel(level);
             statsPanel.updateHighScore(state.getHighScore());
         }
 
@@ -46,5 +55,3 @@ public class StatsUpdater {
         statsPanel.updateTime(timeString);
     }
 }
-
-

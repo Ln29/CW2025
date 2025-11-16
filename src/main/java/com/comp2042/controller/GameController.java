@@ -57,6 +57,9 @@ public class GameController implements InputEventListener {
                 // try to create new brick, check if game over
                 if (board.createNewBrick()) {
                     viewGuiController.gameOver();
+                } else {
+                    // new brick spawned successfully; allow hold again
+                    board.resetHoldUsage();
                 }
 
                 // update the display
@@ -90,7 +93,7 @@ public class GameController implements InputEventListener {
     public DownData onHardDropEvent() {
         // hard drop the brick to the bottom
         board.hardDropBrick();
-        
+
         // merge the brick to the background
         board.mergeBrickToBackground();
         ClearRow clearRow = board.clearRows();
@@ -103,6 +106,9 @@ public class GameController implements InputEventListener {
         // try to create new brick, check if game over
         if (board.createNewBrick()) {
             viewGuiController.gameOver();
+        } else {
+            // new brick spawned successfully; allow hold again
+            board.resetHoldUsage();
         }
 
         // update the display

@@ -62,7 +62,6 @@ public class SettingsMenu extends VBox {
         // Key Bindings button (left)
         keyBindingsButton = createButton("Key Bindings");
         keyBindingsButton.setOnAction(e -> {
-            // TODO: Implement key bindings menu
             if (onKeyBindings != null) {
                 onKeyBindings.run();
             }
@@ -72,7 +71,6 @@ public class SettingsMenu extends VBox {
         // Theme Selection button (right)
         themeSelectionButton = createButton("Themes");
         themeSelectionButton.setOnAction(e -> {
-            // TODO: Implement theme selection
             if (onThemeSelection != null) {
                 onThemeSelection.run();
             }

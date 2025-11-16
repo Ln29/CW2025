@@ -296,6 +296,53 @@ public class SimpleBoard implements Board {
         return new GhostBrick(currentShape, currentX, ghostY);
     }
 
+    @Override
+    public boolean addGarbageRowsFromBottom(int[][] garbageRows) {
+        if (garbageRows == null || garbageRows.length == 0) {
+            return false;
+        }
+
+        int numRowsToAdd = garbageRows.length;
+        int[][] newMatrix = new int[height][width];
+
+        // copy existing rows, shifting up
+        for (int i = 0; i < height; i++) {
+            int sourceRow = i + numRowsToAdd;
+            if (sourceRow < height) {
+                System.arraycopy(currentGameMatrix[sourceRow], 0, newMatrix[i], 0, width);
+            } else {
+                // row is new, fill with zeros (empty)
+                for (int j = 0; j < width; j++) {
+                    newMatrix[i][j] = 0;
+                }
+            }
+        }
+
+        // Add garbage rows at the bottom
+        for (int i = 0; i < numRowsToAdd && i < height; i++) {
+            int targetRow = height - numRowsToAdd + i;
+            if (targetRow >= 0 && targetRow < height) {
+                int[] garbageRow = garbageRows[i];
+                if (garbageRow != null && garbageRow.length == width) {
+                    System.arraycopy(garbageRow, 0, newMatrix[targetRow], 0, width);
+                }
+            }
+        }
+
+        boolean gameOver = false;
+        if (brickRotator.getCurrentShape() != null) {
+            int currentX = (int) currentOffset.getX();
+            int currentY = (int) currentOffset.getY();
+            // check if conflicts with new board state
+            if (MatrixOperations.intersect(newMatrix, brickRotator.getCurrentShape(), currentX, currentY)) {
+                gameOver = true;
+            }
+        }
+
+        currentGameMatrix = newMatrix;
+        return gameOver;
+    }
+
     private Point createSpawnPoint() {
         int spawnX = (width-4) / 2;
         int spawnY = 0;

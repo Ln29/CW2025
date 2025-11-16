@@ -44,6 +44,22 @@ public class MenuManager {
         ensureOnTop(overlay);
     }
 
+    public void showAndFocusOnScene(Node overlay, Scene scene, Runnable onShown) {
+        show(overlay);
+        centerOnScene(overlay, scene);
+        if (onShown != null) {
+            onShown.run();
+        }
+    }
+
+    public void showAndFocusOnBoard(Node overlay, Runnable onShown) {
+        show(overlay);
+        centerOnBoard(overlay);
+        if (onShown != null) {
+            onShown.run();
+        }
+    }
+
     public void showCenteredOnScene(Node overlay, Scene scene) {
         show(overlay);
         centerOnScene(overlay, scene);
@@ -56,5 +72,11 @@ public class MenuManager {
 
     public void hide(Node overlay) {
         overlay.setVisible(false);
+    }
+
+    public void hideIfVisible(Node overlay) {
+        if (overlay != null && overlay.isVisible()) {
+            overlay.setVisible(false);
+        }
     }
 }

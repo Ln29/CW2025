@@ -4,12 +4,9 @@ import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.Group;
-import javafx.scene.input.KeyCode;
-import javafx.scene.input.KeyEvent;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.layout.BorderPane;
@@ -51,6 +48,7 @@ public class GuiController implements Initializable {
     // menus managed by MenuController
     private Stage primaryStage;
     // stats/side panels managed by PanelManager
+    private InputHandler inputHandler;
     private GhostRenderer ghostRenderer;
     private Board board;
     private NotificationService notificationService;
@@ -200,77 +198,56 @@ public class GuiController implements Initializable {
 
         gamePanel.setFocusTraversable(true);
         gamePanel.requestFocus();
-        // Build input action map
-        java.util.Map<KeyBindingsConfig.Action, Runnable> actionHandlers = new java.util.EnumMap<>(KeyBindingsConfig.Action.class);
-        actionHandlers.put(KeyBindingsConfig.Action.MOVE_LEFT, () -> {
-            postMoveRefresh(eventListener.onLeftEvent(new MoveEvent(EventType.LEFT, EventSource.USER)));
-        });
-        actionHandlers.put(KeyBindingsConfig.Action.MOVE_RIGHT, () -> {
-            postMoveRefresh(eventListener.onRightEvent(new MoveEvent(EventType.RIGHT, EventSource.USER)));
-        });
-        actionHandlers.put(KeyBindingsConfig.Action.ROTATE, () -> {
-            postMoveRefresh(eventListener.onRotateEvent(new MoveEvent(EventType.ROTATE, EventSource.USER)));
-        });
-        actionHandlers.put(KeyBindingsConfig.Action.SOFT_DROP, () -> {
-            moveDown(new MoveEvent(EventType.DOWN, EventSource.USER));
-        });
-        actionHandlers.put(KeyBindingsConfig.Action.HARD_DROP, this::hardDrop);
-        actionHandlers.put(KeyBindingsConfig.Action.HOLD, () -> {
-            if (board != null && board.holdBrick()) {
-                refreshBrick(board.getViewData());
-                if (panelManager != null) {
-                    panelManager.updateHoldBrickPanel();
-                    panelManager.updateNextBrickPanel();
-                }
-            }
-        });
-
-        gamePanel.setOnKeyPressed(new EventHandler<KeyEvent>() {
+        // Build input handler
+        InputHandler.InputActions actions = new InputHandler.InputActions() {
             @Override
-            public void handle(KeyEvent keyEvent) {
-                KeyCode code = keyEvent.getCode();
-
-                // Handle pause key via InputRouter
-                boolean kbVisible = menuController != null && menuController.isKeyBindingsMenuVisible();
-                if (InputRouter.shouldTogglePause(keyEvent, keyBindingsConfig, Boolean.TRUE.equals(isGameOver.getValue()), kbVisible)) {
-                    if (gameLifecycle == null || !gameLifecycle.hasTimers()) {
-                        return;
-                    }
-                    if (Boolean.TRUE.equals(isPause.getValue())) {
-                        if (gameLifecycle != null) {
-                            gameLifecycle.resumeTimers();
-                            isPause.setValue(Boolean.FALSE);
-                        }
-                        if (menuController != null) {
-                            menuController.hidePauseMenu();
-                        }
-                    } else {
-                        if (gameLifecycle != null) {
-                            gameLifecycle.pauseTimers();
-                            isPause.setValue(Boolean.TRUE);
-                        }
-                        if (menuController != null) {
-                            menuController.showPauseMenu(gameBoard);
-                        }
-                    }
-                    return;
-                }
-
-                // Route events to active overlay
-                if (menuController != null && menuController.routeKey(keyEvent)) {
-                    return;
-                }
-
-                // Handle game controls via action map
-                if (Boolean.FALSE.equals(isPause.getValue()) && Boolean.FALSE.equals(isGameOver.getValue()) && eventListener != null) {
-                    KeyBindingsConfig.Action action = keyBindingsConfig.getAction(code);
-                    java.util.Optional.ofNullable(actionHandlers.get(action)).ifPresent(r -> {
-                        r.run();
-                        keyEvent.consume();
-                    });
+            public void moveLeft() {
+                if (eventListener != null) {
+                    postMoveRefresh(eventListener.onLeftEvent(new MoveEvent(EventType.LEFT, EventSource.USER)));
                 }
             }
-        });
+            @Override
+            public void moveRight() {
+                if (eventListener != null) {
+                    postMoveRefresh(eventListener.onRightEvent(new MoveEvent(EventType.RIGHT, EventSource.USER)));
+                }
+            }
+            @Override
+            public void rotate() {
+                if (eventListener != null) {
+                    postMoveRefresh(eventListener.onRotateEvent(new MoveEvent(EventType.ROTATE, EventSource.USER)));
+                }
+            }
+            @Override
+            public void softDrop() {
+                moveDown(new MoveEvent(EventType.DOWN, EventSource.USER));
+            }
+            @Override
+            public void hardDrop() {
+                GuiController.this.hardDrop();
+            }
+            @Override
+            public void hold() {
+                if (board != null && board.holdBrick()) {
+                    refreshBrick(board.getViewData());
+                    if (panelManager != null) {
+                        panelManager.updateHoldBrickPanel();
+                        panelManager.updateNextBrickPanel();
+                    }
+                }
+            }
+        };
+        inputHandler = new InputHandler(
+                gamePanel,
+                gameBoard,
+                keyBindingsConfig,
+                menuController,
+                gameLifecycle,
+                isPause,
+                isGameOver,
+                actions
+        );
+        inputHandler.attach();
     }
 
     public void initGameView(int[][] boardMatrix, ViewData brick) {

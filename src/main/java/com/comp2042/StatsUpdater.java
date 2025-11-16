@@ -22,4 +22,22 @@ public class StatsUpdater {
             statsPanelRight.updateScore(board.getScore().scoreProperty().getValue());
         }
     }
+
+    public void startTimer(GameState state) {
+        if (state != null) {
+            state.setGameStartTimeNow();
+        }
+    }
+
+    public void updateTime(GameState state, StatsPanel statsPanel) {
+        if (statsPanel == null || state == null || state.getGameStartTime() == 0) return;
+
+        long elapsed = System.currentTimeMillis() - state.getGameStartTime();
+        long seconds = elapsed / 1000;
+        long minutes = seconds / 60;
+        seconds = seconds % 60;
+
+        String timeString = String.format("%02d:%02d", minutes, seconds);
+        statsPanel.updateTime(timeString);
+    }
 }

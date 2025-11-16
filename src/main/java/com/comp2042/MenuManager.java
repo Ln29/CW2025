@@ -15,6 +15,12 @@ public class MenuManager {
         this.gameBoard = gameBoard;
     }
 
+    public static MenuManager ensure(MenuManager current, BorderPane gameBoard) {
+        if (current != null) return current;
+        Pane root = SceneAccessor.rootOf(gameBoard);
+        return new MenuManager(root, gameBoard);
+    }
+
     public void ensureOnTop(Node overlay) {
         if (rootPane.getChildren().contains(overlay)) {
             rootPane.getChildren().remove(overlay);

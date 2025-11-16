@@ -1,7 +1,5 @@
 package com.comp2042;
 
-import javafx.animation.KeyFrame;
-import javafx.animation.Timeline;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -22,7 +20,6 @@ import javafx.scene.paint.Paint;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
-import javafx.util.Duration;
 
 import java.net.URL;
 import java.util.ResourceBundle;
@@ -72,7 +69,6 @@ public class GuiController implements Initializable {
     // Game state
     private GameState gameState = new GameState();
     private StatsUpdater statsUpdater = new StatsUpdater();
-    private Timeline gameTimeTimeline;
 
     private boolean boardCentered = false;
     private ViewData initialBrickData = null;
@@ -80,8 +76,6 @@ public class GuiController implements Initializable {
     private Rectangle[][] displayMatrix;
     private InputEventListener eventListener;
     private Rectangle[][] rectangles;
-    private Timeline timeLine;
-    private Timeline lockDelayCheckTimeline;
 
     private final BooleanProperty isPause = new SimpleBooleanProperty();
     private final BooleanProperty isGameOver = new SimpleBooleanProperty();
@@ -180,8 +174,8 @@ public class GuiController implements Initializable {
         Ui.run(() -> {
             Scene scene = SceneAccessor.sceneOf(gameBoard);
             if (scene != null) {
-                Pane rootPane = SceneAccessor.rootOf(gameBoard);
-                menuManager = new MenuManager(rootPane, gameBoard);
+                // Initialize menu manager if needed
+                menuManager = MenuManager.ensure(menuManager, gameBoard);
                 panelPositioner = new PanelPositioner(gameBoard);
                 centerGameBoard(scene);
                 boardCentered = true;
@@ -309,19 +303,14 @@ public class GuiController implements Initializable {
         });
         gridRenderer.drawGridLines(gamePanel, BRICK_SIZE);
 
-        // Main game loop
-        timeLine = new Timeline(new KeyFrame(
-                Duration.millis(400),
-                ae -> moveDown(new MoveEvent(EventType.DOWN, EventSource.THREAD))
-        ));
-        timeLine.setCycleCount(Timeline.INDEFINITE);
-
-        // Lock delay checker
-        lockDelayCheckTimeline = new Timeline(new KeyFrame(
-                Duration.millis(50),
-                ae -> checkLockDelay()
-        ));
-        lockDelayCheckTimeline.setCycleCount(Timeline.INDEFINITE);
+        // Initialize timers in lifecycle
+        if (gameLifecycle != null) {
+            gameLifecycle.initTimers(
+                    () -> moveDown(new MoveEvent(EventType.DOWN, EventSource.THREAD)),
+                    this::checkLockDelay,
+                    () -> statsUpdater.updateTime(gameState, statsPanel)
+            );
+        }
 
         // Start paused (wait for main menu)
         isPause.setValue(Boolean.TRUE);
@@ -479,7 +468,7 @@ public class GuiController implements Initializable {
 
     public void gameOver() {
         if (gameLifecycle != null) {
-            gameLifecycle.gameOver(timeLine, lockDelayCheckTimeline, gameTimeTimeline, isGameOver);
+            gameLifecycle.gameOver(isGameOver);
         }
 
         if (gameOverMenu == null) {
@@ -500,7 +489,7 @@ public class GuiController implements Initializable {
 
     public void newGame(ActionEvent actionEvent) {
         if (gameLifecycle != null) {
-            gameLifecycle.stop(timeLine, lockDelayCheckTimeline, gameTimeTimeline);
+            gameLifecycle.stopTimers();
         }
         eventListener.createNewGame();
         updateNextBrickPanel();
@@ -508,10 +497,12 @@ public class GuiController implements Initializable {
         gameState.resetLines();
         gameState.setGameStartTimeNow();
         statsUpdater.updateAllStats(gameState, board, statsPanel, statsPanelRight);
-        startGameTimer();
+        statsUpdater.startTimer(gameState);
 
         if (gameLifecycle != null) {
-            gameLifecycle.start(timeLine, lockDelayCheckTimeline, gameTimeTimeline, isPause, isGameOver);
+            gameLifecycle.startTimers();
+            isPause.setValue(Boolean.FALSE);
+            isGameOver.setValue(Boolean.FALSE);
         }
         gamePanel.requestFocus();
     }
@@ -643,7 +634,7 @@ public class GuiController implements Initializable {
 
 
     private void togglePauseMenu() {
-        if (timeLine == null) {
+        if (gameLifecycle == null || !gameLifecycle.hasTimers()) {
             return;
         }
 
@@ -656,7 +647,8 @@ public class GuiController implements Initializable {
 
     private void pauseGame() {
         if (gameLifecycle != null) {
-            gameLifecycle.pause(timeLine, lockDelayCheckTimeline, gameTimeTimeline, isPause);
+            gameLifecycle.pauseTimers();
+            isPause.setValue(Boolean.TRUE);
         }
 
         if (pauseMenu == null) {
@@ -676,7 +668,8 @@ public class GuiController implements Initializable {
 
     private void resumeGame() {
         if (gameLifecycle != null) {
-            gameLifecycle.resume(timeLine, lockDelayCheckTimeline, gameTimeTimeline, isPause);
+            gameLifecycle.resumeTimers();
+            isPause.setValue(Boolean.FALSE);
         }
 
         if (menuManager != null) {
@@ -690,7 +683,7 @@ public class GuiController implements Initializable {
 
     private void restartGame() {
         if (gameLifecycle != null) {
-            gameLifecycle.stop(timeLine, lockDelayCheckTimeline, gameTimeTimeline);
+            gameLifecycle.stopTimers();
         }
 
         if (menuManager != null) {
@@ -706,7 +699,7 @@ public class GuiController implements Initializable {
         gameState.resetLines();
         gameState.setGameStartTimeNow();
         statsUpdater.updateAllStats(gameState, board, statsPanel, statsPanelRight);
-        startGameTimer();
+        statsUpdater.startTimer(gameState);
 
         if (audioManager != null) {
             String musicFile = (themeConfig != null && themeConfig.getMusicFile() != null)
@@ -716,7 +709,9 @@ public class GuiController implements Initializable {
         }
 
         if (gameLifecycle != null) {
-            gameLifecycle.start(timeLine, lockDelayCheckTimeline, gameTimeTimeline, isPause, isGameOver);
+            gameLifecycle.startTimers();
+            isPause.setValue(Boolean.FALSE);
+            isGameOver.setValue(Boolean.FALSE);
         }
         gamePanel.requestFocus();
     }
@@ -743,14 +738,8 @@ public class GuiController implements Initializable {
         }
 
         isPause.setValue(Boolean.TRUE);
-        if (timeLine != null) {
-            timeLine.stop();
-        }
-        if (lockDelayCheckTimeline != null) {
-            lockDelayCheckTimeline.stop();
-        }
-        if (gameTimeTimeline != null) {
-            gameTimeTimeline.stop();
+        if (gameLifecycle != null) {
+            gameLifecycle.stopTimers();
         }
 
         if (brickPanel != null) {
@@ -798,10 +787,12 @@ public class GuiController implements Initializable {
         gameState.setGameStartTimeNow();
         Ui.run(() -> statsUpdater.updateAllStats(gameState, board, statsPanel, statsPanelRight));
 
-        startGameTimer();
+        statsUpdater.startTimer(gameState);
 
         if (gameLifecycle != null) {
-            gameLifecycle.start(timeLine, lockDelayCheckTimeline, gameTimeTimeline, isPause, isGameOver);
+            gameLifecycle.startTimers();
+            isPause.setValue(Boolean.FALSE);
+            isGameOver.setValue(Boolean.FALSE);
         }
         gamePanel.requestFocus();
     }
@@ -1037,31 +1028,7 @@ public class GuiController implements Initializable {
         statsUpdater.updateAllStats(gameState, board, statsPanel, statsPanelRight);
     }
 
-    private void startGameTimer() {
-        if (gameTimeTimeline != null) {
-            gameTimeTimeline.stop();
-        }
-
-        gameState.setGameStartTimeNow();
-        gameTimeTimeline = new Timeline(new KeyFrame(
-                Duration.millis(1000),
-                ae -> updateGameTime()
-        ));
-        gameTimeTimeline.setCycleCount(Timeline.INDEFINITE);
-        gameTimeTimeline.play();
-    }
-
-    private void updateGameTime() {
-        if (statsPanel == null || gameState.getGameStartTime() == 0) return;
-
-        long elapsed = System.currentTimeMillis() - gameState.getGameStartTime();
-        long seconds = elapsed / 1000;
-        long minutes = seconds / 60;
-        seconds = seconds % 60;
-
-        String timeString = String.format("%02d:%02d", minutes, seconds);
-        statsPanel.updateTime(timeString);
-    }
+    // Game timer: started via StatsUpdater and ticks are wired through GameLifecycle.initTimers
 
     private void initializeStatsPanelRight() {
         statsPanelRight = new StatsPanelRight();

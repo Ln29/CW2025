@@ -18,13 +18,19 @@ public class NotificationPanel extends BorderPane {
 
     private Label label;
     private boolean isCombo;
+    private boolean isLevelUp;
 
     public NotificationPanel(String text) {
-        this(text, false);
+        this(text, false, false);
     }
 
     public NotificationPanel(String text, boolean isCombo) {
+        this(text, isCombo, false);
+    }
+
+    public NotificationPanel(String text, boolean isCombo, boolean isLevelUp) {
         this.isCombo = isCombo;
+        this.isLevelUp = isLevelUp;
         setMinHeight(200);
         setMinWidth(220);
         label = new Label(text);
@@ -32,9 +38,12 @@ public class NotificationPanel extends BorderPane {
         final Effect glow = new Glow(0.6);
         label.setEffect(glow);
 
-        if (isCombo) {
+        if (isLevelUp) {
+            label.setTextFill(Color.rgb(255, 255, 255, 0.5)); // White with 50% opacity
+            label.setFont(javafx.scene.text.Font.font("Arial", javafx.scene.text.FontWeight.BOLD, 32));
+        } else if (isCombo) {
             label.setTextFill(Color.RED);
-            label.setFont(javafx.scene.text.Font.font("Arial", 10));
+            label.setFont(javafx.scene.text.Font.font("Arial", 12));
         } else {
             label.setTextFill(Color.WHITE);
             label.setFont(javafx.scene.text.Font.font("Arial", 10));
@@ -50,7 +59,7 @@ public class NotificationPanel extends BorderPane {
     }
 
     public void showScore(ObservableList<Node> list) {
-        if (!isCombo) {
+        if (!isCombo && !isLevelUp) {
             FadeTransition ft = new FadeTransition(Duration.millis(2000), this);
             TranslateTransition tt = new TranslateTransition(Duration.millis(2500), this);
             tt.setToY(this.getLayoutY() - 40);
@@ -65,6 +74,34 @@ public class NotificationPanel extends BorderPane {
             });
             transition.play();
         }
+    }
+
+    public void showLevelUp(ObservableList<Node> list) {
+        this.setOpacity(0);
+        FadeTransition fadeIn = new FadeTransition(Duration.millis(300), this);
+        fadeIn.setFromValue(0);
+        fadeIn.setToValue(1);
+
+        FadeTransition fadeOut = new FadeTransition(Duration.millis(500), this);
+        fadeOut.setFromValue(1);
+        fadeOut.setToValue(0);
+        fadeOut.setDelay(Duration.millis(1500));
+
+        fadeIn.setOnFinished(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                fadeOut.play();
+            }
+        });
+
+        fadeOut.setOnFinished(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                list.remove(NotificationPanel.this);
+            }
+        });
+
+        fadeIn.play();
     }
 
     public void fadeOutAndRemove(ObservableList<Node> list) {

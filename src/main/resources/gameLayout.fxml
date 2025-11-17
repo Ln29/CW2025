@@ -18,6 +18,8 @@
     </Group>
     <Group fx:id="scoreNotificationGroup" layoutX="200" layoutY="100">
     </Group>
+    <Group fx:id="centerNotificationGroup" layoutX="200" layoutY="100">
+    </Group>
     <stylesheets>
         <URL value="@window_style.css"/>
     </stylesheets>

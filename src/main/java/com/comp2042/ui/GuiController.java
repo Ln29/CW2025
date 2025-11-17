@@ -66,6 +66,9 @@ public class GuiController implements Initializable {
     private Group scoreNotificationGroup;
 
     @FXML
+    private Group centerNotificationGroup;
+
+    @FXML
     private GridPane brickPanel;
 
     private MenuController menuController;
@@ -77,14 +80,13 @@ public class GuiController implements Initializable {
     private GameModeController gameModeController;
     private PanelManager panelManager;
     private ThemeApplier themeApplier;
-    // menus managed by MenuController
     private Stage primaryStage;
-    // stats/side panels managed by PanelManager
     private InputHandler inputHandler;
     private GameRenderer gameRenderer;
     private Board board;
     private NotificationService notificationService;
 
+    // Game state
     private GameState gameState = new GameState();
     private StatsUpdater statsUpdater = new StatsUpdater();
 
@@ -98,7 +100,7 @@ public class GuiController implements Initializable {
         Font.loadFont(getClass().getClassLoader().getResource("digital.ttf").toExternalForm(), 38);
         BorderPane.setAlignment(gamePanel, Pos.CENTER);
         gamePanel.setStyle("-fx-background-color: rgba(0, 0, 0, 0.7);");
-        brickPanel.setVisible(false); // Prevent flashing at (0,0)
+        brickPanel.setVisible(false);
 
         keyBindingsConfig = KeyBindingsConfig.getInstance();
         themeConfig = ThemeConfig.getInstance();
@@ -107,7 +109,7 @@ public class GuiController implements Initializable {
         gameLifecycle = new GameLifecycle(audioManager);
         themeApplier = new ThemeApplier(themeConfig, audioManager);
         applyTheme(themeConfig.getCurrentTheme(), false);
-        notificationService = new NotificationService(audioManager, comboNotificationGroup, scoreNotificationGroup, GameConstants.NOTIFICATION_MAX);
+        notificationService = new NotificationService(audioManager, comboNotificationGroup, scoreNotificationGroup, centerNotificationGroup, GameConstants.NOTIFICATION_MAX);
         gameRenderer = new GameRenderer(
                 gameBoard,
                 gamePanel,
@@ -209,7 +211,6 @@ public class GuiController implements Initializable {
             public void onModeSelected() {
                 if (menuController != null && menuController.getModeSelectionMenu() != null) {
                     ModeSelectionMenu menu = menuController.getModeSelectionMenu();
-                    // Update config from menu selections
                     gameModeConfig.setCurrentMode(menu.getSelectedMode());
                     gameModeConfig.setDifficulty(menu.getDifficulty());
                     if (menu.getSelectedMode() == GameMode.MARATHON) {
@@ -230,16 +231,13 @@ public class GuiController implements Initializable {
         });
         menuController = new MenuController(menuFactory, audioManager);
 
-        // Center game board after scene is ready
         Ui.run(() -> {
             Scene scene = SceneAccessor.sceneOf(gameBoard);
             if (scene != null) {
-                // Initialize menu/panel managers
                 if (menuController != null) {
                     menuController.setMenuManager(MenuManager.ensure(null, gameBoard));
                 }
                 panelManager = new PanelManager(gameBoard, board, statsUpdater, gameState);
-                // Set game mode controller when available
                 if (gameModeController != null && panelManager != null) {
                     panelManager.setGameModeController(gameModeController);
                 }
@@ -320,6 +318,7 @@ public class GuiController implements Initializable {
             gameRenderer.initGameView(boardMatrix, brick);
         }
 
+        // Initialize game mode controller
         if (board != null && gameModeConfig != null) {
             gameModeController = new GameModeController(gameModeConfig, board);
             if (panelManager != null) {
@@ -328,6 +327,7 @@ public class GuiController implements Initializable {
             gameModeController.initTimers(
                     this::updateGameSpeed,
                     () -> {
+                        // Stop garbage production when game over
                         if (gameModeController != null) {
                             gameModeController.stopTimers();
                         }
@@ -339,12 +339,15 @@ public class GuiController implements Initializable {
                         }
                     },
                     () -> {
+                        // Game won
                         if (gameLifecycle != null) {
                             gameLifecycle.stopTimers();
                         }
+                        // Stop garbage production when game won
                         if (gameModeController != null) {
                             gameModeController.stopTimers();
                         }
+                        // Play win sound
                         if (audioManager != null) {
                             audioManager.playSoundEffect(GameConstants.SFX_WIN);
                         }
@@ -419,9 +422,25 @@ public class GuiController implements Initializable {
                         gameModeController.onLinesCleared(removed);
                     }
                     if (panelManager != null) panelManager.updateStatsPanels();
-                }
-                if (notificationService != null) {
-                    notificationService.onLinesCleared(removed, bonus);
+                    if (notificationService != null && gameModeController != null) {
+                        notificationService.checkLevelUp(gameModeController.getCurrentLevel());
+                    }
+                    if (notificationService != null) {
+                        notificationService.onLinesCleared(removed, bonus);
+
+                        // Apply combo multiplier to score
+                        if (board != null && board.getScore() != null) {
+                            int comboCount = notificationService.getComboCount();
+                            if (comboCount > 1) {
+                                int additionalScore = bonus * (comboCount - 1);
+                                board.getScore().add(additionalScore);
+                            }
+                        }
+                    }
+                } else {
+                    if (notificationService != null) {
+                        notificationService.onLinesCleared(removed, bonus);
+                    }
                 }
             }
             if (gameRenderer != null) gameRenderer.postMoveRefresh(downData.getViewData());
@@ -441,9 +460,25 @@ public class GuiController implements Initializable {
                         gameModeController.onLinesCleared(removed);
                     }
                     if (panelManager != null) panelManager.updateStatsPanels();
-                }
-                if (notificationService != null) {
-                    notificationService.onLinesCleared(removed, bonus);
+                    if (notificationService != null && gameModeController != null) {
+                        notificationService.checkLevelUp(gameModeController.getCurrentLevel());
+                    }
+
+                    if (notificationService != null) {
+                        notificationService.onLinesCleared(removed, bonus);
+
+                        if (board != null && board.getScore() != null) {
+                            int comboCount = notificationService.getComboCount();
+                            if (comboCount > 1) {
+                                int additionalScore = bonus * (comboCount - 1);
+                                board.getScore().add(additionalScore);
+                            }
+                        }
+                    }
+                } else {
+                    if (notificationService != null) {
+                        notificationService.onLinesCleared(removed, bonus);
+                    }
                 }
             }
             if (gameRenderer != null) gameRenderer.postMoveRefresh(downData.getViewData());
@@ -457,13 +492,27 @@ public class GuiController implements Initializable {
                 DownData downData = eventListener.onDownEvent(new MoveEvent(EventType.DOWN, EventSource.THREAD));
                 if (downData.getClearRow() != null && downData.getClearRow().getLinesRemoved() > 0) {
                     int removed = downData.getClearRow().getLinesRemoved();
+                    int bonus = downData.getClearRow().getScoreBonus();
                     gameState.addClearedLines(removed);
                     if (gameModeController != null) {
                         gameModeController.onLinesCleared(removed);
                     }
                     if (panelManager != null) panelManager.updateStatsPanels();
+                    if (notificationService != null && gameModeController != null) {
+                        notificationService.checkLevelUp(gameModeController.getCurrentLevel());
+                    }
+
                     if (notificationService != null) {
-                        notificationService.onLinesCleared(removed, downData.getClearRow().getScoreBonus());
+                        notificationService.onLinesCleared(removed, bonus);
+
+
+                        if (board != null && board.getScore() != null) {
+                            int comboCount = notificationService.getComboCount();
+                            if (comboCount > 1) {
+                                int additionalScore = bonus * (comboCount - 1);
+                                board.getScore().add(additionalScore);
+                            }
+                        }
                     }
                 }
                 if (gameRenderer != null) gameRenderer.postMoveRefresh(downData.getViewData());
@@ -538,22 +587,22 @@ public class GuiController implements Initializable {
     private void positionNotificationGroups(Scene scene) {
         if (scene == null || comboNotificationGroup == null || scoreNotificationGroup == null) return;
 
-        // Get StatsPanelRight position
+        // Get StatsPanelRight position to position notifications above it
         double boardWidth = GameConstants.BOARD_COLS * GameConstants.BRICK_SIZE + GameConstants.BOARD_BORDER_TOTAL_PX;
         double boardHeight = GameConstants.BOARD_VISIBLE_ROWS * GameConstants.BRICK_SIZE + GameConstants.BOARD_BORDER_TOTAL_PX;
         double boardX = gameBoard.getLayoutX();
         double boardY = gameBoard.getLayoutY();
 
-        // calculate StatsPanelRight position
+        // Calculate StatsPanelRight position (same logic as in StatsPanelRight.position())
         double nextPanelX = boardX + boardWidth + 30;
         double nextPanelHeight = boardHeight / 2;
-        double statsPanelRightY = boardY + nextPanelHeight + 200;
+        double statsPanelRightY = boardY + nextPanelHeight + 200; // StatsPanelRight Y position
 
-        // Combo notifications: above score notifications by 250px
+        // Position combo notifications above score notifications
         double comboX = nextPanelX;
-        double comboY = statsPanelRightY - 250;
+        double comboY = statsPanelRightY - 250; // 250px above score notifications
 
-        // Score notifications: 200px above StatsPanelRight
+        // Score notifications: 60px above StatsPanelRight
         double scoreX = nextPanelX;
         double scoreY = statsPanelRightY - 200;
 
@@ -562,6 +611,14 @@ public class GuiController implements Initializable {
 
         scoreNotificationGroup.setLayoutX(scoreX);
         scoreNotificationGroup.setLayoutY(scoreY);
+
+        // Position center notification group in the middle of the game board
+        if (centerNotificationGroup != null) {
+            double centerX = boardX + boardWidth / 2;
+            double centerY = boardY + boardHeight / 2;
+            centerNotificationGroup.setLayoutX(centerX - 110);
+            centerNotificationGroup.setLayoutY(centerY - 100);
+        }
     }
 
     private void togglePauseMenu() {
@@ -633,6 +690,7 @@ public class GuiController implements Initializable {
 
         if (notificationService != null) {
             notificationService.resetCombo();
+            notificationService.resetLevelTracking();
         }
 
         if (gameModeController != null) {
@@ -670,6 +728,7 @@ public class GuiController implements Initializable {
 
         if (notificationService != null) {
             notificationService.resetCombo();
+            notificationService.resetLevelTracking();
         }
 
         if (eventListener != null) {
@@ -691,7 +750,6 @@ public class GuiController implements Initializable {
                     : "default.wav";
             audioManager.playGameMusic(musicFile);
         }
-
         gameState.resetLines();
         gameState.setGameStartTimeNow();
         if (panelManager != null) Ui.run(() -> panelManager.updateStatsPanels());

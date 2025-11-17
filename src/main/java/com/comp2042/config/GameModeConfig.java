@@ -5,27 +5,25 @@ import com.comp2042.core.GameMode;
 public class GameModeConfig {
 
     private GameMode currentMode;
-    private int difficulty; // Endless and Marathon(0-10)
-    private int marathonTargetLines; // Marathon(5,100,200,500)
-    private GarbageDifficulty garbageDifficulty; // Garbage mode
+    private int difficulty;
+    private int marathonTargetLines;
+    private GarbageDifficulty garbageDifficulty;
 
     public enum GarbageDifficulty {
-        SIMPLE(50, new double[]{0.2, 0.4, 0.4}, 700, 3, 10),
-        MODERATE(80, new double[]{0.3, 0.4, 0.3}, 600, 3, 10),
-        DIFFICULT(100, new double[]{0.5, 0.35, 0.15}, 500, 4, 7);
+        SIMPLE(50, new double[]{0.2, 0.4, 0.4}, 700, 30),
+        MODERATE(50, new double[]{0.3, 0.4, 0.3}, 600, 20),
+        DIFFICULT(100, new double[]{0.5, 0.35, 0.15}, 500, 10);
 
         private final int targetLines;
         private final double[] gapWeights;
         private final int startSpeedMs;
-        private final int stages;
-        private final int finalStageSpawnInterval; // seconds
+        private final int spawnIntervalSeconds;
 
-        GarbageDifficulty(int targetLines, double[] gapWeights, int startSpeedMs, int stages, int finalStageSpawnInterval) {
+        GarbageDifficulty(int targetLines, double[] gapWeights, int startSpeedMs, int spawnIntervalSeconds) {
             this.targetLines = targetLines;
             this.gapWeights = gapWeights;
             this.startSpeedMs = startSpeedMs;
-            this.stages = stages;
-            this.finalStageSpawnInterval = finalStageSpawnInterval;
+            this.spawnIntervalSeconds = spawnIntervalSeconds;
         }
 
         public int getTargetLines() {
@@ -40,12 +38,8 @@ public class GameModeConfig {
             return startSpeedMs;
         }
 
-        public int getStages() {
-            return stages;
-        }
-
-        public int getFinalStageSpawnInterval() {
-            return finalStageSpawnInterval;
+        public int getSpawnIntervalSeconds() {
+            return spawnIntervalSeconds;
         }
     }
 
@@ -94,25 +88,19 @@ public class GameModeConfig {
         this.garbageDifficulty = difficulty;
     }
 
-    /**
-     * Calculate speed for Endless mode based on difficulty (0-10)
-     * Level 0 = 1000ms, Level 5 = 500ms, Level 10 = 100ms
-     */
     public static int calculateEndlessSpeed(int difficulty) {
         if (difficulty < 0 || difficulty > 10) {
             throw new IllegalArgumentException("Difficulty must be between 0 and 10");
         }
-        //1000ms at 0, 100ms at 10
         if (difficulty <= 5) {
-            return 1000 - (difficulty * 100); //1000, 900, 800, 700, 600, 500
+            return 1000 - (difficulty * 100);
         } else {
-            return 500 - ((difficulty - 5) * 80); //500, 420, 340, 260, 180, 100
+            return 500 - ((difficulty - 5) * 80);
         }
     }
 
     /**
-     * Calculate speed for Marathon mode based on starting difficulty and lines cleared
-     * Speed increases every 10 lines
+     * Speed increases every 10 lines: multiply by 0.9^(lines/10)
      * Minimum speed cap: 80ms
      */
     public static int calculateMarathonSpeed(int startDifficulty, int linesCleared) {

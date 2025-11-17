@@ -6,8 +6,6 @@ import com.comp2042.core.EndlessMode;
 import com.comp2042.core.GameMode;
 import com.comp2042.core.GarbageMode;
 import com.comp2042.core.MarathonMode;
-import javafx.animation.Timeline;
-import javafx.util.Duration;
 
 import java.util.function.Consumer;
 
@@ -19,10 +17,8 @@ public class GameModeController {
     private MarathonMode marathonMode;
     private GarbageMode garbageMode;
 
-    private Timeline garbageSpawnTimeline;
-    private boolean timersShouldBeRunning = false;
-
     private int linesCleared = 0;
+    private long lastGarbageSpawnTime = 0;
     private Consumer<Integer> onSpeedChange;
     private Runnable onGameOver;
     private Runnable onGameWin;
@@ -56,30 +52,7 @@ public class GameModeController {
         this.onGameWin = onGameWin;
         this.onGarbageSpawn = onGarbageSpawn;
 
-        GameMode mode = config.getCurrentMode();
-
         notifySpeedChange();
-
-        if (mode == GameMode.GARBAGE) {
-            initGarbageSpawnTimer();
-        }
-    }
-
-    private void initGarbageSpawnTimer() {
-        if (garbageMode == null) {
-            return;
-        }
-
-        int spawnInterval = garbageMode.getSpawnIntervalSeconds(linesCleared) * 1000;
-        if (garbageSpawnTimeline != null) {
-            garbageSpawnTimeline.stop();
-        }
-
-        garbageSpawnTimeline = new Timeline(new javafx.animation.KeyFrame(
-                Duration.millis(spawnInterval),
-                ae -> spawnGarbageRows()
-        ));
-        garbageSpawnTimeline.setCycleCount(Timeline.INDEFINITE);
     }
 
     private void notifySpeedChange() {
@@ -88,31 +61,22 @@ public class GameModeController {
         }
     }
 
-    private void updateGarbageSpawnInterval() {
-        if (garbageMode == null) {
-            return;
+    public boolean shouldSpawnGarbage(long elapsedSeconds) {
+        if (garbageMode == null || config.getCurrentMode() != GameMode.GARBAGE) {
+            return false;
         }
 
-        int newInterval = garbageMode.getSpawnIntervalSeconds(linesCleared) * 1000;
+        int spawnInterval = garbageMode.getSpawnIntervalSeconds();
 
-        boolean shouldResume = timersShouldBeRunning;
-
-        if (garbageSpawnTimeline != null) {
-            garbageSpawnTimeline.stop();
+        if (elapsedSeconds >= lastGarbageSpawnTime + spawnInterval) {
+            lastGarbageSpawnTime = elapsedSeconds;
+            return true;
         }
 
-        garbageSpawnTimeline = new Timeline(new javafx.animation.KeyFrame(
-                Duration.millis(newInterval),
-                ae -> spawnGarbageRows()
-        ));
-        garbageSpawnTimeline.setCycleCount(Timeline.INDEFINITE);
-
-        if (shouldResume) {
-            garbageSpawnTimeline.play();
-        }
+        return false;
     }
 
-    private void spawnGarbageRows() {
+    public void spawnGarbageRows() {
         if (garbageMode == null || board == null || onGarbageSpawn == null) {
             return;
         }
@@ -141,7 +105,6 @@ public class GameModeController {
                 break;
             case GARBAGE:
                 notifySpeedChange();
-                updateGarbageSpawnInterval();
                 checkWinCondition();
                 break;
             case ENDLESS:
@@ -193,37 +156,20 @@ public class GameModeController {
     }
 
     public void startTimers() {
-        timersShouldBeRunning = true;
-        if (garbageSpawnTimeline != null) {
-            garbageSpawnTimeline.play();
-        }
     }
 
     public void stopTimers() {
-        timersShouldBeRunning = false;
-        if (garbageSpawnTimeline != null) {
-            garbageSpawnTimeline.stop();
-        }
     }
 
     public void pauseTimers() {
-        timersShouldBeRunning = false;
-        if (garbageSpawnTimeline != null) {
-            garbageSpawnTimeline.stop();
-        }
     }
 
     public void resumeTimers() {
-        timersShouldBeRunning = true;
-        if (garbageSpawnTimeline != null) {
-            garbageSpawnTimeline.play();
-        }
     }
 
     public void reset() {
         linesCleared = 0;
-        timersShouldBeRunning = false;
-        stopTimers();
+        lastGarbageSpawnTime = 0;
         initializeMode();
     }
 
@@ -266,7 +212,7 @@ public class GameModeController {
 
     /**
      * Get the target lines for the current game mode
-     * - Endless: Returns 999
+     * - Endless: Returns 999 (or -1 if no target)
      * - Marathon: Returns target lines (50, 100, 200, or 500)
      * - Garbage: Returns target lines from difficulty (50, 80, or 100)
      */

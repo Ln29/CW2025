@@ -272,16 +272,15 @@ public class ModeSelectionMenu extends VBox {
 
         Runnable updateDescription = () -> {
             String descText = String.format(
-                    "Auto-spawn garbage rows from bottom\nTarget: %d lines | Speed: %dms | Stages: %d",
+                    "Auto-spawn garbage rows from bottom\nTarget: %d lines | Speed: %dms",
                     garbageDifficulty.getTargetLines(),
-                    garbageDifficulty.getStartSpeedMs(),
-                    garbageDifficulty.getStages()
+                    garbageDifficulty.getStartSpeedMs()
             );
             description.setText(descText);
 
             String detailsText = String.format(
-                    "Final Stage Spawn: Every %ds",
-                    garbageDifficulty.getFinalStageSpawnInterval()
+                    "Spawn Interval: Every %ds",
+                    garbageDifficulty.getSpawnIntervalSeconds()
             );
             details.setText(detailsText);
         };

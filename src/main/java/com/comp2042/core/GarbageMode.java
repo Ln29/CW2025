@@ -10,7 +10,6 @@ public class GarbageMode {
     private final Random random;
     private static final int GARBAGE_BLOCK_VALUE = 8; // Gray
     private static final int ROWS_PER_SPAWN = 2;
-    private static final int DEFAULT_SPAWN_INTERVAL = 10;
 
     public GarbageMode(GameModeConfig.GarbageDifficulty difficulty) {
         this.difficulty = difficulty;
@@ -36,19 +35,8 @@ public class GarbageMode {
         return Math.max((int) (baseSpeed * multiplier), 80); // Minimum 80ms cap
     }
 
-    /**
-     * Get the spawn interval in seconds based on current stage
-     * Stages change every (targetLines / stages) lines
-     */
-    public int getSpawnIntervalSeconds(int linesCleared) {
-        int linesPerStage = difficulty.getTargetLines() / difficulty.getStages();
-        int currentStage = Math.min(linesCleared / linesPerStage, difficulty.getStages() - 1);
-
-        // Final stage
-        if (currentStage == difficulty.getStages() - 1) {
-            return difficulty.getFinalStageSpawnInterval();
-        }
-        return DEFAULT_SPAWN_INTERVAL;
+    public int getSpawnIntervalSeconds() {
+        return difficulty.getSpawnIntervalSeconds();
     }
 
     /**

@@ -372,6 +372,13 @@ public class GuiController implements Initializable {
                         if (isPause.getValue() == Boolean.FALSE && gameState != null) {
                             gameState.incrementElapsedSeconds();
                         }
+                        if (gameModeController != null && gameModeController.getCurrentMode() == com.comp2042.core.GameMode.GARBAGE) {
+                            long elapsedSeconds = gameState.getElapsedSeconds();
+                            if (gameModeController.shouldSpawnGarbage(elapsedSeconds)) {
+                                // Spawn garbage rows
+                                gameModeController.spawnGarbageRows();
+                            }
+                        }
                         if (panelManager != null) {
                             statsUpdater.updateTime(gameState, panelManager.getStatsPanel());
                         }

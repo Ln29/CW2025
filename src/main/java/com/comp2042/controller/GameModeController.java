@@ -245,7 +245,29 @@ public class GameModeController {
                     return baseLevel + levelIncrease;
                 }
                 return 0;
-            case GARBAGE: //not 0-10 difficulty
+            case GARBAGE:
+                // Garbage mode doesn't have traditional levels
+                return 0;
+            default:
+                return 0;
+        }
+    }
+
+    public int getTargetLines() {
+        GameMode mode = config.getCurrentMode();
+
+        switch (mode) {
+            case ENDLESS:
+                return 999;
+            case MARATHON:
+                if (marathonMode != null) {
+                    return marathonMode.getTargetLines();
+                }
+                return 0;
+            case GARBAGE:
+                if (garbageMode != null) {
+                    return garbageMode.getTargetLines();
+                }
                 return 0;
             default:
                 return 0;

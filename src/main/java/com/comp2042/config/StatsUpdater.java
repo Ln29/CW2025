@@ -22,6 +22,15 @@ public class StatsUpdater {
         }
 
         if (statsPanel != null) {
+
+            if (gameModeController != null) {
+                String modeName = gameModeController.getCurrentMode().name();
+                modeName = modeName.substring(0, 1) + modeName.substring(1).toLowerCase();
+                statsPanel.updateMode(modeName);
+            } else {
+                statsPanel.updateMode("Endless");
+            }
+
             statsPanel.updateLines(state.getTotalLinesCleared());
             // Get level from game mode controller if available
             int level = 1;
@@ -32,8 +41,14 @@ public class StatsUpdater {
             statsPanel.updateHighScore(state.getHighScore());
         }
 
-        if (statsPanelRight != null && board != null && board.getScore() != null && board.getScore().scoreProperty() != null) {
-            statsPanelRight.updateScore(board.getScore().scoreProperty().getValue());
+        if (statsPanelRight != null) {
+            if (gameModeController != null) {
+                int targetLines = gameModeController.getTargetLines();
+                int currentLines = gameModeController.getLinesCleared();
+                statsPanelRight.updateTarget(currentLines, targetLines);
+            } else {
+                statsPanelRight.updateTarget(0, 0);
+            }
         }
     }
 

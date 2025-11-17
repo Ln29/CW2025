@@ -15,6 +15,7 @@ public class StatsPanel extends VBox {
     private static final int ROW_HEIGHT = 50;
     private static final int ROW_SPACING = 10;
 
+    private Label modeValueLabel;
     private Label timeValueLabel;
     private Label levelValueLabel;
     private Label linesValueLabel;
@@ -28,6 +29,7 @@ public class StatsPanel extends VBox {
         setMinWidth(PANEL_WIDTH);
         setMaxWidth(PANEL_WIDTH);
 
+        createStatRow("MODE", "Endless");
         createStatRow("TIME", "00:00");
         createStatRow("LEVEL", "1");
         createStatRow("LINES", "0");
@@ -56,6 +58,9 @@ public class StatsPanel extends VBox {
         getChildren().add(row);
 
         switch (label) {
+            case "MODE":
+                modeValueLabel = valueText;
+                break;
             case "TIME":
                 timeValueLabel = valueText;
                 break;
@@ -92,6 +97,12 @@ public class StatsPanel extends VBox {
     public void updateHighScore(int highScore) {
         if (highScoreValueLabel != null) {
             highScoreValueLabel.setText(String.valueOf(highScore));
+        }
+    }
+
+    public void updateMode(String mode) {
+        if (modeValueLabel != null) {
+            modeValueLabel.setText(mode);
         }
     }
 

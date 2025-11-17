@@ -34,13 +34,11 @@ public class ModeSelectionMenu extends VBox {
         setStyle("-fx-background-color: rgba(0, 0, 0, 0.9);");
         setViewOrder(-1);
 
-        // Title
         Label titleLabel = new Label("SELECT GAME MODE");
         titleLabel.setTextFill(Color.YELLOW);
         titleLabel.setFont(Font.font("Arial", FontWeight.BOLD, 36));
         titleLabel.setPadding(new Insets(0, 0, 20, 0));
 
-        // Mode selection buttons
         HBox modeButtons = new HBox(15);
         modeButtons.setAlignment(Pos.CENTER);
 
@@ -54,7 +52,6 @@ public class ModeSelectionMenu extends VBox {
         modeOptionsContainer.setAlignment(Pos.CENTER);
         modeOptionsContainer.setPadding(new Insets(20, 0, 20, 0));
 
-        // Action buttons
         HBox actionButtons = new HBox(20);
         actionButtons.setAlignment(Pos.CENTER);
 
@@ -264,10 +261,32 @@ public class ModeSelectionMenu extends VBox {
     }
 
     private void addGarbageOptions() {
-        Label description = new Label("Auto-spawn garbage rows from bottom");
+        Label description = new Label();
         description.setTextFill(Color.WHITE);
         description.setFont(Font.font("Arial", 14));
         description.setAlignment(Pos.CENTER);
+
+        Label details = new Label();
+        details.setTextFill(Color.LIGHTGRAY);
+        details.setFont(Font.font("Arial", 12));
+
+        Runnable updateDescription = () -> {
+            String descText = String.format(
+                    "Auto-spawn garbage rows from bottom\nTarget: %d lines | Speed: %dms | Stages: %d",
+                    garbageDifficulty.getTargetLines(),
+                    garbageDifficulty.getStartSpeedMs(),
+                    garbageDifficulty.getStages()
+            );
+            description.setText(descText);
+
+            String detailsText = String.format(
+                    "Final Stage Spawn: Every %ds",
+                    garbageDifficulty.getFinalStageSpawnInterval()
+            );
+            details.setText(detailsText);
+        };
+
+        updateDescription.run();
 
         Label difficultyLabel = new Label("Difficulty: " + garbageDifficulty.name());
         difficultyLabel.setTextFill(Color.WHITE);
@@ -289,21 +308,12 @@ public class ModeSelectionMenu extends VBox {
             btn.setOnAction(e -> {
                 garbageDifficulty = finalDiff;
                 difficultyLabel.setText("Difficulty: " + garbageDifficulty.name());
+                updateDescription.run();
                 updateGarbageDifficultyButtonStyles(difficultyButtons, btn);
             });
 
             difficultyButtons.getChildren().add(btn);
         }
-
-        // Show difficulty details
-        Label details = new Label(String.format(
-                "Target: %d lines | Start Speed: %dms | Stages: %d",
-                garbageDifficulty.getTargetLines(),
-                garbageDifficulty.getStartSpeedMs(),
-                garbageDifficulty.getStages()
-        ));
-        details.setTextFill(Color.LIGHTGRAY);
-        details.setFont(Font.font("Arial", 12));
 
         modeOptionsContainer.getChildren().addAll(description, difficultyLabel, difficultyButtons, details);
     }
@@ -353,7 +363,6 @@ public class ModeSelectionMenu extends VBox {
         HBox container = new HBox(10);
         container.setAlignment(Pos.CENTER);
 
-        // Left arrow button (decrease)
         Button leftArrow = new Button("<");
         leftArrow.setPrefWidth(40);
         leftArrow.setPrefHeight(60);
@@ -396,7 +405,6 @@ public class ModeSelectionMenu extends VBox {
             barsContainer.getChildren().add(bar);
         }
 
-        // Right arrow button (increase)
         Button rightArrow = new Button(">");
         rightArrow.setPrefWidth(40);
         rightArrow.setPrefHeight(60);
@@ -426,11 +434,10 @@ public class ModeSelectionMenu extends VBox {
                     "-fx-border-radius: 5;");
         });
 
-        // Update bars based on current difficulty
         Runnable updateBars = () -> {
             for (int i = 0; i < 11; i++) {
                 if (i <= difficulty) {
-                    // Filled bar(green to red)
+                    // Gradient from green (low) to red (high)
                     double ratio = i / 10.0;
                     Color barColor = Color.rgb(
                             (int)(255 * ratio),
@@ -441,7 +448,6 @@ public class ModeSelectionMenu extends VBox {
                     bars[i].setStroke(Color.WHITE);
                     bars[i].setStrokeWidth(1);
                 } else {
-                    // Empty bar
                     bars[i].setFill(Color.rgb(50, 50, 50, 0.5));
                     bars[i].setStroke(Color.rgb(100, 100, 100, 0.5));
                     bars[i].setStrokeWidth(1);

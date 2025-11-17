@@ -20,6 +20,7 @@ public class GameModeController {
     private GarbageMode garbageMode;
 
     private Timeline garbageSpawnTimeline;
+    private boolean timersShouldBeRunning = false;
 
     private int linesCleared = 0;
     private Consumer<Integer> onSpeedChange;
@@ -93,8 +94,8 @@ public class GameModeController {
         }
 
         int newInterval = garbageMode.getSpawnIntervalSeconds(linesCleared) * 1000;
-        boolean wasPlaying = garbageSpawnTimeline != null &&
-                garbageSpawnTimeline.getStatus() == javafx.animation.Animation.Status.RUNNING;
+
+        boolean shouldResume = timersShouldBeRunning;
 
         if (garbageSpawnTimeline != null) {
             garbageSpawnTimeline.stop();
@@ -106,7 +107,7 @@ public class GameModeController {
         ));
         garbageSpawnTimeline.setCycleCount(Timeline.INDEFINITE);
 
-        if (wasPlaying) {
+        if (shouldResume) {
             garbageSpawnTimeline.play();
         }
     }
@@ -121,14 +122,10 @@ public class GameModeController {
                 board.getBoardMatrix()[0].length
         );
 
-        boolean gameOver = board.addGarbageRowsFromBottom(garbageRows);
+        board.addGarbageRowsFromBottom(garbageRows);
 
         if (onGarbageSpawn != null) {
             onGarbageSpawn.run();
-        }
-
-        if (gameOver && onGameOver != null) {
-            onGameOver.run();
         }
     }
 
@@ -196,27 +193,36 @@ public class GameModeController {
     }
 
     public void startTimers() {
+        timersShouldBeRunning = true;
         if (garbageSpawnTimeline != null) {
             garbageSpawnTimeline.play();
         }
     }
 
     public void stopTimers() {
+        timersShouldBeRunning = false;
         if (garbageSpawnTimeline != null) {
             garbageSpawnTimeline.stop();
         }
     }
 
     public void pauseTimers() {
-        stopTimers();
+        timersShouldBeRunning = false;
+        if (garbageSpawnTimeline != null) {
+            garbageSpawnTimeline.stop();
+        }
     }
 
     public void resumeTimers() {
-        startTimers();
+        timersShouldBeRunning = true;
+        if (garbageSpawnTimeline != null) {
+            garbageSpawnTimeline.play();
+        }
     }
 
     public void reset() {
         linesCleared = 0;
+        timersShouldBeRunning = false;
         stopTimers();
         initializeMode();
     }
@@ -229,13 +235,19 @@ public class GameModeController {
         return config.getCurrentMode();
     }
 
+    /**
+     * Get the current level based on the game mode
+     * - Endless: Level = difficulty (0-10)
+     * - Marathon: Level = startingDifficulty + (linesCleared / 10)
+     * - Garbage: Level = 0
+     */
     public int getCurrentLevel() {
         GameMode mode = config.getCurrentMode();
 
         switch (mode) {
             case ENDLESS:
                 if (endlessMode != null) {
-                    return endlessMode.getDifficulty(); // Display as 0-10
+                    return endlessMode.getDifficulty();
                 }
                 return 0;
             case MARATHON:
@@ -246,13 +258,18 @@ public class GameModeController {
                 }
                 return 0;
             case GARBAGE:
-                // Garbage mode doesn't have traditional levels
                 return 0;
             default:
                 return 0;
         }
     }
 
+    /**
+     * Get the target lines for the current game mode
+     * - Endless: Returns 999
+     * - Marathon: Returns target lines (50, 100, 200, or 500)
+     * - Garbage: Returns target lines from difficulty (50, 80, or 100)
+     */
     public int getTargetLines() {
         GameMode mode = config.getCurrentMode();
 

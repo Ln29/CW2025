@@ -9,7 +9,7 @@ import java.util.List;
 
 public class SimpleBoard implements Board {
 
-    private static final long LOCK_DELAY_MS = 500; // 500ms lock delay
+    private static final long LOCK_DELAY_MS = 500;
 
     private final int width;
     private final int height;
@@ -20,7 +20,7 @@ public class SimpleBoard implements Board {
     private final Score score;
     private Brick heldBrick;
     private boolean holdUsed;
-    private Long lockDelayStartTime; // null if not in lock delay, otherwise timestamp when lock delay started
+    private Long lockDelayStartTime;
 
     public SimpleBoard(int width, int height) {
         this.width = width;
@@ -38,14 +38,12 @@ public class SimpleBoard implements Board {
         p.translate(0, 1);
         boolean conflict = MatrixOperations.intersect(currentMatrix, brickRotator.getCurrentShape(), (int) p.getX(), (int) p.getY());
         if (conflict) {
-            // Piece can't move down - start lock delay if not already started
             if (lockDelayStartTime == null) {
                 lockDelayStartTime = System.currentTimeMillis();
             }
             return false;
         } else {
             currentOffset = p;
-            // Piece moved down successfully - reset lock delay
             lockDelayStartTime = null;
             return true;
         }
@@ -62,7 +60,6 @@ public class SimpleBoard implements Board {
             return false;
         } else {
             currentOffset = p;
-            // Successful movement resets lock delay if piece can now move down
             resetLockDelayIfCanMoveDown();
             return true;
         }
@@ -78,7 +75,6 @@ public class SimpleBoard implements Board {
             return false;
         } else {
             currentOffset = p;
-            // Successful movement resets lock delay if piece can now move down
             resetLockDelayIfCanMoveDown();
             return true;
         }
@@ -90,26 +86,21 @@ public class SimpleBoard implements Board {
         NextShapeInfo nextShape = brickRotator.getNextShape();
         int currentX = (int) currentOffset.getX();
         int currentY = (int) currentOffset.getY();
-        
-        // Try normal rotation first
+
         boolean conflict = MatrixOperations.intersect(currentMatrix, nextShape.getShape(), currentX, currentY);
         if (!conflict) {
-            // Normal rotation works, apply it
             brickRotator.setCurrentShape(nextShape.getPosition());
             resetLockDelayIfCanMoveDown();
             return true;
         }
-        
-        // Rotation failed, check if it's due to wall collision only (not blocks)
+
+        // Try wall kick if rotation blocked by wall only
         if (MatrixOperations.isWallCollisionOnly(currentMatrix, nextShape.getShape(), currentX, currentY)) {
-            // Try wall kick offsets: right 1, left 1, right 2, left 2
             int[] wallKickOffsets = {1, -1, 2, -2};
-            
+
             for (int offset : wallKickOffsets) {
                 int newX = currentX + offset;
-                // Check if the new position is valid
                 if (!MatrixOperations.intersect(currentMatrix, nextShape.getShape(), newX, currentY)) {
-                    // Wall kick successful! Apply rotation and update position
                     brickRotator.setCurrentShape(nextShape.getPosition());
                     currentOffset = new Point(newX, currentY);
                     resetLockDelayIfCanMoveDown();
@@ -117,14 +108,12 @@ public class SimpleBoard implements Board {
                 }
             }
         }
-        
-        // Rotation failed and wall kick didn't work
+
         return false;
     }
 
     /**
      * Checks if the lock delay has expired and the piece should be locked.
-     * @return true if lock delay has expired, false otherwise
      */
     public boolean shouldLockPiece() {
         if (lockDelayStartTime == null) {
@@ -138,14 +127,12 @@ public class SimpleBoard implements Board {
      * Resets the lock delay if the piece can now move down after an adjustment.
      */
     private void resetLockDelayIfCanMoveDown() {
-        // Check if piece can move down from current position
         int[][] currentMatrix = MatrixOperations.copy(currentGameMatrix);
         Point testPoint = new Point(currentOffset);
         testPoint.translate(0, 1);
-        boolean canMoveDown = !MatrixOperations.intersect(currentMatrix, brickRotator.getCurrentShape(), 
+        boolean canMoveDown = !MatrixOperations.intersect(currentMatrix, brickRotator.getCurrentShape(),
                 (int) testPoint.getX(), (int) testPoint.getY());
         if (canMoveDown) {
-            // Piece can move down, reset lock delay
             lockDelayStartTime = null;
         }
     }
@@ -155,8 +142,35 @@ public class SimpleBoard implements Board {
         Brick currentBrick = brickGenerator.getBrick();
         brickRotator.setBrick(currentBrick);
         currentOffset = createSpawnPoint();
-        lockDelayStartTime = null; // Reset lock delay for new brick
-        return MatrixOperations.intersect(currentGameMatrix, brickRotator.getCurrentShape(), (int) currentOffset.getX(), (int) currentOffset.getY());
+        lockDelayStartTime = null;
+
+        int spawnX = (int) currentOffset.getX();
+        int[][] shape = brickRotator.getCurrentShape();
+
+        // Try to spawn in hidden rows first (rows 0-1 above visible area)
+        boolean canSpawnInHiddenArea = false;
+        for (int y = 0; y < 2; y++) {
+            if (!MatrixOperations.intersect(currentGameMatrix, shape, spawnX, y)) {
+                canSpawnInHiddenArea = true;
+                currentOffset = new Point(spawnX, y);
+                break;
+            }
+        }
+
+        if (canSpawnInHiddenArea) {
+            return false;
+        }
+
+        // Game over only if first visible row (row 2) is blocked
+        boolean visibleAreaBlocked = false;
+        for (int x = 0; x < width; x++) {
+            if (currentGameMatrix[2][x] != 0) {
+                visibleAreaBlocked = true;
+                break;
+            }
+        }
+
+        return visibleAreaBlocked;
     }
 
     @Override
@@ -200,12 +214,10 @@ public class SimpleBoard implements Board {
 
     @Override
     public boolean holdBrick() {
-        // Can only hold once per brick drop
         if (holdUsed) {
             return false;
         }
 
-        // Get the current brick type
         Brick currentBrick = brickRotator.getBrick();
         if (currentBrick == null) {
             return false;
@@ -225,7 +237,6 @@ public class SimpleBoard implements Board {
             holdUsed = true;
             return true;
         } else {
-            //swap with current
             Brick temp = heldBrick;
             brickRotator.setBrick(temp);
             if (MatrixOperations.intersect(currentGameMatrix, brickRotator.getCurrentShape(), (int) spawnPoint.getX(), (int) spawnPoint.getY())) {
@@ -257,7 +268,6 @@ public class SimpleBoard implements Board {
     @Override
     public int hardDropBrick() {
         int dropCount = 0;
-        // Keep moving the brick down until it can't move anymore
         while (moveBrickDown()) {
             dropCount++;
         }
@@ -269,30 +279,26 @@ public class SimpleBoard implements Board {
         if (brickRotator.getCurrentShape() == null) {
             return null;
         }
-        
+
         int[][] currentShape = brickRotator.getCurrentShape();
         int currentX = (int) currentOffset.getX();
         int currentY = (int) currentOffset.getY();
-        
-        // Calculate where the piece will land by moving it down until it hits something
+
         int ghostY = currentY;
         int[][] testMatrix = MatrixOperations.copy(currentGameMatrix);
-        
-        // Keep moving down until we hit something
+
         while (true) {
             int testY = ghostY + 1;
             if (MatrixOperations.intersect(testMatrix, currentShape, currentX, testY)) {
-                // Hit something, stop here
                 break;
             }
             ghostY = testY;
         }
-        
-        // Only show ghost if it's different from current position
+
         if (ghostY == currentY) {
             return null;
         }
-        
+
         return new GhostBrick(currentShape, currentX, ghostY);
     }
 
@@ -303,22 +309,50 @@ public class SimpleBoard implements Board {
         }
 
         int numRowsToAdd = garbageRows.length;
-        int[][] newMatrix = new int[height][width];
+        boolean hadActiveBrick = (brickRotator.getCurrentShape() != null);
+        boolean brickWasLocked = false;
 
-        // copy existing rows, shifting up
+        // Check if active brick will collide with incoming garbage
+        if (hadActiveBrick) {
+            int[][] shape = brickRotator.getCurrentShape();
+            int brickY = (int) currentOffset.getY();
+
+            int brickLowestRow = -1;
+            for (int row = 0; row < shape.length; row++) {
+                for (int col = 0; col < shape[row].length; col++) {
+                    if (shape[row][col] != 0) {
+                        int boardRow = brickY + row;
+                        if (boardRow > brickLowestRow) {
+                            brickLowestRow = boardRow;
+                        }
+                    }
+                }
+            }
+
+            int garbageSpawnPosition = height - numRowsToAdd;
+
+            if (brickLowestRow >= garbageSpawnPosition) {
+                mergeBrickToBackground();
+                brickRotator.setBrick(null);
+                lockDelayStartTime = null;
+                brickWasLocked = true;
+            }
+        }
+
+        // Shift board up by numRowsToAdd
+        int[][] newMatrix = new int[height][width];
         for (int i = 0; i < height; i++) {
             int sourceRow = i + numRowsToAdd;
             if (sourceRow < height) {
                 System.arraycopy(currentGameMatrix[sourceRow], 0, newMatrix[i], 0, width);
             } else {
-                // row is new, fill with zeros (empty)
                 for (int j = 0; j < width; j++) {
                     newMatrix[i][j] = 0;
                 }
             }
         }
 
-        // Add garbage rows at the bottom
+        // Add garbage rows at bottom
         for (int i = 0; i < numRowsToAdd && i < height; i++) {
             int targetRow = height - numRowsToAdd + i;
             if (targetRow >= 0 && targetRow < height) {
@@ -329,18 +363,24 @@ public class SimpleBoard implements Board {
             }
         }
 
-        boolean gameOver = false;
-        if (brickRotator.getCurrentShape() != null) {
-            int currentX = (int) currentOffset.getX();
-            int currentY = (int) currentOffset.getY();
-            // check if conflicts with new board state
-            if (MatrixOperations.intersect(newMatrix, brickRotator.getCurrentShape(), currentX, currentY)) {
-                gameOver = true;
+        currentGameMatrix = newMatrix;
+
+        // Move remaining brick up
+        if (hadActiveBrick && !brickWasLocked) {
+            int newBrickY = (int) currentOffset.getY() - numRowsToAdd;
+            currentOffset = new Point((int) currentOffset.getX(), newBrickY);
+
+            // Game over if brick pushed out of bounds
+            if (newBrickY < 0) {
+                return true;
             }
         }
 
-        currentGameMatrix = newMatrix;
-        return gameOver;
+        if (brickWasLocked) {
+            return createNewBrick();
+        }
+
+        return false;
     }
 
     private Point createSpawnPoint() {

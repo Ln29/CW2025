@@ -122,10 +122,6 @@ public class GuiController implements Initializable {
         // Menus factory with callbacks
         MenuFactory menuFactory = new MenuFactory(audioManager, new MenuCallbacks() {
             @Override
-            public void onStartGame() {
-                startGame();
-            }
-            @Override
             public void onOpenSettings() {
                 if (menuController != null) menuController.showSettingsMenu(gameBoard);
             }
@@ -193,11 +189,8 @@ public class GuiController implements Initializable {
             }
             @Override
             public void onOpenMainMenuFromPause() {
-                restartGame();
-                if (menuController != null) {
-                    menuController.hideMainMenu();
-                    menuController.showMainMenu(gameBoard);
-                }
+                returnToMainMenu();
+
             }
             @Override
             public void onRestartFromGameOver() {
@@ -205,16 +198,11 @@ public class GuiController implements Initializable {
             }
             @Override
             public void onOpenMainMenuFromGameOver() {
-                restartGame();
-                if (menuController != null) {
-                    menuController.hideMainMenu();
-                    menuController.showMainMenu(gameBoard);
-                }
+                returnToMainMenu();
             }
             @Override
             public void onOpenModeSelection() {
                 if (menuController != null) {
-                    menuController.hideMainMenu();
                     menuController.showModeSelectionMenu(gameBoard);
                 }
             }
@@ -560,6 +548,30 @@ public class GuiController implements Initializable {
                 gameModeController.pauseTimers();
             }
             if (menuController != null) menuController.showPauseMenu(gameBoard);
+        }
+    }
+
+    private void returnToMainMenu() {
+        if (gameLifecycle != null) {
+            gameLifecycle.stopTimers();
+        }
+        if (gameModeController != null) {
+            gameModeController.stopTimers();
+            gameModeController.reset();
+        }
+
+        if (menuController != null) {
+            menuController.hidePauseMenu();
+            menuController.hideGameOverMenu();
+            menuController.hideMainMenu();
+            menuController.showMainMenu(gameBoard);
+        }
+
+        isPause.setValue(Boolean.TRUE);
+        isGameOver.setValue(Boolean.FALSE);
+
+        if (audioManager != null) {
+            audioManager.playMainMenuMusic();
         }
     }
 

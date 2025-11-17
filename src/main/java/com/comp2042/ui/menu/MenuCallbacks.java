@@ -2,7 +2,6 @@ package com.comp2042.ui.menu;
 
 public interface MenuCallbacks {
     // Main menu
-    void onStartGame();
     void onOpenSettings();
     void onExitGame();
 

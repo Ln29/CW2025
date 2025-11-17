@@ -3,7 +3,6 @@ package com.comp2042.core;
 import com.comp2042.core.bricks.Brick;
 
 import java.util.List;
-import java.util.Objects;
 
 public class BrickRotator {
 
@@ -28,7 +27,13 @@ public class BrickRotator {
     }
 
     public void setBrick(Brick brick){
-        this.brick = Objects.requireNonNull(brick, "brick cannot be null");
+        if (brick == null) {
+            this.brick = null;
+            this.shapeMatrices = null;
+            currentShape = 0;
+            return;
+        }
+        this.brick = brick;
         this.shapeMatrices = this.brick.getShapeMatrix();
         currentShape = 0;
     }

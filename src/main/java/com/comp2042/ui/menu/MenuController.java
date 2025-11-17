@@ -127,6 +127,18 @@ public class MenuController {
         ensureManager(gameBoard);
         initializeGameOverMenu(gameBoard);
         if (menuManager != null && gameOverMenu != null) {
+            gameOverMenu.setGameOverState();
+            menuManager.showCenteredOnBoard(gameOverMenu);
+            gameOverMenu.requestFocusForNavigation();
+            activeOverlay = InputRouter.Overlay.GAME_OVER;
+        }
+    }
+
+    public void showWinMenu(BorderPane gameBoard) {
+        ensureManager(gameBoard);
+        initializeGameOverMenu(gameBoard);
+        if (menuManager != null && gameOverMenu != null) {
+            gameOverMenu.setWinState();
             menuManager.showCenteredOnBoard(gameOverMenu);
             gameOverMenu.requestFocusForNavigation();
             activeOverlay = InputRouter.Overlay.GAME_OVER;

@@ -18,7 +18,6 @@ public class StatsPanel extends VBox {
     private Label modeValueLabel;
     private Label timeValueLabel;
     private Label levelValueLabel;
-    private Label linesValueLabel;
     private Label highScoreValueLabel;
 
     public StatsPanel() {
@@ -32,7 +31,6 @@ public class StatsPanel extends VBox {
         createStatRow("MODE", "Endless");
         createStatRow("TIME", "00:00");
         createStatRow("LEVEL", "1");
-        createStatRow("LINES", "0");
         createStatRow("HIGH SCORE", "0");
     }
 
@@ -67,9 +65,6 @@ public class StatsPanel extends VBox {
             case "LEVEL":
                 levelValueLabel = valueText;
                 break;
-            case "LINES":
-                linesValueLabel = valueText;
-                break;
             case "HIGH SCORE":
                 highScoreValueLabel = valueText;
                 break;
@@ -85,12 +80,6 @@ public class StatsPanel extends VBox {
     public void updateLevel(int level) {
         if (levelValueLabel != null) {
             levelValueLabel.setText(String.valueOf(level));
-        }
-    }
-
-    public void updateLines(int lines) {
-        if (linesValueLabel != null) {
-            linesValueLabel.setText(String.valueOf(lines));
         }
     }
 

@@ -31,7 +31,6 @@ public class StatsUpdater {
                 statsPanel.updateMode("Endless");
             }
 
-            statsPanel.updateLines(state.getTotalLinesCleared());
             // Get level from game mode controller if available
             int level = 1;
             if (gameModeController != null) {

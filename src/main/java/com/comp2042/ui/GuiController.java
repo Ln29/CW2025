@@ -342,8 +342,14 @@ public class GuiController implements Initializable {
                         if (gameLifecycle != null) {
                             gameLifecycle.stopTimers();
                         }
+                        if (gameModeController != null) {
+                            gameModeController.stopTimers();
+                        }
+                        if (audioManager != null) {
+                            audioManager.playSoundEffect(GameConstants.SFX_WIN);
+                        }
                         if (menuController != null) {
-                            menuController.showGameOverMenu(gameBoard);
+                            menuController.showWinMenu(gameBoard);
                         }
                     },
                     () -> {
@@ -681,8 +687,14 @@ public class GuiController implements Initializable {
                         if (gameLifecycle != null) {
                             gameLifecycle.stopTimers();
                         }
+                        if (gameModeController != null) {
+                            gameModeController.stopTimers();
+                        }
+                        if (audioManager != null) {
+                            audioManager.playSoundEffect(GameConstants.SFX_WIN);
+                        }
                         if (menuController != null) {
-                            menuController.showGameOverMenu(gameBoard);
+                            menuController.showWinMenu(gameBoard);
                         }
                     },
                     () -> {

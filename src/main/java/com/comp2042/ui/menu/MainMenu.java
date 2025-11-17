@@ -5,6 +5,7 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.effect.DropShadow;
 import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
@@ -45,12 +46,23 @@ public class MainMenu extends VBox {
         setPrefHeight(700);
         
         // Ensure the main menu is always on top
-        setViewOrder(-1); // Negative view order means it appears on top
-        
+        setViewOrder(-1);
+
+        Font titleFont;
+        try {
+            titleFont = Font.loadFont(getClass().getResourceAsStream("/assets/fonts/PressStart2P-Regular.ttf"), 55);
+            if (titleFont == null) {
+                throw new Exception("Font file not found");
+            }
+        } catch (Exception e) {
+            System.err.println("Could not load PressStart2P font: " + e.getMessage());
+            titleFont = Font.font("Arial", FontWeight.BOLD, 55);
+        }
+
         // Title
-        Label titleLabel = new Label("TETRIS");
-        titleLabel.setTextFill(Color.YELLOW);
-        titleLabel.setFont(Font.font("Arial", FontWeight.BOLD, 48));
+        Label titleLabel = new Label("TETRIS 29");
+        titleLabel.setTextFill(Color.BLACK);
+        titleLabel.setFont(titleFont);
         titleLabel.setPadding(new Insets(0, 0, 40, 0));
         
         // Start button

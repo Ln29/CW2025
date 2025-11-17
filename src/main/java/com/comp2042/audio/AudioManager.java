@@ -12,7 +12,7 @@ public class AudioManager {
     private MediaPlayer musicPlayer;
     private MediaPlayer menuMusicPlayer;
     private double masterVolume = 1.0;
-    private double musicVolume = 0.5;
+    private double musicVolume = 0.4;
     private double soundEffectVolume = 1.0;
     
     private AudioManager() {

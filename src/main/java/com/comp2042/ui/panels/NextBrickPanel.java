@@ -34,7 +34,7 @@ public class NextBrickPanel extends VBox {
         setStyle("-fx-border-color: linear-gradient(#2A5058, #61a2b1); " +
                 "-fx-border-width: 12px 12px 12px 0; " + // left is hidden
                 "-fx-border-radius: 12px 12px 12px 0; " + // Rounded corners
-                "-fx-background-color: rgba(56, 52, 52, 0.52);");
+                "-fx-background-color: rgba(0, 0, 0, 0.7);");
 
         // Add "NEXT" label at the top
         Label nextLabel = new Label("NEXT");

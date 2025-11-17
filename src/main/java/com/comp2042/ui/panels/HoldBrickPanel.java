@@ -31,7 +31,7 @@ public class HoldBrickPanel extends VBox {
         setStyle("-fx-border-color: linear-gradient(#2A5058, #61a2b1); " +
                 "-fx-border-width: 12px 0 12px 12px; " + // right is hidden
                 "-fx-border-radius: 12px 12px 0 12px; " + // Rounded corners
-                "-fx-background-color: rgba(56, 52, 52, 0.50);");
+                "-fx-background-color: rgba(0, 0, 0, 0.70);");
 
         // Add "HOLD" label at the top
         holdLabel = new Label("HOLD");

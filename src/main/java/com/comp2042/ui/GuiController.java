@@ -95,7 +95,7 @@ public class GuiController implements Initializable {
     public void initialize(URL location, ResourceBundle resources) {
         Font.loadFont(getClass().getClassLoader().getResource("digital.ttf").toExternalForm(), 38);
         BorderPane.setAlignment(gamePanel, Pos.CENTER);
-        gamePanel.setStyle("-fx-background-color: rgba(0, 0, 0, 0.3);");
+        gamePanel.setStyle("-fx-background-color: rgba(0, 0, 0, 0.7);");
         brickPanel.setVisible(false); // Prevent flashing at (0,0)
 
         keyBindingsConfig = KeyBindingsConfig.getInstance();

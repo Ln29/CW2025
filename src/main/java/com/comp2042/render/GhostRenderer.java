@@ -64,7 +64,8 @@ public class GhostRenderer {
         if (scene == null) return;
         Pane root = (Pane) scene.getRoot();
         root.getChildren().add(ghostPanel);
-        ghostPanel.toBack();
+        gamePanel.toBack();
+        ghostPanel.toFront();
         brickPanel.toFront();
     }
 
@@ -82,7 +83,9 @@ public class GhostRenderer {
             ghostPanel.setLayoutX(x);
             ghostPanel.setLayoutY(y);
             ghostPanel.setVisible(true);
-            ghostPanel.toBack();
+            gamePanel.toBack();
+            ghostPanel.toFront();
+            brickPanel.toFront();
         } else {
             ghostPanel.setVisible(false);
             return;

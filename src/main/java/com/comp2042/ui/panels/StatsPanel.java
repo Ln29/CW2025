@@ -42,7 +42,7 @@ public class StatsPanel extends VBox {
         row.setMinHeight(ROW_HEIGHT);
         row.setMaxHeight(ROW_HEIGHT);
         row.setMaxWidth(Double.MAX_VALUE);
-        row.setStyle("-fx-background-color: rgba(0, 0, 0, 0.5); -fx-background-radius: 5;");
+        row.setStyle("-fx-background-color: rgba(0, 0, 0, 0.7); -fx-background-radius: 5;");
 
         Label labelText = new Label(label + ":");
         labelText.setTextFill(Color.WHITE);

@@ -28,7 +28,7 @@ public class StatsPanelRight {
         scoreRow.setPrefWidth(PANEL_WIDTH);
         scoreRow.setMinWidth(PANEL_WIDTH);
         scoreRow.setMaxWidth(Double.MAX_VALUE);
-        scoreRow.setStyle("-fx-background-color: rgba(0, 0, 0, 0.5); -fx-background-radius: 5;");
+        scoreRow.setStyle("-fx-background-color: rgba(0, 0, 0, 0.7); -fx-background-radius: 5;");
 
         // Create label text "SCORE:"
         Label labelText = new Label("SCORE:");

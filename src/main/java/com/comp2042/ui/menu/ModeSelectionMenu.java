@@ -7,6 +7,7 @@ import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 
@@ -28,9 +29,9 @@ public class ModeSelectionMenu extends VBox {
         setAlignment(Pos.CENTER);
         setSpacing(20);
         setPadding(new Insets(30, 50, 30, 50));
-        setPrefWidth(900);
+        setPrefWidth(600);
         setPrefHeight(700);
-        setStyle("-fx-background-color: rgba(0, 0, 0, 0.8);");
+        setStyle("-fx-background-color: rgba(0, 0, 0, 0.9);");
         setViewOrder(-1);
 
         // Title
@@ -49,7 +50,6 @@ public class ModeSelectionMenu extends VBox {
 
         modeButtons.getChildren().addAll(endlessButton, marathonButton, garbageButton);
 
-        // Mode-specific options container
         modeOptionsContainer = new VBox(15);
         modeOptionsContainer.setAlignment(Pos.CENTER);
         modeOptionsContainer.setPadding(new Insets(20, 0, 20, 0));
@@ -204,20 +204,9 @@ public class ModeSelectionMenu extends VBox {
         difficultyLabel.setTextFill(Color.WHITE);
         difficultyLabel.setFont(Font.font("Arial", 14));
 
-        Slider difficultySlider = new Slider(0, 10, difficulty);
-        difficultySlider.setShowTickLabels(true);
-        difficultySlider.setShowTickMarks(true);
-        difficultySlider.setMajorTickUnit(1);
-        difficultySlider.setBlockIncrement(1);
-        difficultySlider.setSnapToTicks(true);
-        difficultySlider.setPrefWidth(400);
+        HBox difficultySelector = createVolumeBarDifficultySelector(difficultyLabel);
 
-        difficultySlider.valueProperty().addListener((obs, oldVal, newVal) -> {
-            difficulty = newVal.intValue();
-            difficultyLabel.setText("Difficulty (0-10): " + difficulty);
-        });
-
-        modeOptionsContainer.getChildren().addAll(description, difficultyLabel, difficultySlider);
+        modeOptionsContainer.getChildren().addAll(description, difficultyLabel, difficultySelector);
     }
 
     private void addMarathonOptions() {
@@ -256,20 +245,9 @@ public class ModeSelectionMenu extends VBox {
         difficultyLabel.setTextFill(Color.WHITE);
         difficultyLabel.setFont(Font.font("Arial", 14));
 
-        Slider difficultySlider = new Slider(0, 10, difficulty);
-        difficultySlider.setShowTickLabels(true);
-        difficultySlider.setShowTickMarks(true);
-        difficultySlider.setMajorTickUnit(1);
-        difficultySlider.setBlockIncrement(1);
-        difficultySlider.setSnapToTicks(true);
-        difficultySlider.setPrefWidth(400);
+        HBox difficultySelector = createVolumeBarDifficultySelector(difficultyLabel);
 
-        difficultySlider.valueProperty().addListener((obs, oldVal, newVal) -> {
-            difficulty = newVal.intValue();
-            difficultyLabel.setText("Starting Difficulty (0-10): " + difficulty);
-        });
-
-        modeOptionsContainer.getChildren().addAll(description, targetLabel, targetButtons, difficultyLabel, difficultySlider);
+        modeOptionsContainer.getChildren().addAll(description, targetLabel, targetButtons, difficultyLabel, difficultySelector);
     }
 
     private void updateTargetButtonStyles(HBox container, Button selected) {
@@ -365,5 +343,139 @@ public class ModeSelectionMenu extends VBox {
 
     public void setOnBack(Runnable onBack) {
         this.onBack = onBack;
+    }
+
+    /**
+     * Creates a volume bar style difficulty selector with arrow buttons and vertical bars
+     * Layout: < [11 vertical bars] >
+     */
+    private HBox createVolumeBarDifficultySelector(Label difficultyLabel) {
+        HBox container = new HBox(10);
+        container.setAlignment(Pos.CENTER);
+
+        // Left arrow button (decrease)
+        Button leftArrow = new Button("<");
+        leftArrow.setPrefWidth(40);
+        leftArrow.setPrefHeight(60);
+        leftArrow.setFont(Font.font("Arial", FontWeight.BOLD, 20));
+        leftArrow.setStyle("-fx-background-color: rgba(100, 100, 100, 0.7); " +
+                "-fx-text-fill: white; " +
+                "-fx-background-radius: 5; " +
+                "-fx-border-color: rgba(200, 200, 200, 0.5); " +
+                "-fx-border-width: 2; " +
+                "-fx-border-radius: 5;");
+
+        leftArrow.setOnMouseEntered(e -> {
+            leftArrow.setStyle("-fx-background-color: rgba(120, 120, 120, 0.8); " +
+                    "-fx-text-fill: white; " +
+                    "-fx-background-radius: 5; " +
+                    "-fx-border-color: rgba(200, 200, 200, 0.7); " +
+                    "-fx-border-width: 2; " +
+                    "-fx-border-radius: 5;");
+        });
+
+        leftArrow.setOnMouseExited(e -> {
+            leftArrow.setStyle("-fx-background-color: rgba(100, 100, 100, 0.7); " +
+                    "-fx-text-fill: white; " +
+                    "-fx-background-radius: 5; " +
+                    "-fx-border-color: rgba(200, 200, 200, 0.5); " +
+                    "-fx-border-width: 2; " +
+                    "-fx-border-radius: 5;");
+        });
+
+        HBox barsContainer = new HBox(4);
+        barsContainer.setAlignment(Pos.CENTER);
+        barsContainer.setPadding(new Insets(0, 10, 0, 10));
+
+        Rectangle[] bars = new Rectangle[11];
+        for (int i = 0; i < 11; i++) {
+            Rectangle bar = new Rectangle(12, 50);
+            bar.setArcWidth(3);
+            bar.setArcHeight(3);
+            bars[i] = bar;
+            barsContainer.getChildren().add(bar);
+        }
+
+        // Right arrow button (increase)
+        Button rightArrow = new Button(">");
+        rightArrow.setPrefWidth(40);
+        rightArrow.setPrefHeight(60);
+        rightArrow.setFont(Font.font("Arial", FontWeight.BOLD, 20));
+        rightArrow.setStyle("-fx-background-color: rgba(100, 100, 100, 0.7); " +
+                "-fx-text-fill: white; " +
+                "-fx-background-radius: 5; " +
+                "-fx-border-color: rgba(200, 200, 200, 0.5); " +
+                "-fx-border-width: 2; " +
+                "-fx-border-radius: 5;");
+
+        rightArrow.setOnMouseEntered(e -> {
+            rightArrow.setStyle("-fx-background-color: rgba(120, 120, 120, 0.8); " +
+                    "-fx-text-fill: white; " +
+                    "-fx-background-radius: 5; " +
+                    "-fx-border-color: rgba(200, 200, 200, 0.7); " +
+                    "-fx-border-width: 2; " +
+                    "-fx-border-radius: 5;");
+        });
+
+        rightArrow.setOnMouseExited(e -> {
+            rightArrow.setStyle("-fx-background-color: rgba(100, 100, 100, 0.7); " +
+                    "-fx-text-fill: white; " +
+                    "-fx-background-radius: 5; " +
+                    "-fx-border-color: rgba(200, 200, 200, 0.5); " +
+                    "-fx-border-width: 2; " +
+                    "-fx-border-radius: 5;");
+        });
+
+        // Update bars based on current difficulty
+        Runnable updateBars = () -> {
+            for (int i = 0; i < 11; i++) {
+                if (i <= difficulty) {
+                    // Filled bar(green to red)
+                    double ratio = i / 10.0;
+                    Color barColor = Color.rgb(
+                            (int)(255 * ratio),
+                            (int)(255 * (1 - ratio)),
+                            0
+                    );
+                    bars[i].setFill(barColor);
+                    bars[i].setStroke(Color.WHITE);
+                    bars[i].setStrokeWidth(1);
+                } else {
+                    // Empty bar
+                    bars[i].setFill(Color.rgb(50, 50, 50, 0.5));
+                    bars[i].setStroke(Color.rgb(100, 100, 100, 0.5));
+                    bars[i].setStrokeWidth(1);
+                }
+            }
+        };
+
+        updateBars.run();
+
+        leftArrow.setOnAction(e -> {
+            if (difficulty > 0) {
+                difficulty--;
+                if (difficultyLabel.getText().contains("Starting Difficulty")) {
+                    difficultyLabel.setText("Starting Difficulty (0-10): " + difficulty);
+                } else {
+                    difficultyLabel.setText("Difficulty (0-10): " + difficulty);
+                }
+                updateBars.run();
+            }
+        });
+
+        rightArrow.setOnAction(e -> {
+            if (difficulty < 10) {
+                difficulty++;
+                if (difficultyLabel.getText().contains("Starting Difficulty")) {
+                    difficultyLabel.setText("Starting Difficulty (0-10): " + difficulty);
+                } else {
+                    difficultyLabel.setText("Difficulty (0-10): " + difficulty);
+                }
+                updateBars.run();
+            }
+        });
+
+        container.getChildren().addAll(leftArrow, barsContainer, rightArrow);
+        return container;
     }
 }

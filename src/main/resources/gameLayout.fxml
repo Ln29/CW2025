@@ -14,7 +14,9 @@
         </center>
     </BorderPane>
 
-    <Group fx:id="groupNotification" layoutX="14" layoutY="203">
+    <Group fx:id="comboNotificationGroup" layoutX="200" layoutY="100">
+    </Group>
+    <Group fx:id="scoreNotificationGroup" layoutX="200" layoutY="100">
     </Group>
     <stylesheets>
         <URL value="@window_style.css"/>

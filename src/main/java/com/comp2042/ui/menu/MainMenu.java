@@ -56,7 +56,7 @@ public class MainMenu extends VBox {
             }
         } catch (Exception e) {
             System.err.println("Could not load PressStart2P font: " + e.getMessage());
-            titleFont = Font.font("Arial", FontWeight.BOLD, 55);
+            titleFont = Font.font("Arial", FontWeight.BOLD, 60);
         }
 
         // Title

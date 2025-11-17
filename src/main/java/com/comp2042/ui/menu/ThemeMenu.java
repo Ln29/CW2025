@@ -23,11 +23,15 @@ import java.util.List;
 public class ThemeMenu extends VBox {
     
     public enum Theme {
-        DEFAULT("Default", "default.png", "default.wav", new String[]{"#00FFFF", "#8A2BE2", "#006400", "#FFFF00", "#FF0000", "#F5F5DC", "#DEB887"}),
-        SNOWY_MOUNTAIN("Snowy Mountain", "snowy_mountain.png", "snowy_mountain.wav", new String[]{"#AEEEEE", "#F0F8FF", "#B0C4DE", "#98FB98", "#AFEEEE", "#4682B4", "#E0FFFF"}),
-        BEACH("Beach", "beach.png", "beach.wav", new String[]{"#1E90FF", "#FFD700", "#FF7F50", "#32CD32", "#F0FFFF", "#FFB6C1", "#008B8B"}),
-        PARTY("Party", "party.jpg", "party.wav", new String[]{"#DA70D6", "#FFFF00", "#FF69B4", "#7CFC00", "#FFA500", "#1E90FF", "#FF4500"});
-        
+        DEFAULT("Default", "default.png", "default.mp3",
+                new String[]{"#FF6B6B", "#FFA500", "#FFD93D", "#6BCF7F", "#4ECDC4", "#A78BFA", "#FF6BA9"}),
+        SNOWY_MOUNTAIN("Snowy Mountain", "snowy_mountain.png", "snowy_mountain.mp3",
+                new String[]{"#90C9E8", "#AAD5E8", "#95D9B8", "#B8E6D0", "#C9A8D8", "#E5D4C1", "#F0F8FF"}),
+        BEACH("Beach", "beach.png", "beach.mp3",
+                new String[]{"#5DDEF4", "#7FE7FF", "#FFF176", "#FFDB58", "#FFBC42", "#E8C68E", "#B0E0E6"}),
+        PARTY("Party", "party.jpg", "party.wav",
+                new String[]{"#FF1493", "#FF00FF", "#FF69B4", "#00FFFF", "#00FF00", "#FFFF00", "#FF4500"});
+
         private final String displayName;
         private final String imagePath;
         private final String musicFile;

@@ -43,7 +43,7 @@ public class AudioManager {
     }
     
     public void playGameMusic() {
-        playGameMusic("default.wav");
+        playGameMusic("default.mp3");
     }
     
     public void playGameMusic(String musicFile) {

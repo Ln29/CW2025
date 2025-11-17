@@ -362,6 +362,9 @@ public class GuiController implements Initializable {
                     () -> moveDown(new MoveEvent(EventType.DOWN, EventSource.THREAD)),
                     this::checkLockDelay,
                     () -> {
+                        if (isPause.getValue() == Boolean.FALSE && gameState != null) {
+                            gameState.incrementElapsedSeconds();
+                        }
                         if (panelManager != null) {
                             statsUpdater.updateTime(gameState, panelManager.getStatsPanel());
                         }

@@ -4,6 +4,7 @@ public class GameState {
     private int totalLinesCleared = 0;
     private int highScore = 0;
     private long gameStartTime = 0L;
+    private long elapsedSeconds = 0L;
 
     public int getTotalLinesCleared() {
         return totalLinesCleared;
@@ -33,6 +34,17 @@ public class GameState {
 
     public void setGameStartTimeNow() {
         this.gameStartTime = System.currentTimeMillis();
+    }
+    public long getElapsedSeconds() {
+        return elapsedSeconds;
+    }
+
+    public void incrementElapsedSeconds() {
+        this.elapsedSeconds++;
+    }
+
+    public void resetElapsedTime() {
+        this.elapsedSeconds = 0L;
     }
 }
 

@@ -497,28 +497,36 @@ public class GuiController implements Initializable {
         if (isPause.getValue() == Boolean.FALSE && board != null && eventListener != null) {
             if (board.shouldLockPiece()) {
                 DownData downData = eventListener.onDownEvent(new MoveEvent(EventType.DOWN, EventSource.THREAD));
-                if (downData.getClearRow() != null && downData.getClearRow().getLinesRemoved() > 0) {
+                if (downData.getClearRow() != null) {
                     int removed = downData.getClearRow().getLinesRemoved();
                     int bonus = downData.getClearRow().getScoreBonus();
-                    gameState.addClearedLines(removed);
-                    if (gameModeController != null) {
-                        gameModeController.onLinesCleared(removed);
-                    }
-                    if (panelManager != null) panelManager.updateStatsPanels();
-                    if (notificationService != null && gameModeController != null) {
-                        notificationService.checkLevelUp(gameModeController.getCurrentLevel());
-                    }
+                    if (removed > 0) {
+                        gameState.addClearedLines(removed);
+                        if (gameModeController != null) {
+                            gameModeController.onLinesCleared(removed);
+                        }
+                        if (panelManager != null) panelManager.updateStatsPanels();
+                        if (notificationService != null && gameModeController != null) {
+                            notificationService.checkLevelUp(gameModeController.getCurrentLevel());
+                        }
+                        // Call onLinesCleared first to increment combo count
+                        if (notificationService != null) {
+                            notificationService.onLinesCleared(removed, bonus);
 
-                    if (notificationService != null) {
-                        notificationService.onLinesCleared(removed, bonus);
-
-
-                        if (board != null && board.getScore() != null) {
-                            int comboCount = notificationService.getComboCount();
-                            if (comboCount > 1) {
-                                int additionalScore = bonus * (comboCount - 1);
-                                board.getScore().add(additionalScore);
+                            if (board != null && board.getScore() != null) {
+                                int comboCount = notificationService.getComboCount();
+                                if (comboCount > 1) {
+                                    // Additional score = baseBonus * (comboCount - 1)
+                                    int additionalScore = bonus * (comboCount - 1);
+                                    board.getScore().add(additionalScore);
+                                }
                             }
+                        }
+                    } else {
+                        // No lines cleared - reset combo
+                        if (notificationService != null) {
+                            notificationService.onLinesCleared(removed, bonus);
+
                         }
                     }
                 }

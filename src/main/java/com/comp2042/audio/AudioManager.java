@@ -56,6 +56,8 @@ public class AudioManager {
                 musicPlayer.setCycleCount(MediaPlayer.INDEFINITE); // Loop indefinitely
                 updateGameMusicVolume();
                 musicPlayer.play();
+            }else {
+                System.err.println("Error: Music file not found: assets/sound/Music/" + musicFile);
             }
         } catch (Exception e) {
             System.err.println("Error playing game music: " + e.getMessage());

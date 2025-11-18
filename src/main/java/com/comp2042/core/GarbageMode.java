@@ -102,10 +102,6 @@ public class GarbageMode {
         return linesCleared >= difficulty.getTargetLines();
     }
 
-    public boolean shouldEnd(int linesCleared) {
-        return isWon(linesCleared);
-    }
-
     public int getGarbageBlockValue() {
         return GARBAGE_BLOCK_VALUE;
     }

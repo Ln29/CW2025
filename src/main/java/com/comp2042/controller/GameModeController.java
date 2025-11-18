@@ -20,7 +20,6 @@ public class GameModeController {
     private int linesCleared = 0;
     private long lastGarbageSpawnTime = 0;
     private Consumer<Integer> onSpeedChange;
-    private Runnable onGameOver;
     private Runnable onGameWin;
     private Runnable onGarbageSpawn;
 
@@ -48,7 +47,6 @@ public class GameModeController {
 
     public void initTimers(Consumer<Integer> onSpeedChange, Runnable onGameOver, Runnable onGameWin, Runnable onGarbageSpawn) {
         this.onSpeedChange = onSpeedChange;
-        this.onGameOver = onGameOver;
         this.onGameWin = onGameWin;
         this.onGarbageSpawn = onGarbageSpawn;
 

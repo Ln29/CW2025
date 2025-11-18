@@ -33,8 +33,4 @@ public class MarathonMode {
     public boolean isWon(int linesCleared) {
         return linesCleared >= targetLines;
     }
-
-    boolean shouldEnd(int linesCleared) {
-        return isWon(linesCleared);
-    }
 }

@@ -31,8 +31,4 @@ public class EndlessMode {
     public boolean isWon(int linesCleared) {
         return linesCleared >= TARGET_LINES;
     }
-
-    public boolean shouldEnd(int linesCleared) {
-        return isWon(linesCleared);
-    }
 }

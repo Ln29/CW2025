@@ -200,7 +200,7 @@ public class GameModeController {
                 if (marathonMode != null) {
                     int baseLevel = marathonMode.getStartDifficulty();
                     int levelIncrease = linesCleared / 10;
-                    return baseLevel + levelIncrease;
+                    return Math.min(baseLevel + levelIncrease, 10);
                 }
                 return 0;
             case GARBAGE:

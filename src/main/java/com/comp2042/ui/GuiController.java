@@ -615,7 +615,10 @@ public class GuiController implements Initializable {
             gameLifecycle.stopTimers();
         }
         eventListener.createNewGame();
-        if (panelManager != null) panelManager.updateNextBrickPanel();
+        if (panelManager != null) {
+            panelManager.updateNextBrickPanel();
+            panelManager.updateHoldBrickPanel();
+        }
 
         gameState.resetLines();
         gameState.setGameStartTimeNow();
@@ -744,7 +747,10 @@ public class GuiController implements Initializable {
             menuController.hideGameOverMenu();
         }
         eventListener.createNewGame();
-        if (panelManager != null) panelManager.updateNextBrickPanel();
+        if (panelManager != null) {
+            panelManager.updateNextBrickPanel();
+            panelManager.updateHoldBrickPanel();
+        }
 
         gameState.resetLines();
         gameState.setGameStartTimeNow();

@@ -364,7 +364,7 @@ public class ModeSelectionMenu extends VBox {
 
     /**
      * Creates a volume bar style difficulty selector with arrow buttons and vertical bars
-     * Layout: < [11 vertical bars] >
+     * Layout: < [10 vertical bars] >
      */
     private HBox createVolumeBarDifficultySelector(Label difficultyLabel) {
         HBox container = new HBox(10);
@@ -372,8 +372,8 @@ public class ModeSelectionMenu extends VBox {
 
         // Left arrow button(decrease)
         Button leftArrow = new Button("<");
-        leftArrow.setPrefWidth(40);
-        leftArrow.setPrefHeight(60);
+        leftArrow.setPrefWidth(30);
+        leftArrow.setPrefHeight(50);
         leftArrow.setFont(Font.font("Arial", FontWeight.BOLD, 20));
         leftArrow.setStyle("-fx-background-color: rgba(100, 100, 100, 0.7); " +
                 "-fx-text-fill: white; " +
@@ -404,9 +404,9 @@ public class ModeSelectionMenu extends VBox {
         barsContainer.setAlignment(Pos.CENTER);
         barsContainer.setPadding(new Insets(0, 10, 0, 10));
 
-        // 11 vertical bars (level 0-10)
-        Rectangle[] bars = new Rectangle[11];
-        for (int i = 0; i < 11; i++) {
+        // Difficulty 0 = all grey
+        Rectangle[] bars = new Rectangle[10];
+        for (int i = 0; i < 10; i++) {
             Rectangle bar = new Rectangle(12, 50);
             bar.setArcWidth(3);
             bar.setArcHeight(3);
@@ -416,8 +416,8 @@ public class ModeSelectionMenu extends VBox {
 
         // Right arrow button(increase)
         Button rightArrow = new Button(">");
-        rightArrow.setPrefWidth(40);
-        rightArrow.setPrefHeight(60);
+        rightArrow.setPrefWidth(30);
+        rightArrow.setPrefHeight(50);
         rightArrow.setFont(Font.font("Arial", FontWeight.BOLD, 20));
         rightArrow.setStyle("-fx-background-color: rgba(100, 100, 100, 0.7); " +
                 "-fx-text-fill: white; " +
@@ -446,10 +446,9 @@ public class ModeSelectionMenu extends VBox {
 
         // Update bars based on current difficulty
         Runnable updateBars = () -> {
-            for (int i = 0; i < 11; i++) {
-                if (i <= difficulty) {
-                    // Filled bar
-                    double ratio = i / 10.0;
+            for (int i = 0; i < 10; i++) {
+                if (difficulty > 0 && i < difficulty) {
+                    double ratio = (i + 1) / 10.0;
                     Color barColor = Color.rgb(
                             (int)(255 * ratio),           // Red increases
                             (int)(255 * (1 - ratio)),     // Green decreases

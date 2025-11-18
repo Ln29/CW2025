@@ -10,9 +10,9 @@ public class GameModeConfig {
     private SurvivalDifficulty survivalDifficulty;
 
     public enum SurvivalDifficulty {
-        SIMPLE(50, new double[]{0.2, 0.4, 0.4}, 700, 15),
-        MODERATE(50, new double[]{0.3, 0.4, 0.3}, 600, 10),
-        DIFFICULT(50, new double[]{0.5, 0.35, 0.15}, 500, 7);
+        SIMPLE(50, new double[]{0.2, 0.4, 0.4}, 700, 30),
+        MODERATE(50, new double[]{0.3, 0.4, 0.3}, 600, 20),
+        DIFFICULT(50, new double[]{0.5, 0.35, 0.15}, 500, 10);
 
         private final int targetLines;
         private final double[] gapWeights;

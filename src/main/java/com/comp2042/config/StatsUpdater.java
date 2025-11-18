@@ -15,9 +15,11 @@ public class StatsUpdater {
     public void updateAllStats(GameState state, Board board, StatsPanel statsPanel, StatsPanelRight statsPanelRight, GameModeController gameModeController) {
         if (state == null) return;
 
-        // Update high score from current score if higher
+        // Get current score from board
+        int currentScore = 0;
         if (board != null && board.getScore() != null && board.getScore().scoreProperty() != null) {
-            int currentScore = board.getScore().scoreProperty().getValue();
+            currentScore = board.getScore().scoreProperty().getValue();
+            // Update high score from current score if higher
             state.setHighScore(currentScore);
         }
 
@@ -41,6 +43,7 @@ public class StatsUpdater {
         }
 
         if (statsPanelRight != null) {
+            statsPanelRight.updateScore(currentScore);
             if (gameModeController != null) {
                 int targetLines = gameModeController.getTargetLines();
                 int currentLines = gameModeController.getLinesCleared();

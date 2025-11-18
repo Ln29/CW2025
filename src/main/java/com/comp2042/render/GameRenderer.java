@@ -84,7 +84,6 @@ public class GameRenderer {
                 rectangle.setFill(Color.TRANSPARENT);
                 displayMatrix[i][j] = rectangle;
                 gamePanel.add(rectangle, j, i - HIDDEN_ROW_COUNT);
-                rectangle.toFront();
             }
         }
 
@@ -117,7 +116,6 @@ public class GameRenderer {
             if (boardCentered && gameBoard.getLayoutX() > 0) {
                 positionBrickPanel(brick);
                 brickPanel.setVisible(true);
-                brickPanel.toFront();
             } else {
                 brickPanel.setVisible(false);
             }

@@ -3,9 +3,9 @@ package com.comp2042.ui.menu;
 import com.comp2042.audio.AudioManager;
 import com.comp2042.input.InputRouter;
 import com.comp2042.ui.SceneAccessor;
+import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.Pane;
 
 public class MenuController {
     private MainMenu mainMenu;
@@ -38,9 +38,11 @@ public class MenuController {
     public void initializeMainMenu(BorderPane gameBoard) {
         if (mainMenu == null) {
             mainMenu = menuFactory.ensureMainMenu();
-            Pane root = SceneAccessor.rootOf(gameBoard);
-            if (root != null && !root.getChildren().contains(mainMenu)) {
-                root.getChildren().add(mainMenu);
+            if (menuManager != null && menuManager.getUiLayer() != null) {
+                Group uiLayer = menuManager.getUiLayer();
+                if (!uiLayer.getChildren().contains(mainMenu)) {
+                    uiLayer.getChildren().add(mainMenu);
+                }
             }
         }
     }
@@ -71,9 +73,11 @@ public class MenuController {
     public void initializePauseMenu(BorderPane gameBoard) {
         if (pauseMenu == null) {
             pauseMenu = menuFactory.ensurePauseMenu();
-            Pane root = SceneAccessor.rootOf(gameBoard);
-            if (root != null && !root.getChildren().contains(pauseMenu)) {
-                root.getChildren().add(pauseMenu);
+            if (menuManager != null && menuManager.getUiLayer() != null) {
+                Group uiLayer = menuManager.getUiLayer();
+                if (!uiLayer.getChildren().contains(pauseMenu)) {
+                    uiLayer.getChildren().add(pauseMenu);
+                }
             }
         }
     }
@@ -116,9 +120,11 @@ public class MenuController {
     public void initializeGameOverMenu(BorderPane gameBoard) {
         if (gameOverMenu == null) {
             gameOverMenu = menuFactory.ensureGameOverMenu();
-            Pane root = SceneAccessor.rootOf(gameBoard);
-            if (root != null && !root.getChildren().contains(gameOverMenu)) {
-                root.getChildren().add(gameOverMenu);
+            if (menuManager != null && menuManager.getUiLayer() != null) {
+                Group uiLayer = menuManager.getUiLayer();
+                if (!uiLayer.getChildren().contains(gameOverMenu)) {
+                    uiLayer.getChildren().add(gameOverMenu);
+                }
             }
         }
     }
@@ -148,9 +154,11 @@ public class MenuController {
     public void initializeSettingsMenu(BorderPane gameBoard) {
         if (settingsMenu == null) {
             settingsMenu = menuFactory.ensureSettingsMenu();
-            Pane root = SceneAccessor.rootOf(gameBoard);
-            if (root != null && !root.getChildren().contains(settingsMenu)) {
-                root.getChildren().add(settingsMenu);
+            if (menuManager != null && menuManager.getUiLayer() != null) {
+                Group uiLayer = menuManager.getUiLayer();
+                if (!uiLayer.getChildren().contains(settingsMenu)) {
+                    uiLayer.getChildren().add(settingsMenu);
+                }
             }
         }
     }
@@ -178,9 +186,11 @@ public class MenuController {
     public void initializeKeyBindingsMenu(BorderPane gameBoard) {
         if (keyBindingsMenu == null) {
             keyBindingsMenu = menuFactory.ensureKeyBindingsMenu();
-            Pane root = SceneAccessor.rootOf(gameBoard);
-            if (root != null && !root.getChildren().contains(keyBindingsMenu)) {
-                root.getChildren().add(keyBindingsMenu);
+            if (menuManager != null && menuManager.getUiLayer() != null) {
+                Group uiLayer = menuManager.getUiLayer();
+                if (!uiLayer.getChildren().contains(keyBindingsMenu)) {
+                    uiLayer.getChildren().add(keyBindingsMenu);
+                }
             }
         }
     }
@@ -208,9 +218,11 @@ public class MenuController {
     public void initializeThemeMenu(BorderPane gameBoard) {
         if (themeMenu == null) {
             themeMenu = menuFactory.ensureThemeMenu();
-            Pane root = SceneAccessor.rootOf(gameBoard);
-            if (root != null && !root.getChildren().contains(themeMenu)) {
-                root.getChildren().add(themeMenu);
+            if (menuManager != null && menuManager.getUiLayer() != null) {
+                Group uiLayer = menuManager.getUiLayer();
+                if (!uiLayer.getChildren().contains(themeMenu)) {
+                    uiLayer.getChildren().add(themeMenu);
+                }
             }
         }
     }
@@ -236,9 +248,8 @@ public class MenuController {
     }
 
     private void ensureManager(BorderPane gameBoard) {
-        if (menuManager == null && gameBoard != null) {
-            menuManager = MenuManager.ensure(null, gameBoard);
-        }
+        // MenuManager should be set via setMenuManager() from GuiController
+        // If menuManager is null, menus can't initialize, so they'll be initialized when menuManager is set
     }
 
     public boolean isKeyBindingsMenuVisible() {
@@ -294,9 +305,11 @@ public class MenuController {
     public void initializeModeSelectionMenu(BorderPane gameBoard) {
         if (modeSelectionMenu == null) {
             modeSelectionMenu = menuFactory.ensureModeSelectionMenu();
-            Pane root = SceneAccessor.rootOf(gameBoard);
-            if (root != null && !root.getChildren().contains(modeSelectionMenu)) {
-                root.getChildren().add(modeSelectionMenu);
+            if (menuManager != null && menuManager.getUiLayer() != null) {
+                Group uiLayer = menuManager.getUiLayer();
+                if (!uiLayer.getChildren().contains(modeSelectionMenu)) {
+                    uiLayer.getChildren().add(modeSelectionMenu);
+                }
             }
         }
     }
@@ -308,7 +321,7 @@ public class MenuController {
             Scene scene = SceneAccessor.sceneOf(gameBoard);
             menuManager.showCenteredOnScene(modeSelectionMenu, scene);
             modeSelectionMenu.requestFocus();
-            activeOverlay = InputRouter.Overlay.MAIN_MENU; // Use MAIN_MENU overlay for now
+            activeOverlay = InputRouter.Overlay.MAIN_MENU;
         }
     }
 
@@ -325,5 +338,3 @@ public class MenuController {
         return modeSelectionMenu;
     }
 }
-
-

@@ -2,6 +2,7 @@ package com.comp2042.ui.panels;
 
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
@@ -61,10 +62,12 @@ public class StatsPanelRight {
         scoreRow.setMaxWidth(Double.MAX_VALUE);
         scoreRow.setStyle("-fx-background-color: rgba(0, 0, 0, 0.7); -fx-background-radius: 5;");
 
+        // Create label text "SCORE:"
         Label labelText = new Label("SCORE:");
         labelText.setTextFill(Color.WHITE);
         labelText.setFont(Font.font("Arial", 25));
 
+        // Create value label
         scoreValueLabel = new Label("0");
         scoreValueLabel.setTextFill(Color.WHITE);
         scoreValueLabel.setFont(Font.font("Arial", FontWeight.BOLD, 25));
@@ -81,9 +84,16 @@ public class StatsPanelRight {
         }
     }
 
+    public void addToGameplayLayer(Group gameplayLayer) {
+        if (gameplayLayer != null && container != null) {
+            gameplayLayer.getChildren().add(container);
+        }
+    }
+
     public void position(double boardX, double boardY, double boardWidth, double boardHeight) {
         if (container == null) return;
 
+        // Position under the next panel on the right side
         double nextPanelX = boardX + boardWidth + 30;
         double nextPanelHeight = boardHeight / 2;
         double containerX = nextPanelX;

@@ -6,6 +6,7 @@ import com.comp2042.core.Board;
 import com.comp2042.ui.SceneAccessor;
 import com.comp2042.ui.Ui;
 import com.comp2042.config.StatsUpdater;
+import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Pane;
@@ -40,9 +41,9 @@ public class PanelManager {
         if (nextBrickPanel == null) {
             nextBrickPanel = new NextBrickPanel();
             Ui.run(() -> {
-                Pane rootPane = SceneAccessor.rootOf(gameBoard);
-                if (rootPane != null) {
-                    rootPane.getChildren().add(nextBrickPanel);
+                javafx.scene.Group gameplayLayer = findGameplayLayer();
+                if (gameplayLayer != null) {
+                    gameplayLayer.getChildren().add(nextBrickPanel);
                     positionNextBrickPanel(scene);
                     updateNextBrickPanel();
                 }
@@ -68,9 +69,9 @@ public class PanelManager {
         if (holdBrickPanel == null) {
             holdBrickPanel = new HoldBrickPanel();
             Ui.run(() -> {
-                Pane rootPane = SceneAccessor.rootOf(gameBoard);
-                if (rootPane != null) {
-                    rootPane.getChildren().add(holdBrickPanel);
+                javafx.scene.Group gameplayLayer = findGameplayLayer();
+                if (gameplayLayer != null) {
+                    gameplayLayer.getChildren().add(holdBrickPanel);
                     positionHoldBrickPanel(scene);
                     updateHoldBrickPanel();
                 }
@@ -96,9 +97,9 @@ public class PanelManager {
         if (statsPanel == null) {
             statsPanel = new StatsPanel();
             Ui.run(() -> {
-                Pane rootPane = SceneAccessor.rootOf(gameBoard);
-                if (rootPane != null) {
-                    rootPane.getChildren().add(statsPanel);
+                javafx.scene.Group gameplayLayer = findGameplayLayer();
+                if (gameplayLayer != null) {
+                    gameplayLayer.getChildren().add(statsPanel);
                     positionStatsPanel(scene);
                     updateStatsPanels();
                 }
@@ -106,6 +107,20 @@ public class PanelManager {
         } else {
             updateStatsPanels();
         }
+    }
+
+    private Group findGameplayLayer() {
+        Pane root = SceneAccessor.rootOf(gameBoard);
+        if (root == null) return null;
+        for (javafx.scene.Node child : root.getChildren()) {
+            if (child instanceof Group) {
+                Group group = (Group) child;
+                if (group.getChildren().contains(gameBoard)) {
+                    return group;
+                }
+            }
+        }
+        return null;
     }
 
     public void positionStatsPanel(Scene scene) {
@@ -118,7 +133,12 @@ public class PanelManager {
         if (statsPanelRight == null) {
             statsPanelRight = new StatsPanelRight();
             Ui.run(() -> {
-                statsPanelRight.addToScene(scene);
+                javafx.scene.Group gameplayLayer = findGameplayLayer();
+                if (gameplayLayer != null) {
+                    statsPanelRight.addToGameplayLayer(gameplayLayer);
+                } else {
+                    statsPanelRight.addToScene(scene);
+                }
                 positionStatsPanelRight(scene);
                 updateStatsPanels();
             });
@@ -142,3 +162,5 @@ public class PanelManager {
         return statsPanel;
     }
 }
+
+

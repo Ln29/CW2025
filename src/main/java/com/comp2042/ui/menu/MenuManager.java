@@ -1,34 +1,31 @@
 package com.comp2042.ui.menu;
 
 import com.comp2042.config.GameConstants;
-import com.comp2042.ui.SceneAccessor;
+import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.Pane;
 
 public class MenuManager {
 
-    private final Pane rootPane;
+    private final Group uiLayer;
     private final BorderPane gameBoard;
 
-    public MenuManager(Pane rootPane, BorderPane gameBoard) {
-        this.rootPane = rootPane;
+    public MenuManager(Group uiLayer, BorderPane gameBoard) {
+        this.uiLayer = uiLayer;
         this.gameBoard = gameBoard;
     }
 
-    public static MenuManager ensure(MenuManager current, BorderPane gameBoard) {
+    public static MenuManager ensure(MenuManager current, BorderPane gameBoard, Group uiLayer) {
         if (current != null) return current;
-        Pane root = SceneAccessor.rootOf(gameBoard);
-        return new MenuManager(root, gameBoard);
+        return new MenuManager(uiLayer, gameBoard);
     }
 
     public void ensureOnTop(Node overlay) {
-        if (rootPane.getChildren().contains(overlay)) {
-            rootPane.getChildren().remove(overlay);
+        if (uiLayer.getChildren().contains(overlay)) {
+            uiLayer.getChildren().remove(overlay);
         }
-        rootPane.getChildren().add(overlay);
-        overlay.toFront();
+        uiLayer.getChildren().add(overlay);
     }
 
     public void centerOnScene(Node overlay, Scene scene) {
@@ -87,6 +84,8 @@ public class MenuManager {
             overlay.setVisible(false);
         }
     }
+
+    public Group getUiLayer() {
+        return uiLayer;
+    }
 }
-
-

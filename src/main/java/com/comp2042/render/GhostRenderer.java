@@ -63,10 +63,21 @@ public class GhostRenderer {
     public void addToScene(Scene scene) {
         if (scene == null) return;
         Pane root = (Pane) scene.getRoot();
-        root.getChildren().add(ghostPanel);
-        gamePanel.toBack();
-        ghostPanel.toFront();
-        brickPanel.toFront();
+        javafx.scene.Node gameplayLayer = null;
+        for (javafx.scene.Node child : root.getChildren()) {
+            if (child instanceof javafx.scene.Group) {
+                javafx.scene.Group group = (javafx.scene.Group) child;
+                if (group.getChildren().contains(gameBoard)) {
+                    gameplayLayer = child;
+                    break;
+                }
+            }
+        }
+        if (gameplayLayer != null && gameplayLayer instanceof javafx.scene.Group) {
+            ((javafx.scene.Group) gameplayLayer).getChildren().add(ghostPanel);
+        } else {
+            root.getChildren().add(ghostPanel);
+        }
     }
 
     public void render(GhostBrick ghostBrick, boolean boardCentered) {
@@ -83,15 +94,11 @@ public class GhostRenderer {
             ghostPanel.setLayoutX(x);
             ghostPanel.setLayoutY(y);
             ghostPanel.setVisible(true);
-            gamePanel.toBack();
-            ghostPanel.toFront();
-            brickPanel.toFront();
         } else {
             ghostPanel.setVisible(false);
             return;
         }
 
-        // Clear existing ghost cells
         for (int i = 0; i < ghostRectangles.length; i++) {
             for (int j = 0; j < ghostRectangles[i].length; j++) {
                 ghostRectangles[i][j].setFill(Color.TRANSPARENT);
@@ -126,5 +133,3 @@ public class GhostRenderer {
         return base;
     }
 }
-
-

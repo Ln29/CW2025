@@ -215,8 +215,8 @@ public class GuiController implements Initializable {
                     gameModeConfig.setDifficulty(menu.getDifficulty());
                     if (menu.getSelectedMode() == GameMode.MARATHON) {
                         gameModeConfig.setMarathonTargetLines(menu.getMarathonTargetLines());
-                    } else if (menu.getSelectedMode() == GameMode.GARBAGE) {
-                        gameModeConfig.setGarbageDifficulty(menu.getGarbageDifficulty());
+                    } else if (menu.getSelectedMode() == GameMode.SURVIVAL) {
+                            gameModeConfig.setSurvivalDifficulty(menu.getSurvivalDifficulty());
                     }
                     menuController.hideModeSelectionMenu();
                     startGame();
@@ -372,7 +372,7 @@ public class GuiController implements Initializable {
                         if (isPause.getValue() == Boolean.FALSE && gameState != null) {
                             gameState.incrementElapsedSeconds();
                         }
-                        if (gameModeController != null && gameModeController.getCurrentMode() == com.comp2042.core.GameMode.GARBAGE) {
+                        if (gameModeController != null && gameModeController.getCurrentMode() == com.comp2042.core.GameMode.SURVIVAL) {
                             long elapsedSeconds = gameState.getElapsedSeconds();
                             if (gameModeController.shouldSpawnGarbage(elapsedSeconds)) {
                                 // Spawn garbage rows

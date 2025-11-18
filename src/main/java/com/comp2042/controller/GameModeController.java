@@ -4,7 +4,7 @@ import com.comp2042.config.GameModeConfig;
 import com.comp2042.core.Board;
 import com.comp2042.core.EndlessMode;
 import com.comp2042.core.GameMode;
-import com.comp2042.core.GarbageMode;
+import com.comp2042.core.SurvivalMode;
 import com.comp2042.core.MarathonMode;
 
 import java.util.function.Consumer;
@@ -15,7 +15,7 @@ public class GameModeController {
     private final Board board;
     private EndlessMode endlessMode;
     private MarathonMode marathonMode;
-    private GarbageMode garbageMode;
+    private SurvivalMode survivalMode;
 
     private int linesCleared = 0;
     private long lastGarbageSpawnTime = 0;
@@ -39,17 +39,20 @@ public class GameModeController {
             case MARATHON:
                 marathonMode = new MarathonMode(config.getMarathonTargetLines(), config.getDifficulty());
                 break;
-            case GARBAGE:
-                garbageMode = new GarbageMode(config.getGarbageDifficulty());
+            case SURVIVAL:
+                survivalMode = new SurvivalMode(config.getSurvivalDifficulty());
                 break;
         }
     }
 
+    /**
+     * Initialize timers for the current game mode
+     */
     public void initTimers(Consumer<Integer> onSpeedChange, Runnable onGameOver, Runnable onGameWin, Runnable onGarbageSpawn) {
         this.onSpeedChange = onSpeedChange;
+        // onGameOver is handled by GameLifecycle
         this.onGameWin = onGameWin;
         this.onGarbageSpawn = onGarbageSpawn;
-
         notifySpeedChange();
     }
 
@@ -59,13 +62,19 @@ public class GameModeController {
         }
     }
 
+    /**
+     * Check if garbage should spawn based on elapsed game time
+     * @param elapsedSeconds Current elapsed game time in seconds
+     * @return true if garbage should spawn, false otherwise
+     */
     public boolean shouldSpawnGarbage(long elapsedSeconds) {
-        if (garbageMode == null || config.getCurrentMode() != GameMode.GARBAGE) {
+        if (survivalMode == null || config.getCurrentMode() != GameMode.SURVIVAL) {
             return false;
         }
 
-        int spawnInterval = garbageMode.getSpawnIntervalSeconds();
+        int spawnInterval = survivalMode.getSpawnIntervalSeconds();
 
+        // Check if enough time has passed since last spawn
         if (elapsedSeconds >= lastGarbageSpawnTime + spawnInterval) {
             lastGarbageSpawnTime = elapsedSeconds;
             return true;
@@ -74,13 +83,16 @@ public class GameModeController {
         return false;
     }
 
+    /**
+     * Spawn garbage rows (called when timer indicates it's time)
+     */
     public void spawnGarbageRows() {
-        if (garbageMode == null || board == null || onGarbageSpawn == null) {
+        if (survivalMode == null || board == null || onGarbageSpawn == null) {
             return;
         }
 
-        int[][] garbageRows = garbageMode.generateGarbageRows(
-                garbageMode.getRowsPerSpawn(),
+        int[][] garbageRows = survivalMode.generateGarbageRows(
+                survivalMode.getRowsPerSpawn(),
                 board.getBoardMatrix()[0].length
         );
 
@@ -91,6 +103,9 @@ public class GameModeController {
         }
     }
 
+    /**
+     * Called when lines are cleared - updates mode-specific logic
+     */
     public void onLinesCleared(int lines) {
         linesCleared += lines;
 
@@ -98,11 +113,11 @@ public class GameModeController {
 
         switch (mode) {
             case MARATHON:
-                notifySpeedChange();
+                notifySpeedChange(); // Speed increases with lines
                 checkWinCondition();
                 break;
-            case GARBAGE:
-                notifySpeedChange();
+            case SURVIVAL:
+                notifySpeedChange(); // Speed increases with lines
                 checkWinCondition();
                 break;
             case ENDLESS:
@@ -126,9 +141,9 @@ public class GameModeController {
                     won = marathonMode.isWon(linesCleared);
                 }
                 break;
-            case GARBAGE:
-                if (garbageMode != null) {
-                    won = garbageMode.isWon(linesCleared);
+            case SURVIVAL:
+                if (survivalMode != null) {
+                    won = survivalMode.isWon(linesCleared);
                 }
                 break;
         }
@@ -138,6 +153,9 @@ public class GameModeController {
         }
     }
 
+    /**
+     * Get the current speed in milliseconds for the active mode
+     */
     public int getCurrentSpeedMs() {
         GameMode mode = config.getCurrentMode();
 
@@ -146,25 +164,44 @@ public class GameModeController {
                 return endlessMode != null ? endlessMode.getSpeedMs() : 500;
             case MARATHON:
                 return marathonMode != null ? marathonMode.getCurrentSpeedMs(linesCleared) : 500;
-            case GARBAGE:
-                return garbageMode != null ? garbageMode.getCurrentSpeedMs(linesCleared) : 500;
+            case SURVIVAL:
+                return survivalMode != null ? survivalMode.getCurrentSpeedMs(linesCleared) : 500;
             default:
                 return 500;
         }
     }
 
+    /**
+     * Start all timers for the current mode
+     */
     public void startTimers() {
+        // No separate timer needed - garbage spawn is checked via game timer
     }
 
+    /**
+     * Stop all timers
+     */
     public void stopTimers() {
+        // No separate timer to stop
     }
 
+    /**
+     * Pause all timers
+     */
     public void pauseTimers() {
+        // No separate timer to pause
     }
 
+    /**
+     * Resume all timers
+     */
     public void resumeTimers() {
+        // No separate timer to resume
     }
 
+    /**
+     * Reset the mode controller (e.g., for new game)
+     */
     public void reset() {
         linesCleared = 0;
         lastGarbageSpawnTime = 0;
@@ -183,7 +220,7 @@ public class GameModeController {
      * Get the current level based on the game mode
      * - Endless: Level = difficulty (0-10)
      * - Marathon: Level = startingDifficulty + (linesCleared / 10)
-     * - Garbage: Level = 0
+     * - Survival: Level = 0
      */
     public int getCurrentLevel() {
         GameMode mode = config.getCurrentMode();
@@ -196,12 +233,14 @@ public class GameModeController {
                 return 0;
             case MARATHON:
                 if (marathonMode != null) {
+                    // Level increases every 10 lines, starting from starting difficulty
+                    // Level is capped at 10
                     int baseLevel = marathonMode.getStartDifficulty();
                     int levelIncrease = linesCleared / 10;
                     return Math.min(baseLevel + levelIncrease, 10);
                 }
                 return 0;
-            case GARBAGE:
+            case SURVIVAL:
                 return 0;
             default:
                 return 0;
@@ -212,7 +251,7 @@ public class GameModeController {
      * Get the target lines for the current game mode
      * - Endless: Returns 999 (or -1 if no target)
      * - Marathon: Returns target lines (50, 100, 200, or 500)
-     * - Garbage: Returns target lines from difficulty (50, 80, or 100)
+     * - Survival: Returns target lines from difficulty (50, 80, or 100)
      */
     public int getTargetLines() {
         GameMode mode = config.getCurrentMode();
@@ -225,9 +264,9 @@ public class GameModeController {
                     return marathonMode.getTargetLines();
                 }
                 return 0;
-            case GARBAGE:
-                if (garbageMode != null) {
-                    return garbageMode.getTargetLines();
+            case SURVIVAL:
+                if (survivalMode != null) {
+                    return survivalMode.getTargetLines();
                 }
                 return 0;
             default:

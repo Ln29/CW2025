@@ -4,19 +4,19 @@ import com.comp2042.config.GameModeConfig;
 
 import java.util.Random;
 
-public class GarbageMode {
+public class SurvivalMode {
 
-    private final GameModeConfig.GarbageDifficulty difficulty;
+    private final GameModeConfig.SurvivalDifficulty difficulty;
     private final Random random;
-    private static final int GARBAGE_BLOCK_VALUE = 8; // Gray
+    private static final int GARBAGE_BLOCK_VALUE = 8;
     private static final int ROWS_PER_SPAWN = 2;
 
-    public GarbageMode(GameModeConfig.GarbageDifficulty difficulty) {
+    public SurvivalMode(GameModeConfig.SurvivalDifficulty difficulty) {
         this.difficulty = difficulty;
         this.random = new Random();
     }
 
-    public GameModeConfig.GarbageDifficulty getDifficulty() {
+    public GameModeConfig.SurvivalDifficulty getDifficulty() {
         return difficulty;
     }
 
@@ -28,13 +28,21 @@ public class GarbageMode {
         return difficulty.getStartSpeedMs();
     }
 
+    /**
+     * Calculate current speed based on lines cleared
+     * Speed increases every 10 lines cleared
+     */
     public int getCurrentSpeedMs(int linesCleared) {
         int baseSpeed = difficulty.getStartSpeedMs();
         int speedIncreaseFactor = linesCleared / 10;
         double multiplier = Math.pow(0.9, speedIncreaseFactor);
-        return Math.max((int) (baseSpeed * multiplier), 80); // Minimum 80ms cap
+        return Math.max((int) (baseSpeed * multiplier), 80);
     }
 
+    /**
+     * Get the spawn interval in seconds (fixed based on difficulty)
+     * SIMPLE: 15 seconds, MODERATE: 10 seconds, DIFFICULT: 7 seconds
+     */
     public int getSpawnIntervalSeconds() {
         return difficulty.getSpawnIntervalSeconds();
     }
@@ -61,13 +69,15 @@ public class GarbageMode {
     private int[] generateGarbageRow(int boardWidth) {
         int[] row = new int[boardWidth];
 
+        // Determine number of gaps based on difficulty weights
         int numGaps = selectGapCount();
 
+        // Fill row with garbage blocks
         for (int i = 0; i < boardWidth; i++) {
             row[i] = GARBAGE_BLOCK_VALUE;
         }
 
-        // random gaps
+        // Place gaps randomly
         for (int i = 0; i < numGaps; i++) {
             int gapPosition = random.nextInt(boardWidth);
             while (row[gapPosition] == 0 && numGaps < boardWidth) {
@@ -98,6 +108,7 @@ public class GarbageMode {
         return 2;
     }
 
+
     public boolean isWon(int linesCleared) {
         return linesCleared >= difficulty.getTargetLines();
     }
@@ -110,3 +121,4 @@ public class GarbageMode {
         return ROWS_PER_SPAWN;
     }
 }
+

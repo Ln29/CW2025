@@ -16,12 +16,13 @@ public class ModeSelectionMenu extends VBox {
     private GameMode selectedMode = GameMode.ENDLESS;
     private int difficulty = 5;
     private int marathonTargetLines = 100;
-    private GameModeConfig.GarbageDifficulty garbageDifficulty = GameModeConfig.GarbageDifficulty.SIMPLE;
+    private GameModeConfig.SurvivalDifficulty survivalDifficulty = GameModeConfig.SurvivalDifficulty.SIMPLE;
 
     private VBox modeOptionsContainer;
     private Button startButton;
     private Button backButton;
 
+    // Callbacks
     private Runnable onStart;
     private Runnable onBack;
 
@@ -34,24 +35,28 @@ public class ModeSelectionMenu extends VBox {
         setStyle("-fx-background-color: rgba(0, 0, 0, 0.9);");
         setViewOrder(-1);
 
+        // Title
         Label titleLabel = new Label("SELECT GAME MODE");
         titleLabel.setTextFill(Color.YELLOW);
         titleLabel.setFont(Font.font("Arial", FontWeight.BOLD, 36));
         titleLabel.setPadding(new Insets(0, 0, 20, 0));
 
+        // Mode selection buttons
         HBox modeButtons = new HBox(15);
         modeButtons.setAlignment(Pos.CENTER);
 
         Button endlessButton = createModeButton("ENDLESS", GameMode.ENDLESS);
         Button marathonButton = createModeButton("MARATHON", GameMode.MARATHON);
-        Button garbageButton = createModeButton("GARBAGE", GameMode.GARBAGE);
+        Button survivalButton = createModeButton("SURVIVAL", GameMode.SURVIVAL);
 
-        modeButtons.getChildren().addAll(endlessButton, marathonButton, garbageButton);
+        modeButtons.getChildren().addAll(endlessButton, marathonButton, survivalButton);
 
+        // Mode-specific options container
         modeOptionsContainer = new VBox(15);
         modeOptionsContainer.setAlignment(Pos.CENTER);
         modeOptionsContainer.setPadding(new Insets(20, 0, 20, 0));
 
+        // Action buttons
         HBox actionButtons = new HBox(20);
         actionButtons.setAlignment(Pos.CENTER);
 
@@ -185,8 +190,8 @@ public class ModeSelectionMenu extends VBox {
             case MARATHON:
                 addMarathonOptions();
                 break;
-            case GARBAGE:
-                addGarbageOptions();
+            case SURVIVAL:
+                addSurvivalOptions();
                 break;
         }
     }
@@ -260,55 +265,58 @@ public class ModeSelectionMenu extends VBox {
         }
     }
 
-    private void addGarbageOptions() {
+    private void addSurvivalOptions() {
+        // Description label
         Label description = new Label();
         description.setTextFill(Color.WHITE);
         description.setFont(Font.font("Arial", 14));
         description.setAlignment(Pos.CENTER);
 
+        // Details label that will be updated
         Label details = new Label();
         details.setTextFill(Color.LIGHTGRAY);
         details.setFont(Font.font("Arial", 12));
 
+        // Update description and details based on current difficulty
         Runnable updateDescription = () -> {
             String descText = String.format(
                     "Auto-spawn garbage rows from bottom\nTarget: %d lines | Speed: %dms",
-                    garbageDifficulty.getTargetLines(),
-                    garbageDifficulty.getStartSpeedMs()
+                    survivalDifficulty.getTargetLines(),
+                    survivalDifficulty.getStartSpeedMs()
             );
             description.setText(descText);
 
             String detailsText = String.format(
                     "Spawn Interval: Every %ds",
-                    garbageDifficulty.getSpawnIntervalSeconds()
+                    survivalDifficulty.getSpawnIntervalSeconds()
             );
             details.setText(detailsText);
         };
 
         updateDescription.run();
 
-        Label difficultyLabel = new Label("Difficulty: " + garbageDifficulty.name());
+        Label difficultyLabel = new Label("Difficulty: " + survivalDifficulty.name());
         difficultyLabel.setTextFill(Color.WHITE);
         difficultyLabel.setFont(Font.font("Arial", 14));
 
         HBox difficultyButtons = new HBox(10);
         difficultyButtons.setAlignment(Pos.CENTER);
 
-        for (GameModeConfig.GarbageDifficulty diff : GameModeConfig.GarbageDifficulty.values()) {
+        for (GameModeConfig.SurvivalDifficulty diff : GameModeConfig.SurvivalDifficulty.values()) {
             Button btn = new Button(diff.name());
             btn.setPrefWidth(120);
             btn.setPrefHeight(35);
             btn.setFont(Font.font("Arial", 12));
-            btn.setStyle(garbageDifficulty == diff ?
+            btn.setStyle(survivalDifficulty == diff ?
                     "-fx-background-color: rgba(255, 215, 0, 0.9); -fx-text-fill: black;" :
                     "-fx-background-color: rgba(100, 100, 100, 0.7); -fx-text-fill: white;");
 
-            GameModeConfig.GarbageDifficulty finalDiff = diff;
+            GameModeConfig.SurvivalDifficulty finalDiff = diff;
             btn.setOnAction(e -> {
-                garbageDifficulty = finalDiff;
-                difficultyLabel.setText("Difficulty: " + garbageDifficulty.name());
+                survivalDifficulty = finalDiff;
+                difficultyLabel.setText("Difficulty: " + survivalDifficulty.name());
                 updateDescription.run();
-                updateGarbageDifficultyButtonStyles(difficultyButtons, btn);
+                updateSurvivalDifficultyButtonStyles(difficultyButtons, btn);
             });
 
             difficultyButtons.getChildren().add(btn);
@@ -317,7 +325,7 @@ public class ModeSelectionMenu extends VBox {
         modeOptionsContainer.getChildren().addAll(description, difficultyLabel, difficultyButtons, details);
     }
 
-    private void updateGarbageDifficultyButtonStyles(HBox container, Button selected) {
+    private void updateSurvivalDifficultyButtonStyles(HBox container, Button selected) {
         for (var child : container.getChildren()) {
             if (child instanceof Button) {
                 Button btn = (Button) child;
@@ -342,8 +350,8 @@ public class ModeSelectionMenu extends VBox {
         return marathonTargetLines;
     }
 
-    public GameModeConfig.GarbageDifficulty getGarbageDifficulty() {
-        return garbageDifficulty;
+    public GameModeConfig.SurvivalDifficulty getSurvivalDifficulty() {
+        return survivalDifficulty;
     }
 
     public void setOnStart(Runnable onStart) {
@@ -362,6 +370,7 @@ public class ModeSelectionMenu extends VBox {
         HBox container = new HBox(10);
         container.setAlignment(Pos.CENTER);
 
+        // Left arrow button(decrease)
         Button leftArrow = new Button("<");
         leftArrow.setPrefWidth(40);
         leftArrow.setPrefHeight(60);
@@ -395,6 +404,7 @@ public class ModeSelectionMenu extends VBox {
         barsContainer.setAlignment(Pos.CENTER);
         barsContainer.setPadding(new Insets(0, 10, 0, 10));
 
+        // 11 vertical bars (level 0-10)
         Rectangle[] bars = new Rectangle[11];
         for (int i = 0; i < 11; i++) {
             Rectangle bar = new Rectangle(12, 50);
@@ -404,6 +414,7 @@ public class ModeSelectionMenu extends VBox {
             barsContainer.getChildren().add(bar);
         }
 
+        // Right arrow button(increase)
         Button rightArrow = new Button(">");
         rightArrow.setPrefWidth(40);
         rightArrow.setPrefHeight(60);
@@ -433,20 +444,22 @@ public class ModeSelectionMenu extends VBox {
                     "-fx-border-radius: 5;");
         });
 
+        // Update bars based on current difficulty
         Runnable updateBars = () -> {
             for (int i = 0; i < 11; i++) {
                 if (i <= difficulty) {
-                    // Gradient from green (low) to red (high)
+                    // Filled bar
                     double ratio = i / 10.0;
                     Color barColor = Color.rgb(
-                            (int)(255 * ratio),
-                            (int)(255 * (1 - ratio)),
+                            (int)(255 * ratio),           // Red increases
+                            (int)(255 * (1 - ratio)),     // Green decreases
                             0
                     );
                     bars[i].setFill(barColor);
                     bars[i].setStroke(Color.WHITE);
                     bars[i].setStrokeWidth(1);
                 } else {
+                    // Empty bar
                     bars[i].setFill(Color.rgb(50, 50, 50, 0.5));
                     bars[i].setStroke(Color.rgb(100, 100, 100, 0.5));
                     bars[i].setStrokeWidth(1);
@@ -456,6 +469,7 @@ public class ModeSelectionMenu extends VBox {
 
         updateBars.run();
 
+        // Left arrow action(decrease)
         leftArrow.setOnAction(e -> {
             if (difficulty > 0) {
                 difficulty--;
@@ -468,6 +482,7 @@ public class ModeSelectionMenu extends VBox {
             }
         });
 
+        // Right arrow action(increase)
         rightArrow.setOnAction(e -> {
             if (difficulty < 10) {
                 difficulty++;

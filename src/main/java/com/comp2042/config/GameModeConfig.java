@@ -5,21 +5,21 @@ import com.comp2042.core.GameMode;
 public class GameModeConfig {
 
     private GameMode currentMode;
-    private int difficulty;
-    private int marathonTargetLines;
-    private GarbageDifficulty garbageDifficulty;
+    private int difficulty; // 0-10 for endless and marathon
+    private int marathonTargetLines; // 50, 100, 200, or 500
+    private SurvivalDifficulty survivalDifficulty;
 
-    public enum GarbageDifficulty {
-        SIMPLE(50, new double[]{0.2, 0.4, 0.4}, 700, 30),
-        MODERATE(50, new double[]{0.3, 0.4, 0.3}, 600, 20),
-        DIFFICULT(100, new double[]{0.5, 0.35, 0.15}, 500, 10);
+    public enum SurvivalDifficulty {
+        SIMPLE(50, new double[]{0.2, 0.4, 0.4}, 700, 15),
+        MODERATE(50, new double[]{0.3, 0.4, 0.3}, 600, 10),
+        DIFFICULT(50, new double[]{0.5, 0.35, 0.15}, 500, 7);
 
         private final int targetLines;
         private final double[] gapWeights;
         private final int startSpeedMs;
         private final int spawnIntervalSeconds;
 
-        GarbageDifficulty(int targetLines, double[] gapWeights, int startSpeedMs, int spawnIntervalSeconds) {
+        SurvivalDifficulty(int targetLines, double[] gapWeights, int startSpeedMs, int spawnIntervalSeconds) {
             this.targetLines = targetLines;
             this.gapWeights = gapWeights;
             this.startSpeedMs = startSpeedMs;
@@ -47,7 +47,7 @@ public class GameModeConfig {
         this.currentMode = GameMode.ENDLESS;
         this.difficulty = 5;
         this.marathonTargetLines = 100;
-        this.garbageDifficulty = GarbageDifficulty.SIMPLE;
+        this.survivalDifficulty = SurvivalDifficulty.SIMPLE;
     }
 
     public GameMode getCurrentMode() {
@@ -80,26 +80,32 @@ public class GameModeConfig {
         this.marathonTargetLines = targetLines;
     }
 
-    public GarbageDifficulty getGarbageDifficulty() {
-        return garbageDifficulty;
+    public SurvivalDifficulty getSurvivalDifficulty() {
+        return survivalDifficulty;
     }
 
-    public void setGarbageDifficulty(GarbageDifficulty difficulty) {
-        this.garbageDifficulty = difficulty;
+    public void setSurvivalDifficulty(SurvivalDifficulty difficulty) {
+        this.survivalDifficulty = difficulty;
     }
 
+    /**
+     * Calculate speed for Endless mode based on difficulty (0-10)
+     * Level 0 = 1000ms, Level 5 = 500ms, Level 10 = 100ms
+     */
     public static int calculateEndlessSpeed(int difficulty) {
         if (difficulty < 0 || difficulty > 10) {
             throw new IllegalArgumentException("Difficulty must be between 0 and 10");
         }
+        // Linear interpolation: 1000ms at 0, 500ms at 5, 100ms at 10
         if (difficulty <= 5) {
-            return 1000 - (difficulty * 100);
+            return 1000 - (difficulty * 100); // 1000, 900, 800, 700, 600, 500
         } else {
-            return 500 - ((difficulty - 5) * 80);
+            return 500 - ((difficulty - 5) * 80); // 500, 420, 340, 260, 180, 100
         }
     }
 
     /**
+     * Calculate speed for Marathon mode based on starting difficulty and lines cleared
      * Speed increases every 10 lines: multiply by 0.9^(lines/10)
      * Minimum speed cap: 80ms
      */

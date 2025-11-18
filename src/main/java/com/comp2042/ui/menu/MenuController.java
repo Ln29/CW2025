@@ -320,6 +320,7 @@ public class MenuController {
         if (menuManager != null && modeSelectionMenu != null) {
             Scene scene = SceneAccessor.sceneOf(gameBoard);
             menuManager.showCenteredOnScene(modeSelectionMenu, scene);
+            modeSelectionMenu.requestFocusForNavigation();
             modeSelectionMenu.requestFocus();
             activeOverlay = InputRouter.Overlay.MAIN_MENU;
         }

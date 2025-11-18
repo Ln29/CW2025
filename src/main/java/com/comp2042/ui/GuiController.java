@@ -482,13 +482,11 @@ public class GuiController implements Initializable {
                     if (notificationService != null) {
                         notificationService.onLinesCleared(removed, bonus);
 
-                        // Apply combo multiplier to score
                         if (board != null && board.getScore() != null) {
                             int comboCount = notificationService.getComboCount();
-                            if (comboCount > 1) {
-                                // Additional score = baseBonus * (comboCount - 1)
-                                int additionalScore = bonus * (comboCount - 1);
-                                board.getScore().add(additionalScore);
+                            if (comboCount > 0) {
+                                int comboReward = comboCount * 50;
+                                board.getScore().add(comboReward);
                             }
                         }
                     }

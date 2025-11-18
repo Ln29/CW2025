@@ -185,8 +185,13 @@ public class MatrixOperations {
         }
 
         // calculate the score bonus
+        // 1 line = 100, 2 lines = 300 (100+200), 3 lines = 600 (100+200+300), 4 lines = 1000 (100+200+300+400)
+        // Formula: 100 * (1 + 2 + 3 + ... + linesCleared) = 100 * linesCleared * (linesCleared + 1) / 2
         int linesCleared = clearedRowIndices.size();
-        int scoreBonus = 50 * linesCleared * linesCleared;
+        int scoreBonus = 0;
+        if (linesCleared > 0) {
+            scoreBonus = 100 * linesCleared * (linesCleared + 1) / 2;
+        }
         return new ClearRow(linesCleared, newMatrix, scoreBonus);
     }
 

@@ -12,7 +12,7 @@ public class NotificationService {
     private final Group centerNotificationGroup;
     private final int maxChildren;
 
-    private int comboCount = 0;
+    private int comboCount = -1;
     private NotificationPanel currentComboPanel = null;
     private int previousLevel = -1;
 
@@ -28,8 +28,7 @@ public class NotificationService {
         Ui.run(() -> {
             if (comboNotificationGroup == null || combo <= 0) return;
 
-            if (combo == 1) {
-                // Clear combo panel if it exists
+            if (combo == 0) {
                 if (currentComboPanel != null) {
                     currentComboPanel.fadeOutAndRemove(comboNotificationGroup.getChildren());
                     currentComboPanel = null;
@@ -75,13 +74,6 @@ public class NotificationService {
         return comboCount;
     }
 
-    public int calculateComboMultipliedBonus(int baseBonus) {
-        if (comboCount > 0) {
-            return baseBonus * comboCount;
-        }
-        return baseBonus;
-    }
-
     public void onLinesCleared(int linesRemoved, int bonus) {
         if (linesRemoved > 0) {
             comboCount++;
@@ -89,13 +81,19 @@ public class NotificationService {
                 audioManager.playSoundEffect(GameConstants.SFX_CLEAR_LINE);
             }
             showCombo(comboCount);
-            int multipliedBonus = calculateComboMultipliedBonus(bonus);
-            showScoreBonus(multipliedBonus);
+            // Calculate total bonus (base bonus + combo reward) for display
+            // comboCount starts from -1, so first clear (comboCount = 0) gives no combo bonus
+            int totalBonus = bonus;
+            if (comboCount > 0) {
+                int comboReward = comboCount * 50;
+                totalBonus = bonus + comboReward;
+            }
+            showScoreBonus(totalBonus);
         } else {
             if (comboCount > 0) {
                 clearCombo();
             }
-            comboCount = 0;
+            comboCount = -1;
             if (audioManager != null) {
                 audioManager.playSoundEffect(GameConstants.SFX_BLOCK_FALL);
             }
@@ -106,7 +104,7 @@ public class NotificationService {
         if (comboCount > 0) {
             clearCombo();
         }
-        comboCount = 0;
+        comboCount = -1;
     }
 
     public void checkLevelUp(int currentLevel) {

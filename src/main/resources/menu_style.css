@@ -1,0 +1,205 @@
+/* MENU STYLES - Shared across all menus */
+
+/* Menu Container */
+.menu-container {
+    -fx-background-color: rgba(0, 0, 0, 0.9);
+    -fx-background-radius: 10;
+    -fx-alignment: center;
+    -fx-spacing: 20;
+    -fx-padding: 30 50 30 50;
+}
+
+/* Menu Title */
+.menu-title {
+    -fx-text-fill: yellow;
+    -fx-font-family: "Arial";
+    -fx-font-weight: bold;
+    -fx-font-size: 36px;
+    -fx-padding: 0 0 20 0;
+}
+
+.menu-title-red {
+    -fx-text-fill: red;
+    -fx-font-family: "Arial";
+    -fx-font-weight: bold;
+    -fx-font-size: 36px;
+    -fx-padding: 0 0 20 0;
+}
+
+/* BUTTON STYLES - Standardized across menus */
+
+/* Standard Menu Button (200x50) */
+.menu-button {
+    -fx-pref-width: 200;
+    -fx-pref-height: 50;
+    -fx-font-family: "Arial";
+    -fx-font-weight: bold;
+    -fx-font-size: 18px;
+    -fx-background-color: rgba(100, 100, 100, 0.7);
+    -fx-text-fill: white;
+    -fx-background-radius: 5;
+    -fx-border-color: rgba(200, 200, 200, 0.5);
+    -fx-border-width: 2;
+    -fx-border-radius: 5;
+}
+
+.menu-button:hover {
+    -fx-background-color: rgba(120, 120, 120, 0.8);
+    -fx-border-color: rgba(200, 200, 200, 0.7);
+}
+
+.menu-button.selected {
+    -fx-background-color: rgba(255, 215, 0, 0.9);
+    -fx-text-fill: black;
+    -fx-border-color: rgba(255, 255, 255, 0.9);
+    -fx-border-width: 3;
+}
+
+/* Action Button (150x45) - Smaller for START/BACK */
+.action-button {
+    -fx-pref-width: 150;
+    -fx-pref-height: 45;
+    -fx-font-family: "Arial";
+    -fx-font-weight: bold;
+    -fx-font-size: 18px;
+    -fx-background-color: rgba(100, 100, 100, 0.7);
+    -fx-text-fill: white;
+    -fx-background-radius: 5;
+    -fx-border-color: rgba(200, 200, 200, 0.5);
+    -fx-border-width: 2;
+    -fx-border-radius: 5;
+}
+
+.action-button:hover {
+    -fx-background-color: rgba(120, 120, 120, 0.8);
+    -fx-border-color: rgba(200, 200, 200, 0.7);
+}
+
+.action-button.selected {
+    -fx-background-color: rgba(255, 215, 0, 0.9);
+    -fx-text-fill: black;
+    -fx-border-color: rgba(255, 255, 255, 0.9);
+    -fx-border-width: 3;
+}
+
+/* Mode Selection Button (200x50) - For ENDLESS/MARATHON/SURVIVAL */
+.mode-button {
+    -fx-pref-width: 200;
+    -fx-pref-height: 50;
+    -fx-font-family: "Arial";
+    -fx-font-weight: bold;
+    -fx-font-size: 16px;
+    -fx-background-color: rgba(100, 100, 100, 0.7);
+    -fx-text-fill: white;
+    -fx-background-radius: 5;
+    -fx-border-color: rgba(200, 200, 200, 0.5);
+    -fx-border-width: 2;
+    -fx-border-radius: 5;
+}
+
+.mode-button:hover {
+    -fx-background-color: rgba(120, 120, 120, 0.8);
+    -fx-border-color: rgba(200, 200, 200, 0.7);
+}
+
+.mode-button.selected {
+    -fx-background-color: rgba(255, 215, 0, 0.9);
+    -fx-text-fill: black;
+    -fx-border-color: rgba(255, 255, 255, 0.9);
+    -fx-border-width: 3;
+}
+
+/* Small Option Button (80x35 or 120x35) - For target lines, difficulty options */
+.option-button {
+    -fx-pref-width: 80;
+    -fx-pref-height: 35;
+    -fx-font-family: "Arial";
+    -fx-font-size: 12px;
+    -fx-background-color: rgba(100, 100, 100, 0.7);
+    -fx-text-fill: white;
+    -fx-background-radius: 5;
+    -fx-border-color: rgba(200, 200, 200, 0.5);
+    -fx-border-width: 2;
+    -fx-border-radius: 5;
+}
+
+.option-button:hover {
+    -fx-background-color: rgba(120, 120, 120, 0.8);
+    -fx-border-color: rgba(200, 200, 200, 0.7);
+}
+
+.option-button.selected {
+    -fx-background-color: rgba(255, 215, 0, 0.9);
+    -fx-text-fill: black;
+    -fx-border-color: rgba(255, 255, 255, 0.9);
+    -fx-border-width: 3;
+}
+
+.option-button-wide {
+    -fx-pref-width: 120;
+}
+
+/* Arrow Button (30x50) - For difficulty selectors */
+.arrow-button {
+    -fx-pref-width: 30;
+    -fx-pref-height: 50;
+    -fx-font-family: "Arial";
+    -fx-font-weight: bold;
+    -fx-font-size: 20px;
+    -fx-background-color: rgba(100, 100, 100, 0.7);
+    -fx-text-fill: white;
+    -fx-background-radius: 5;
+    -fx-border-color: rgba(200, 200, 200, 0.5);
+    -fx-border-width: 2;
+    -fx-border-radius: 5;
+}
+
+.arrow-button:hover {
+    -fx-background-color: rgba(120, 120, 120, 0.8);
+    -fx-border-color: rgba(200, 200, 200, 0.7);
+}
+
+.arrow-button.highlighted {
+    -fx-background-color: rgba(255, 215, 0, 0.9);
+    -fx-text-fill: black;
+    -fx-border-color: rgba(255, 255, 255, 0.9);
+    -fx-border-width: 3;
+}
+
+/* LABEL STYLES */
+
+.menu-label {
+    -fx-text-fill: white;
+    -fx-font-family: "Arial";
+    -fx-font-size: 14px;
+}
+
+.menu-label-large {
+    -fx-text-fill: white;
+    -fx-font-family: "Arial";
+    -fx-font-size: 16px;
+}
+
+.menu-label-small {
+    -fx-text-fill: lightgray;
+    -fx-font-family: "Arial";
+    -fx-font-size: 12px;
+}
+
+/* CONTAINER STYLES */
+
+.menu-options-container {
+    -fx-alignment: center;
+    -fx-spacing: 15;
+    -fx-padding: 20 0 20 0;
+}
+
+.menu-buttons-container {
+    -fx-alignment: center;
+    -fx-spacing: 15;
+}
+
+.menu-buttons-container-horizontal {
+    -fx-alignment: center;
+    -fx-spacing: 20;
+}

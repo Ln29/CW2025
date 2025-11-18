@@ -9,8 +9,6 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
-import javafx.scene.text.Font;
-import javafx.scene.text.FontWeight;
 
 public class GameOverMenu extends VBox {
 
@@ -21,16 +19,16 @@ public class GameOverMenu extends VBox {
     private Label titleLabel;
 
     public GameOverMenu() {
+        getStylesheets().add(getClass().getResource("/menu_style.css").toExternalForm());
+        getStyleClass().add("menu-container");
         setAlignment(Pos.CENTER);
         setSpacing(15);
         setPadding(new Insets(30, 50, 30, 50));
-        setStyle("-fx-background-color: rgba(0, 0, 0, 0.8); -fx-background-radius: 10;");
 
         titleLabel = new Label("GAME OVER");
-        titleLabel.setTextFill(Color.RED);
-        titleLabel.setFont(Font.font("Arial", FontWeight.BOLD, 36));
-        titleLabel.setPadding(new Insets(0, 0, 20, 0));
+        titleLabel.getStyleClass().add("menu-title-red");
 
+        // Restart button
         restartButton = createButton("Restart");
         restartButton.setOnAction(e -> {
             if (onRestart != null) {
@@ -39,6 +37,7 @@ public class GameOverMenu extends VBox {
         });
         restartButton.setOnMouseEntered(e -> setSelectedIndex(0));
 
+        // Main Menu button
         mainMenuButton = createButton("Main Menu");
         mainMenuButton.setOnAction(e -> {
             if (onMainMenu != null) {
@@ -61,38 +60,7 @@ public class GameOverMenu extends VBox {
 
     private Button createButton(String text) {
         Button button = new Button(text);
-        button.setPrefWidth(200);
-        button.setPrefHeight(50);
-        button.setFont(Font.font("Arial", FontWeight.BOLD, 18));
-        button.setStyle("-fx-background-color: rgba(100, 100, 100, 0.7); " +
-                "-fx-text-fill: white; " +
-                "-fx-background-radius: 5; " +
-                "-fx-border-color: rgba(200, 200, 200, 0.5); " +
-                "-fx-border-width: 2; " +
-                "-fx-border-radius: 5;");
-
-        button.setOnMouseEntered(e -> {
-            if (button != buttons[selectedIndex]) {
-                button.setStyle("-fx-background-color: rgba(120, 120, 120, 0.8); " +
-                        "-fx-text-fill: white; " +
-                        "-fx-background-radius: 5; " +
-                        "-fx-border-color: rgba(200, 200, 200, 0.7); " +
-                        "-fx-border-width: 2; " +
-                        "-fx-border-radius: 5;");
-            }
-        });
-
-        button.setOnMouseExited(e -> {
-            if (button != buttons[selectedIndex]) {
-                button.setStyle("-fx-background-color: rgba(100, 100, 100, 0.7); " +
-                        "-fx-text-fill: white; " +
-                        "-fx-background-radius: 5; " +
-                        "-fx-border-color: rgba(200, 200, 200, 0.5); " +
-                        "-fx-border-width: 2; " +
-                        "-fx-border-radius: 5;");
-            }
-        });
-
+        button.getStyleClass().add("menu-button");
         return button;
     }
 
@@ -100,6 +68,7 @@ public class GameOverMenu extends VBox {
         KeyCode code = event.getCode();
         KeyBindingsConfig config = KeyBindingsConfig.getInstance();
 
+        // Check if the pressed key matches any bound action
         KeyBindingsConfig.Action action = config.getAction(code);
         boolean isUp = (code == KeyCode.UP) || (action == KeyBindingsConfig.Action.ROTATE);
         boolean isDown = (code == KeyCode.DOWN) || (action == KeyBindingsConfig.Action.SOFT_DROP);
@@ -122,19 +91,11 @@ public class GameOverMenu extends VBox {
     private void updateButtonStyles() {
         for (int i = 0; i < buttons.length; i++) {
             if (i == selectedIndex) {
-                buttons[i].setStyle("-fx-background-color: rgba(255, 215, 0, 0.9); " +
-                        "-fx-text-fill: black; " +
-                        "-fx-background-radius: 5; " +
-                        "-fx-border-color: rgba(255, 255, 255, 0.9); " +
-                        "-fx-border-width: 3; " +
-                        "-fx-border-radius: 5;");
+                if (!buttons[i].getStyleClass().contains("selected")) {
+                    buttons[i].getStyleClass().add("selected");
+                }
             } else {
-                buttons[i].setStyle("-fx-background-color: rgba(100, 100, 100, 0.7); " +
-                        "-fx-text-fill: white; " +
-                        "-fx-background-radius: 5; " +
-                        "-fx-border-color: rgba(200, 200, 200, 0.5); " +
-                        "-fx-border-width: 2; " +
-                        "-fx-border-radius: 5;");
+                buttons[i].getStyleClass().remove("selected");
             }
         }
     }
@@ -150,6 +111,7 @@ public class GameOverMenu extends VBox {
         return selectedIndex;
     }
 
+    // Callbacks
     private Runnable onRestart;
     private Runnable onMainMenu;
 
@@ -180,4 +142,3 @@ public class GameOverMenu extends VBox {
         }
     }
 }
-

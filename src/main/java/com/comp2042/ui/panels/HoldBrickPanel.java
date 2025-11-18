@@ -27,16 +27,10 @@ public class HoldBrickPanel extends VBox {
         setMinWidth(PANEL_WIDTH);
         setMaxWidth(PANEL_WIDTH);
 
-        // Border order: t,r,b,l
-        setStyle("-fx-border-color: linear-gradient(#2A5058, #61a2b1); " +
-                "-fx-border-width: 12px 0 12px 12px; " + // right is hidden
-                "-fx-border-radius: 12px 12px 0 12px; " + // Rounded corners
-                "-fx-background-color: rgba(0, 0, 0, 0.70);");
+        getStyleClass().add("panel-border-left");
 
-        // Add "HOLD" label at the top
         holdLabel = new Label("HOLD");
-        holdLabel.setTextFill(Color.YELLOW);
-        holdLabel.setFont(javafx.scene.text.Font.font("Let's go Digital", javafx.scene.text.FontWeight.BOLD, 22));
+        holdLabel.getStyleClass().add("panel-label");
         holdLabel.setPadding(new Insets(15, 0, 0, 0));
         getChildren().add(holdLabel);
 

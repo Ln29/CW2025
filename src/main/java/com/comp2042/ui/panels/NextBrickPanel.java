@@ -30,16 +30,10 @@ public class NextBrickPanel extends VBox {
         setMinWidth(PANEL_WIDTH);
         setMaxWidth(PANEL_WIDTH);
 
-        // Border order: trbl
-        setStyle("-fx-border-color: linear-gradient(#2A5058, #61a2b1); " +
-                "-fx-border-width: 12px 12px 12px 0; " + // left is hidden
-                "-fx-border-radius: 12px 12px 12px 0; " + // Rounded corners
-                "-fx-background-color: rgba(0, 0, 0, 0.7);");
+        getStyleClass().add("panel-border-right");
 
-        // Add "NEXT" label at the top
         Label nextLabel = new Label("NEXT");
-        nextLabel.setTextFill(Color.YELLOW);
-        nextLabel.setFont(javafx.scene.text.Font.font("Let's go Digital", javafx.scene.text.FontWeight.BOLD, 22));
+        nextLabel.getStyleClass().add("panel-label");
         nextLabel.setPadding(new Insets(0, 0, 12, 0));
         getChildren().add(nextLabel);
 

@@ -11,7 +11,6 @@ import javafx.scene.control.Label;
 import javafx.scene.effect.Effect;
 import javafx.scene.effect.Glow;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.paint.Color;
 import javafx.util.Duration;
 
 public class NotificationPanel extends BorderPane {
@@ -39,14 +38,11 @@ public class NotificationPanel extends BorderPane {
         label.setEffect(glow);
 
         if (isLevelUp) {
-            label.setTextFill(Color.rgb(255, 255, 255, 0.5)); // White with 50% opacity
-            label.setFont(javafx.scene.text.Font.font("Arial", javafx.scene.text.FontWeight.BOLD, 32));
+            label.getStyleClass().add("notification-levelup");
         } else if (isCombo) {
-            label.setTextFill(Color.RED);
-            label.setFont(javafx.scene.text.Font.font("Arial", 12));
+            label.getStyleClass().add("notification-combo");
         } else {
-            label.setTextFill(Color.WHITE);
-            label.setFont(javafx.scene.text.Font.font("Arial", 10));
+            label.getStyleClass().add("notification-score");
         }
 
         setCenter(label);

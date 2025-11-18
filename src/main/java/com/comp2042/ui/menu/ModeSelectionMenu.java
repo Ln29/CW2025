@@ -11,8 +11,6 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
-import javafx.scene.text.Font;
-import javafx.scene.text.FontWeight;
 
 public class ModeSelectionMenu extends VBox {
 
@@ -27,46 +25,45 @@ public class ModeSelectionMenu extends VBox {
 
     // Keyboard navigation
     private enum NavigationState {
-        MODE,      // Selecting game mode (default)
-        OPTIONS,   // Adjusting mode-specific options
-        ACTION     // Selecting action button (START/BACK)
+        MODE,
+        OPTIONS,
+        ACTION
     }
 
     private enum MarathonOptionsState {
-        TARGET,     // Navigating target lines
-        DIFFICULTY  // Navigating difficulty
+        TARGET,
+        DIFFICULTY
     }
 
     private NavigationState navigationState = NavigationState.MODE;
     private MarathonOptionsState marathonOptionsState = MarathonOptionsState.TARGET; // For Marathon mode only
-    private int selectedModeIndex = 0; // 0=ENDLESS, 1=MARATHON, 2=SURVIVAL
-    private int selectedActionIndex = 0; // 0=START, 1=BACK
+    private int selectedModeIndex = 0;
+    private int selectedActionIndex = 0;
     private Button[] modeButtonsArray;
     private Button[] actionButtonsArray;
 
     // References for options navigation
-    private Button leftArrowButton; // Reference to left arrow button for difficulty
-    private Button rightArrowButton; // Reference to right arrow button for difficulty
-    private HBox currentTargetButtons; // Reference to target buttons container (Marathon mode)
-    private HBox currentSurvivalDifficultyButtons; // Reference to survival difficulty buttons container
+    private Button leftArrowButton;
+    private Button rightArrowButton;
+    private HBox currentTargetButtons;
+    private HBox currentSurvivalDifficultyButtons;
 
     // Callbacks
     private Runnable onStart;
     private Runnable onBack;
 
     public ModeSelectionMenu() {
+        getStylesheets().add(getClass().getResource("/menu_style.css").toExternalForm());
+        getStyleClass().add("menu-container");
         setAlignment(Pos.CENTER);
         setSpacing(20);
         setPadding(new Insets(30, 50, 30, 50));
         setPrefWidth(600);
         setPrefHeight(700);
-        setStyle("-fx-background-color: rgba(0, 0, 0, 0.9);");
         setViewOrder(-1);
 
         Label titleLabel = new Label("SELECT GAME MODE");
-        titleLabel.setTextFill(Color.YELLOW);
-        titleLabel.setFont(Font.font("Arial", FontWeight.BOLD, 36));
-        titleLabel.setPadding(new Insets(0, 0, 20, 0));
+        titleLabel.getStyleClass().add("menu-title");
 
         HBox modeButtons = new HBox(15);
         modeButtons.setAlignment(Pos.CENTER);
@@ -79,10 +76,12 @@ public class ModeSelectionMenu extends VBox {
         modeButtons.getChildren().addAll(endlessButton, marathonButton, survivalButton);
 
         modeOptionsContainer = new VBox(15);
+        modeOptionsContainer.getStyleClass().add("menu-options-container");
         modeOptionsContainer.setAlignment(Pos.CENTER);
         modeOptionsContainer.setPadding(new Insets(20, 0, 20, 0));
 
         HBox actionButtons = new HBox(20);
+        actionButtons.getStyleClass().add("menu-buttons-container-horizontal");
         actionButtons.setAlignment(Pos.CENTER);
 
         startButton = createActionButton("START");
@@ -114,15 +113,7 @@ public class ModeSelectionMenu extends VBox {
 
     private Button createModeButton(String text, GameMode mode) {
         Button button = new Button(text);
-        button.setPrefWidth(200);
-        button.setPrefHeight(50);
-        button.setFont(Font.font("Arial", FontWeight.BOLD, 16));
-        button.setStyle("-fx-background-color: rgba(100, 100, 100, 0.7); " +
-                "-fx-text-fill: white; " +
-                "-fx-background-radius: 5; " +
-                "-fx-border-color: rgba(200, 200, 200, 0.5); " +
-                "-fx-border-width: 2; " +
-                "-fx-border-radius: 5;");
+        button.getStyleClass().add("mode-button");
 
         button.setOnAction(e -> {
             selectedMode = mode;
@@ -139,28 +130,6 @@ public class ModeSelectionMenu extends VBox {
             updateActionButtonStyles();
         });
 
-        button.setOnMouseEntered(e -> {
-            if (selectedMode != mode) {
-                button.setStyle("-fx-background-color: rgba(120, 120, 120, 0.8); " +
-                        "-fx-text-fill: white; " +
-                        "-fx-background-radius: 5; " +
-                        "-fx-border-color: rgba(200, 200, 200, 0.7); " +
-                        "-fx-border-width: 2; " +
-                        "-fx-border-radius: 5;");
-            }
-        });
-
-        button.setOnMouseExited(e -> {
-            if (selectedMode != mode) {
-                button.setStyle("-fx-background-color: rgba(100, 100, 100, 0.7); " +
-                        "-fx-text-fill: white; " +
-                        "-fx-background-radius: 5; " +
-                        "-fx-border-color: rgba(200, 200, 200, 0.5); " +
-                        "-fx-border-width: 2; " +
-                        "-fx-border-radius: 5;");
-            }
-        });
-
         return button;
     }
 
@@ -169,19 +138,11 @@ public class ModeSelectionMenu extends VBox {
         for (int i = 0; i < modeButtonsArray.length; i++) {
             Button btn = modeButtonsArray[i];
             if ((btn == selectedButton || i == selectedModeIndex) && navigationState == NavigationState.MODE) {
-                btn.setStyle("-fx-background-color: rgba(255, 215, 0, 0.9); " +
-                        "-fx-text-fill: black; " +
-                        "-fx-background-radius: 5; " +
-                        "-fx-border-color: rgba(255, 255, 255, 0.9); " +
-                        "-fx-border-width: 3; " +
-                        "-fx-border-radius: 5;");
+                if (!btn.getStyleClass().contains("selected")) {
+                    btn.getStyleClass().add("selected");
+                }
             } else {
-                btn.setStyle("-fx-background-color: rgba(100, 100, 100, 0.7); " +
-                        "-fx-text-fill: white; " +
-                        "-fx-background-radius: 5; " +
-                        "-fx-border-color: rgba(200, 200, 200, 0.5); " +
-                        "-fx-border-width: 2; " +
-                        "-fx-border-radius: 5;");
+                btn.getStyleClass().remove("selected");
             }
         }
     }
@@ -191,19 +152,11 @@ public class ModeSelectionMenu extends VBox {
         for (int i = 0; i < actionButtonsArray.length; i++) {
             Button btn = actionButtonsArray[i];
             if (i == selectedActionIndex && navigationState == NavigationState.ACTION) {
-                btn.setStyle("-fx-background-color: rgba(255, 215, 0, 0.9); " +
-                        "-fx-text-fill: black; " +
-                        "-fx-background-radius: 5; " +
-                        "-fx-border-color: rgba(255, 255, 255, 0.9); " +
-                        "-fx-border-width: 3; " +
-                        "-fx-border-radius: 5;");
+                if (!btn.getStyleClass().contains("selected")) {
+                    btn.getStyleClass().add("selected");
+                }
             } else {
-                btn.setStyle("-fx-background-color: rgba(100, 100, 100, 0.7); " +
-                        "-fx-text-fill: white; " +
-                        "-fx-background-radius: 5; " +
-                        "-fx-border-color: rgba(200, 200, 200, 0.5); " +
-                        "-fx-border-width: 2; " +
-                        "-fx-border-radius: 5;");
+                btn.getStyleClass().remove("selected");
             }
         }
     }
@@ -211,18 +164,12 @@ public class ModeSelectionMenu extends VBox {
     private void updateOptionsHighlight() {
         if (navigationState == NavigationState.OPTIONS) {
             if (leftArrowButton != null && rightArrowButton != null && selectedMode == GameMode.ENDLESS) {
-                leftArrowButton.setStyle("-fx-background-color: rgba(255, 215, 0, 0.9); " +
-                        "-fx-text-fill: black; " +
-                        "-fx-background-radius: 5; " +
-                        "-fx-border-color: rgba(255, 255, 255, 0.9); " +
-                        "-fx-border-width: 3; " +
-                        "-fx-border-radius: 5;");
-                rightArrowButton.setStyle("-fx-background-color: rgba(255, 215, 0, 0.9); " +
-                        "-fx-text-fill: black; " +
-                        "-fx-background-radius: 5; " +
-                        "-fx-border-color: rgba(255, 255, 255, 0.9); " +
-                        "-fx-border-width: 3; " +
-                        "-fx-border-radius: 5;");
+                if (!leftArrowButton.getStyleClass().contains("highlighted")) {
+                    leftArrowButton.getStyleClass().add("highlighted");
+                }
+                if (!rightArrowButton.getStyleClass().contains("highlighted")) {
+                    rightArrowButton.getStyleClass().add("highlighted");
+                }
             }
 
             if (selectedMode == GameMode.MARATHON) {
@@ -231,33 +178,17 @@ public class ModeSelectionMenu extends VBox {
                         updateTargetButtonHighlight();
                     }
                     if (leftArrowButton != null && rightArrowButton != null) {
-                        leftArrowButton.setStyle("-fx-background-color: rgba(100, 100, 100, 0.7); " +
-                                "-fx-text-fill: white; " +
-                                "-fx-background-radius: 5; " +
-                                "-fx-border-color: rgba(200, 200, 200, 0.5); " +
-                                "-fx-border-width: 2; " +
-                                "-fx-border-radius: 5;");
-                        rightArrowButton.setStyle("-fx-background-color: rgba(100, 100, 100, 0.7); " +
-                                "-fx-text-fill: white; " +
-                                "-fx-background-radius: 5; " +
-                                "-fx-border-color: rgba(200, 200, 200, 0.5); " +
-                                "-fx-border-width: 2; " +
-                                "-fx-border-radius: 5;");
+                        leftArrowButton.getStyleClass().remove("highlighted");
+                        rightArrowButton.getStyleClass().remove("highlighted");
                     }
                 } else if (marathonOptionsState == MarathonOptionsState.DIFFICULTY) {
                     if (leftArrowButton != null && rightArrowButton != null) {
-                        leftArrowButton.setStyle("-fx-background-color: rgba(255, 215, 0, 0.9); " +
-                                "-fx-text-fill: black; " +
-                                "-fx-background-radius: 5; " +
-                                "-fx-border-color: rgba(255, 255, 255, 0.9); " +
-                                "-fx-border-width: 3; " +
-                                "-fx-border-radius: 5;");
-                        rightArrowButton.setStyle("-fx-background-color: rgba(255, 215, 0, 0.9); " +
-                                "-fx-text-fill: black; " +
-                                "-fx-background-radius: 5; " +
-                                "-fx-border-color: rgba(255, 255, 255, 0.9); " +
-                                "-fx-border-width: 3; " +
-                                "-fx-border-radius: 5;");
+                        if (!leftArrowButton.getStyleClass().contains("highlighted")) {
+                            leftArrowButton.getStyleClass().add("highlighted");
+                        }
+                        if (!rightArrowButton.getStyleClass().contains("highlighted")) {
+                            rightArrowButton.getStyleClass().add("highlighted");
+                        }
                     }
                     if (currentTargetButtons != null) {
                         updateTargetButtonHighlight();
@@ -270,18 +201,8 @@ public class ModeSelectionMenu extends VBox {
             }
         } else {
             if (leftArrowButton != null && rightArrowButton != null) {
-                leftArrowButton.setStyle("-fx-background-color: rgba(100, 100, 100, 0.7); " +
-                        "-fx-text-fill: white; " +
-                        "-fx-background-radius: 5; " +
-                        "-fx-border-color: rgba(200, 200, 200, 0.5); " +
-                        "-fx-border-width: 2; " +
-                        "-fx-border-radius: 5;");
-                rightArrowButton.setStyle("-fx-background-color: rgba(100, 100, 100, 0.7); " +
-                        "-fx-text-fill: white; " +
-                        "-fx-background-radius: 5; " +
-                        "-fx-border-color: rgba(200, 200, 200, 0.5); " +
-                        "-fx-border-width: 2; " +
-                        "-fx-border-radius: 5;");
+                leftArrowButton.getStyleClass().remove("highlighted");
+                rightArrowButton.getStyleClass().remove("highlighted");
             }
         }
     }
@@ -292,14 +213,12 @@ public class ModeSelectionMenu extends VBox {
             if (child instanceof Button) {
                 Button btn = (Button) child;
                 int targetValue = Integer.parseInt(btn.getText());
-                if (targetValue == marathonTargetLines && navigationState == NavigationState.OPTIONS) {
-                    btn.setStyle("-fx-background-color: rgba(255, 215, 0, 0.9); -fx-text-fill: black; " +
-                            "-fx-border-color: rgba(255, 255, 255, 0.9); " +
-                            "-fx-border-width: 3;");
-                } else if (targetValue == marathonTargetLines) {
-                    btn.setStyle("-fx-background-color: rgba(255, 215, 0, 0.9); -fx-text-fill: black;");
+                if (targetValue == marathonTargetLines) {
+                    if (!btn.getStyleClass().contains("selected")) {
+                        btn.getStyleClass().add("selected");
+                    }
                 } else {
-                    btn.setStyle("-fx-background-color: rgba(100, 100, 100, 0.7); -fx-text-fill: white;");
+                    btn.getStyleClass().remove("selected");
                 }
             }
         }
@@ -311,14 +230,12 @@ public class ModeSelectionMenu extends VBox {
             if (child instanceof Button) {
                 Button btn = (Button) child;
                 GameModeConfig.SurvivalDifficulty btnDiff = GameModeConfig.SurvivalDifficulty.valueOf(btn.getText());
-                if (btnDiff == survivalDifficulty && navigationState == NavigationState.OPTIONS) {
-                    btn.setStyle("-fx-background-color: rgba(255, 215, 0, 0.9); -fx-text-fill: black; " +
-                            "-fx-border-color: rgba(255, 255, 255, 0.9); " +
-                            "-fx-border-width: 3;");
-                } else if (btnDiff == survivalDifficulty) {
-                    btn.setStyle("-fx-background-color: rgba(255, 215, 0, 0.9); -fx-text-fill: black;");
+                if (btnDiff == survivalDifficulty) {
+                    if (!btn.getStyleClass().contains("selected")) {
+                        btn.getStyleClass().add("selected");
+                    }
                 } else {
-                    btn.setStyle("-fx-background-color: rgba(100, 100, 100, 0.7); -fx-text-fill: white;");
+                    btn.getStyleClass().remove("selected");
                 }
             }
         }
@@ -326,34 +243,7 @@ public class ModeSelectionMenu extends VBox {
 
     private Button createActionButton(String text) {
         Button button = new Button(text);
-        button.setPrefWidth(150);
-        button.setPrefHeight(45);
-        button.setFont(Font.font("Arial", FontWeight.BOLD, 18));
-        button.setStyle("-fx-background-color: rgba(100, 100, 100, 0.7); " +
-                "-fx-text-fill: white; " +
-                "-fx-background-radius: 5; " +
-                "-fx-border-color: rgba(200, 200, 200, 0.5); " +
-                "-fx-border-width: 2; " +
-                "-fx-border-radius: 5;");
-
-        button.setOnMouseEntered(e -> {
-            button.setStyle("-fx-background-color: rgba(120, 120, 120, 0.8); " +
-                    "-fx-text-fill: white; " +
-                    "-fx-background-radius: 5; " +
-                    "-fx-border-color: rgba(200, 200, 200, 0.7); " +
-                    "-fx-border-width: 2; " +
-                    "-fx-border-radius: 5;");
-        });
-
-        button.setOnMouseExited(e -> {
-            button.setStyle("-fx-background-color: rgba(100, 100, 100, 0.7); " +
-                    "-fx-text-fill: white; " +
-                    "-fx-background-radius: 5; " +
-                    "-fx-border-color: rgba(200, 200, 200, 0.5); " +
-                    "-fx-border-width: 2; " +
-                    "-fx-border-radius: 5;");
-        });
-
+        button.getStyleClass().add("action-button");
         return button;
     }
 
@@ -375,13 +265,11 @@ public class ModeSelectionMenu extends VBox {
 
     private void addEndlessOptions() {
         Label description = new Label("Goal: Clear 999 lines\nFixed speed throughout");
-        description.setTextFill(Color.WHITE);
-        description.setFont(Font.font("Arial", 14));
+        description.getStyleClass().add("menu-label");
         description.setAlignment(Pos.CENTER);
 
         Label difficultyLabel = new Label("Difficulty (0-10): " + difficulty);
-        difficultyLabel.setTextFill(Color.WHITE);
-        difficultyLabel.setFont(Font.font("Arial", 14));
+        difficultyLabel.getStyleClass().add("menu-label");
 
         HBox difficultySelector = createVolumeBarDifficultySelector(difficultyLabel);
 
@@ -391,25 +279,21 @@ public class ModeSelectionMenu extends VBox {
 
     private void addMarathonOptions() {
         Label description = new Label("Target lines with increasing speed");
-        description.setTextFill(Color.WHITE);
-        description.setFont(Font.font("Arial", 14));
+        description.getStyleClass().add("menu-label");
         description.setAlignment(Pos.CENTER);
 
         Label targetLabel = new Label("Target Lines: " + marathonTargetLines);
-        targetLabel.setTextFill(Color.WHITE);
-        targetLabel.setFont(Font.font("Arial", 14));
+        targetLabel.getStyleClass().add("menu-label");
 
         HBox targetButtons = new HBox(10);
         targetButtons.setAlignment(Pos.CENTER);
 
         for (int target : new int[]{5, 100, 200, 500}) {
             Button btn = new Button(String.valueOf(target));
-            btn.setPrefWidth(80);
-            btn.setPrefHeight(35);
-            btn.setFont(Font.font("Arial", 12));
-            btn.setStyle(marathonTargetLines == target ?
-                    "-fx-background-color: rgba(255, 215, 0, 0.9); -fx-text-fill: black;" :
-                    "-fx-background-color: rgba(100, 100, 100, 0.7); -fx-text-fill: white;");
+            btn.getStyleClass().add("option-button");
+            if (marathonTargetLines == target) {
+                btn.getStyleClass().add("selected");
+            }
 
             int finalTarget = target;
             btn.setOnAction(e -> {
@@ -422,8 +306,7 @@ public class ModeSelectionMenu extends VBox {
         }
 
         Label difficultyLabel = new Label("Starting Difficulty (0-10): " + difficulty);
-        difficultyLabel.setTextFill(Color.WHITE);
-        difficultyLabel.setFont(Font.font("Arial", 14));
+        difficultyLabel.getStyleClass().add("menu-label");
 
         HBox difficultySelector = createVolumeBarDifficultySelector(difficultyLabel);
 
@@ -437,9 +320,11 @@ public class ModeSelectionMenu extends VBox {
             if (child instanceof Button) {
                 Button btn = (Button) child;
                 if (btn == selected) {
-                    btn.setStyle("-fx-background-color: rgba(255, 215, 0, 0.9); -fx-text-fill: black;");
+                    if (!btn.getStyleClass().contains("selected")) {
+                        btn.getStyleClass().add("selected");
+                    }
                 } else {
-                    btn.setStyle("-fx-background-color: rgba(100, 100, 100, 0.7); -fx-text-fill: white;");
+                    btn.getStyleClass().remove("selected");
                 }
             }
         }
@@ -447,13 +332,11 @@ public class ModeSelectionMenu extends VBox {
 
     private void addSurvivalOptions() {
         Label description = new Label();
-        description.setTextFill(Color.WHITE);
-        description.setFont(Font.font("Arial", 14));
+        description.getStyleClass().add("menu-label");
         description.setAlignment(Pos.CENTER);
 
         Label details = new Label();
-        details.setTextFill(Color.LIGHTGRAY);
-        details.setFont(Font.font("Arial", 12));
+        details.getStyleClass().add("menu-label-small");
 
         Runnable updateDescription = () -> {
             String descText = String.format(
@@ -473,20 +356,18 @@ public class ModeSelectionMenu extends VBox {
         updateDescription.run();
 
         Label difficultyLabel = new Label("Difficulty: " + survivalDifficulty.name());
-        difficultyLabel.setTextFill(Color.WHITE);
-        difficultyLabel.setFont(Font.font("Arial", 14));
+        difficultyLabel.getStyleClass().add("menu-label");
 
         HBox difficultyButtons = new HBox(10);
         difficultyButtons.setAlignment(Pos.CENTER);
 
         for (GameModeConfig.SurvivalDifficulty diff : GameModeConfig.SurvivalDifficulty.values()) {
             Button btn = new Button(diff.name());
-            btn.setPrefWidth(120);
-            btn.setPrefHeight(35);
-            btn.setFont(Font.font("Arial", 12));
-            btn.setStyle(survivalDifficulty == diff ?
-                    "-fx-background-color: rgba(255, 215, 0, 0.9); -fx-text-fill: black;" :
-                    "-fx-background-color: rgba(100, 100, 100, 0.7); -fx-text-fill: white;");
+            btn.getStyleClass().add("option-button");
+            btn.getStyleClass().add("option-button-wide");
+            if (survivalDifficulty == diff) {
+                btn.getStyleClass().add("selected");
+            }
 
             GameModeConfig.SurvivalDifficulty finalDiff = diff;
             btn.setOnAction(e -> {
@@ -509,9 +390,11 @@ public class ModeSelectionMenu extends VBox {
             if (child instanceof Button) {
                 Button btn = (Button) child;
                 if (btn == selected) {
-                    btn.setStyle("-fx-background-color: rgba(255, 215, 0, 0.9); -fx-text-fill: black;");
+                    if (!btn.getStyleClass().contains("selected")) {
+                        btn.getStyleClass().add("selected");
+                    }
                 } else {
-                    btn.setStyle("-fx-background-color: rgba(100, 100, 100, 0.7); -fx-text-fill: white;");
+                    btn.getStyleClass().remove("selected");
                 }
             }
         }
@@ -556,7 +439,6 @@ public class ModeSelectionMenu extends VBox {
         KeyCode code = event.getCode();
         KeyBindingsConfig config = KeyBindingsConfig.getInstance();
 
-        // Check if the pressed key matches any bound action
         KeyBindingsConfig.Action action = config.getAction(code);
         boolean isLeft = (code == KeyCode.LEFT) || (action == KeyBindingsConfig.Action.MOVE_LEFT);
         boolean isRight = (code == KeyCode.RIGHT) || (action == KeyBindingsConfig.Action.MOVE_RIGHT);
@@ -719,7 +601,7 @@ public class ModeSelectionMenu extends VBox {
                 // Enter moves from DIFFICULTY to ACTION
                 if (isSelect) {
                     navigationState = NavigationState.ACTION;
-                    selectedActionIndex = 0; // Select START button
+                    selectedActionIndex = 0;
                     updateOptionsHighlight();
                     updateActionButtonStyles();
                     event.consume();
@@ -814,7 +696,6 @@ public class ModeSelectionMenu extends VBox {
             }
         }
 
-        // Update button styles
         updateTargetButtonHighlight();
     }
 
@@ -829,33 +710,7 @@ public class ModeSelectionMenu extends VBox {
 
         Button leftArrow = new Button("<");
         leftArrowButton = leftArrow;
-        leftArrow.setPrefWidth(30);
-        leftArrow.setPrefHeight(50);
-        leftArrow.setFont(Font.font("Arial", FontWeight.BOLD, 20));
-        leftArrow.setStyle("-fx-background-color: rgba(100, 100, 100, 0.7); " +
-                "-fx-text-fill: white; " +
-                "-fx-background-radius: 5; " +
-                "-fx-border-color: rgba(200, 200, 200, 0.5); " +
-                "-fx-border-width: 2; " +
-                "-fx-border-radius: 5;");
-
-        leftArrow.setOnMouseEntered(e -> {
-            leftArrow.setStyle("-fx-background-color: rgba(120, 120, 120, 0.8); " +
-                    "-fx-text-fill: white; " +
-                    "-fx-background-radius: 5; " +
-                    "-fx-border-color: rgba(200, 200, 200, 0.7); " +
-                    "-fx-border-width: 2; " +
-                    "-fx-border-radius: 5;");
-        });
-
-        leftArrow.setOnMouseExited(e -> {
-            leftArrow.setStyle("-fx-background-color: rgba(100, 100, 100, 0.7); " +
-                    "-fx-text-fill: white; " +
-                    "-fx-background-radius: 5; " +
-                    "-fx-border-color: rgba(200, 200, 200, 0.5); " +
-                    "-fx-border-width: 2; " +
-                    "-fx-border-radius: 5;");
-        });
+        leftArrow.getStyleClass().add("arrow-button");
 
         HBox barsContainer = new HBox(4);
         barsContainer.setAlignment(Pos.CENTER);
@@ -872,33 +727,7 @@ public class ModeSelectionMenu extends VBox {
 
         Button rightArrow = new Button(">");
         rightArrowButton = rightArrow;
-        rightArrow.setPrefWidth(30);
-        rightArrow.setPrefHeight(50);
-        rightArrow.setFont(Font.font("Arial", FontWeight.BOLD, 20));
-        rightArrow.setStyle("-fx-background-color: rgba(100, 100, 100, 0.7); " +
-                "-fx-text-fill: white; " +
-                "-fx-background-radius: 5; " +
-                "-fx-border-color: rgba(200, 200, 200, 0.5); " +
-                "-fx-border-width: 2; " +
-                "-fx-border-radius: 5;");
-
-        rightArrow.setOnMouseEntered(e -> {
-            rightArrow.setStyle("-fx-background-color: rgba(120, 120, 120, 0.8); " +
-                    "-fx-text-fill: white; " +
-                    "-fx-background-radius: 5; " +
-                    "-fx-border-color: rgba(200, 200, 200, 0.7); " +
-                    "-fx-border-width: 2; " +
-                    "-fx-border-radius: 5;");
-        });
-
-        rightArrow.setOnMouseExited(e -> {
-            rightArrow.setStyle("-fx-background-color: rgba(100, 100, 100, 0.7); " +
-                    "-fx-text-fill: white; " +
-                    "-fx-background-radius: 5; " +
-                    "-fx-border-color: rgba(200, 200, 200, 0.5); " +
-                    "-fx-border-width: 2; " +
-                    "-fx-border-radius: 5;");
-        });
+        rightArrow.getStyleClass().add("arrow-button");
 
         Runnable updateBars = () -> {
             for (int i = 0; i < 10; i++) {

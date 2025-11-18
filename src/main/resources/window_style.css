@@ -30,7 +30,6 @@
     -fx-background-insets: 0, 1, 4, 5, 6;
     -fx-background-radius: 9, 8, 5, 4, 3;
     -fx-padding: 8;
-    /*-fx-font-family: "Helvetica";*/
     -fx-font-family: "Let's go Digital";
     -fx-font-size: 22px;
     -fx-font-weight: bold;
@@ -69,4 +68,98 @@
     -fx-font-size: 38;
     -fx-fill: yellow;
     -fx-text-fill: yellow;
+}
+
+/* PANEL STYLES */
+
+.game-panel {
+    -fx-background-color: rgba(0, 0, 0, 0.7);
+}
+
+.panel-container {
+    -fx-background-color: rgba(0, 0, 0, 0.7);
+    -fx-background-radius: 5;
+}
+
+.panel-border-left {
+    -fx-border-color: linear-gradient(#2A5058, #61a2b1);
+    -fx-border-width: 12px 0 12px 12px;
+    -fx-border-radius: 12px 12px 0 12px;
+    -fx-background-color: rgba(0, 0, 0, 0.70);
+}
+
+.panel-border-right {
+    -fx-border-color: linear-gradient(#2A5058, #61a2b1);
+    -fx-border-width: 12px 12px 12px 0;
+    -fx-border-radius: 12px 12px 12px 0;
+    -fx-background-color: rgba(0, 0, 0, 0.7);
+}
+
+.panel-label {
+    -fx-font-family: "Let's go Digital";
+    -fx-font-weight: bold;
+    -fx-font-size: 22px;
+    -fx-text-fill: yellow;
+}
+
+/* STAT ROW STYLES */
+.stat-row {
+    -fx-background-color: rgba(0, 0, 0, 0.7);
+    -fx-background-radius: 5;
+    -fx-padding: 8 12 8 12;
+    -fx-pref-height: 50;
+    -fx-min-height: 50;
+    -fx-max-height: 50;
+}
+
+.stat-label {
+    -fx-font-family: "Arial";
+    -fx-font-size: 14px;
+    -fx-text-fill: white;
+}
+
+.stat-value {
+    -fx-font-family: "Arial";
+    -fx-font-weight: bold;
+    -fx-font-size: 16px;
+    -fx-text-fill: white;
+}
+
+.stat-label-large {
+    -fx-font-family: "Arial";
+    -fx-font-size: 25px;
+    -fx-text-fill: white;
+}
+
+.stat-value-large {
+    -fx-font-family: "Arial";
+    -fx-font-weight: bold;
+    -fx-font-size: 25px;
+    -fx-text-fill: white;
+}
+
+/* NOTIFICATION STYLES */
+.notification-combo {
+    -fx-font-family: "Arial";
+    -fx-font-size: 35px;
+    -fx-text-fill: orange;
+}
+
+.notification-score {
+    -fx-font-family: "Arial";
+    -fx-font-size: 30px;
+    -fx-text-fill: white;
+}
+
+.notification-levelup {
+    -fx-font-family: "Arial";
+    -fx-font-weight: bold;
+    -fx-font-size: 35px;
+    -fx-text-fill: rgba(255, 255, 255, 0.5);
+}
+
+/* THEME MENU STYLES */
+.theme-box {
+    -fx-background-color: rgba(50, 50, 50, 0.5);
+    -fx-background-radius: 5;
 }

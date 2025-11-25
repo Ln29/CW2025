@@ -1,4 +1,4 @@
-package com.comp2042.render;
+package com.comp2042.ui;
 
 import com.comp2042.config.GameConstants;
 import com.comp2042.core.GhostBrick;
@@ -133,3 +133,4 @@ public class GhostRenderer {
         return base;
     }
 }
+

@@ -1,10 +1,10 @@
-package com.comp2042.render;
+package com.comp2042.ui;
 
 import com.comp2042.core.Board;
 import com.comp2042.core.ViewData;
-import com.comp2042.ui.Ui;
 import com.comp2042.ui.panels.PanelManager;
 import com.comp2042.ui.panels.PanelPositioner;
+import com.comp2042.ui.util.PlatformUtils;
 import javafx.beans.property.BooleanProperty;
 import javafx.scene.Scene;
 import javafx.scene.layout.BorderPane;
@@ -101,7 +101,7 @@ public class GameRenderer {
 
         // Initialize ghost renderer
         ghostRenderer = new GhostRenderer(gameBoard, gamePanel, brickPanel, BRICK_SIZE, HIDDEN_ROW_COUNT, colorProvider::apply);
-        Ui.run(() -> {
+        PlatformUtils.run(() -> {
             Scene scene = gameBoard.getScene();
             if (scene != null) {
                 ghostRenderer.addToScene(scene);

@@ -1,6 +1,8 @@
 package com.comp2042.ui.menu;
 
 import com.comp2042.config.KeyBindingsConfig;
+import com.comp2042.ui.util.MenuNavigationHandler;
+import com.comp2042.ui.util.NavigationInput;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
@@ -191,65 +193,32 @@ public class KeyBindingsMenu extends VBox {
     }
 
     private void handleKeyPress(KeyEvent event) {
-        KeyCode code = event.getCode();
-
+        NavigationInput input = MenuNavigationHandler.parseKeyPress(event);
+        
         // If rebinding, handle the key press for rebinding
         if (currentlyRebinding != null) {
-            KeyBindingsConfig.Action action = config.getAction(code);
-            boolean isBack = (code == KeyCode.ESCAPE) || (action == KeyBindingsConfig.Action.PAUSE);
-
-            if (isBack) {
+            if (input.isBack()) {
                 cancelRebinding();
-                event.consume();
+                input.getEvent().consume();
                 return;
             }
 
-            boolean isUp = (code == KeyCode.UP) || (action == KeyBindingsConfig.Action.ROTATE);
-            boolean isDown = (code == KeyCode.DOWN) || (action == KeyBindingsConfig.Action.SOFT_DROP);
-            boolean isSelect = (code == KeyCode.ENTER || code == KeyCode.SPACE) || (action == KeyBindingsConfig.Action.HARD_DROP);
-
-            if (!isUp && !isDown && !isSelect) {
-                finishRebinding(code);
-                event.consume();
+            if (!input.isUp() && !input.isDown() && !input.isSelect()) {
+                finishRebinding(input.getEvent().getCode());
+                input.getEvent().consume();
                 return;
             }
         }
 
-        KeyBindingsConfig.Action action = config.getAction(code);
-        boolean isUp = (code == KeyCode.UP) || (action == KeyBindingsConfig.Action.ROTATE);
-        boolean isDown = (code == KeyCode.DOWN) || (action == KeyBindingsConfig.Action.SOFT_DROP);
-        boolean isSelect = (code == KeyCode.ENTER || code == KeyCode.SPACE) || (action == KeyBindingsConfig.Action.HARD_DROP);
-        boolean isBack = (code == KeyCode.ESCAPE) || (action == KeyBindingsConfig.Action.PAUSE);
-
-        if (isUp) {
-            selectedIndex = (selectedIndex - 1 + buttons.length) % buttons.length;
-            updateButtonStyles();
-            event.consume();
-        } else if (isDown) {
-            selectedIndex = (selectedIndex + 1) % buttons.length;
-            updateButtonStyles();
-            event.consume();
-        } else if (isSelect) {
-            buttons[selectedIndex].fire();
-            event.consume();
-        } else if (isBack) {
-            if (onBack != null) {
-                onBack.run();
-            }
-            event.consume();
+        // Normal navigation
+        int newIndex = MenuNavigationHandler.handleVerticalNavigationWithBack(input, buttons, selectedIndex, onBack);
+        if (newIndex >= 0) {
+            selectedIndex = newIndex;
         }
     }
 
     private void updateButtonStyles() {
-        for (int i = 0; i < buttons.length; i++) {
-            if (i == selectedIndex) {
-                if (!buttons[i].getStyleClass().contains("selected")) {
-                    buttons[i].getStyleClass().add("selected");
-                }
-            } else {
-                buttons[i].getStyleClass().remove("selected");
-            }
-        }
+        MenuNavigationHandler.updateButtonStyles(buttons, selectedIndex);
     }
 
     public void setSelectedIndex(int index) {

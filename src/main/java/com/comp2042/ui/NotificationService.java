@@ -1,8 +1,9 @@
-package com.comp2042.ui.notification;
+package com.comp2042.ui;
 
-import com.comp2042.audio.AudioManager;
+import com.comp2042.controller.AudioManager;
 import com.comp2042.config.GameConstants;
-import com.comp2042.ui.Ui;
+import com.comp2042.ui.panels.NotificationPanel;
+import com.comp2042.ui.util.PlatformUtils;
 import javafx.scene.Group;
 
 public class NotificationService {
@@ -25,7 +26,7 @@ public class NotificationService {
     }
 
     public void showCombo(int combo) {
-        Ui.run(() -> {
+        PlatformUtils.run(() -> {
             if (comboNotificationGroup == null || combo <= 0) return;
 
             if (combo == 0) {
@@ -48,7 +49,7 @@ public class NotificationService {
     }
 
     public void clearCombo() {
-        Ui.run(() -> {
+        PlatformUtils.run(() -> {
             if (currentComboPanel != null && comboNotificationGroup != null) {
                 currentComboPanel.fadeOutAndRemove(comboNotificationGroup.getChildren());
                 currentComboPanel = null;
@@ -57,7 +58,7 @@ public class NotificationService {
     }
 
     public void showScoreBonus(int bonus) {
-        Ui.run(() -> {
+        PlatformUtils.run(() -> {
             if (scoreNotificationGroup == null) return;
             if (scoreNotificationGroup.getChildren().size() > maxChildren) {
                 scoreNotificationGroup.getChildren().remove(0);
@@ -81,8 +82,7 @@ public class NotificationService {
                 audioManager.playSoundEffect(GameConstants.SFX_CLEAR_LINE);
             }
             showCombo(comboCount);
-            // Calculate total bonus (base bonus + combo reward) for display
-            // comboCount starts from -1, so first clear (comboCount = 0) gives no combo bonus
+            // comboCount starts from -1, 0 gives no combo bonus
             int totalBonus = bonus;
             if (comboCount > 0) {
                 int comboReward = comboCount * 50;
@@ -115,7 +115,7 @@ public class NotificationService {
     }
 
     public void showLevelUp(int level) {
-        Ui.run(() -> {
+        PlatformUtils.run(() -> {
             if (centerNotificationGroup == null) return;
             if (centerNotificationGroup.getChildren().size() > maxChildren) {
                 centerNotificationGroup.getChildren().remove(0);
@@ -132,3 +132,4 @@ public class NotificationService {
         previousLevel = -1;
     }
 }
+

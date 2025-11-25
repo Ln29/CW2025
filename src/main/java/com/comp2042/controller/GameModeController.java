@@ -2,10 +2,10 @@ package com.comp2042.controller;
 
 import com.comp2042.config.GameModeConfig;
 import com.comp2042.core.Board;
-import com.comp2042.core.EndlessMode;
-import com.comp2042.core.GameMode;
-import com.comp2042.core.SurvivalMode;
-import com.comp2042.core.MarathonMode;
+import com.comp2042.core.mode.EndlessMode;
+import com.comp2042.core.mode.GameMode;
+import com.comp2042.core.mode.SurvivalMode;
+import com.comp2042.core.mode.MarathonMode;
 
 import java.util.function.Consumer;
 
@@ -132,19 +132,13 @@ public class GameModeController {
         GameMode mode = config.getCurrentMode();
         switch (mode) {
             case ENDLESS:
-                if (endlessMode != null) {
-                    won = endlessMode.isWon(linesCleared);
-                }
+                won = endlessMode != null && endlessMode.isWon(linesCleared);
                 break;
             case MARATHON:
-                if (marathonMode != null) {
-                    won = marathonMode.isWon(linesCleared);
-                }
+                won = marathonMode != null && marathonMode.isWon(linesCleared);
                 break;
             case SURVIVAL:
-                if (survivalMode != null) {
-                    won = survivalMode.isWon(linesCleared);
-                }
+                won = survivalMode != null && survivalMode.isWon(linesCleared);
                 break;
         }
 
@@ -161,7 +155,7 @@ public class GameModeController {
 
         switch (mode) {
             case ENDLESS:
-                return endlessMode != null ? endlessMode.getSpeedMs() : 500;
+                return endlessMode != null ? endlessMode.getCurrentSpeedMs(linesCleared) : 500;
             case MARATHON:
                 return marathonMode != null ? marathonMode.getCurrentSpeedMs(linesCleared) : 500;
             case SURVIVAL:
@@ -169,34 +163,6 @@ public class GameModeController {
             default:
                 return 500;
         }
-    }
-
-    /**
-     * Start all timers for the current mode
-     */
-    public void startTimers() {
-        // No separate timer needed - garbage spawn is checked via game timer
-    }
-
-    /**
-     * Stop all timers
-     */
-    public void stopTimers() {
-        // No separate timer to stop
-    }
-
-    /**
-     * Pause all timers
-     */
-    public void pauseTimers() {
-        // No separate timer to pause
-    }
-
-    /**
-     * Resume all timers
-     */
-    public void resumeTimers() {
-        // No separate timer to resume
     }
 
     /**
@@ -227,21 +193,11 @@ public class GameModeController {
 
         switch (mode) {
             case ENDLESS:
-                if (endlessMode != null) {
-                    return endlessMode.getDifficulty();
-                }
-                return 0;
+                return endlessMode != null ? endlessMode.getCurrentLevel(linesCleared) : 0;
             case MARATHON:
-                if (marathonMode != null) {
-                    // Level increases every 10 lines, starting from starting difficulty
-                    // Level is capped at 10
-                    int baseLevel = marathonMode.getStartDifficulty();
-                    int levelIncrease = linesCleared / 10;
-                    return Math.min(baseLevel + levelIncrease, 10);
-                }
-                return 0;
+                return marathonMode != null ? marathonMode.getCurrentLevel(linesCleared) : 0;
             case SURVIVAL:
-                return 0;
+                return survivalMode != null ? survivalMode.getCurrentLevel(linesCleared) : 0;
             default:
                 return 0;
         }
@@ -272,5 +228,26 @@ public class GameModeController {
             default:
                 return 0;
         }
+    }
+    
+    /**
+     * Gets the marathon target lines from the config.
+     */
+    public int getMarathonTargetLines() {
+        return config.getMarathonTargetLines();
+    }
+    
+    /**
+     * Gets the survival difficulty from the config.
+     */
+    public GameModeConfig.SurvivalDifficulty getSurvivalDifficulty() {
+        return config.getSurvivalDifficulty();
+    }
+    
+    /**
+     * Gets the game mode config.
+     */
+    public GameModeConfig getConfig() {
+        return config;
     }
 }

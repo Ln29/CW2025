@@ -71,15 +71,8 @@ public class SevenBagBrickGenerator implements BrickGenerator {
      * and adds them to the queue.
      */
     private void addNewBag() {
-        // Create a list with all 7 brick types
-        List<Brick> bag = new ArrayList<>();
-        bag.add(new IBrick());
-        bag.add(new JBrick());
-        bag.add(new LBrick());
-        bag.add(new OBrick());
-        bag.add(new SBrick());
-        bag.add(new TBrick());
-        bag.add(new ZBrick());
+        // Create a list with all 7 brick types using the factory
+        List<Brick> bag = new ArrayList<>(BrickFactory.createAll());
 
         // Shuffle the bag to randomize order
         shuffleBag(bag);

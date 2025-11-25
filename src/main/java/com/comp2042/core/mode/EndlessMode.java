@@ -1,8 +1,8 @@
-package com.comp2042.core;
+package com.comp2042.core.mode;
 
 import com.comp2042.config.GameModeConfig;
 
-public class EndlessMode {
+public class EndlessMode implements GameModeStrategy {
 
     private static final int TARGET_LINES = 999;
     private final int difficulty;
@@ -16,6 +16,11 @@ public class EndlessMode {
         this.speedMs = GameModeConfig.calculateEndlessSpeed(difficulty);
     }
 
+    @Override
+    public int getCurrentSpeedMs(int linesCleared) {
+        return speedMs; // Speed is constant for endless mode
+    }
+
     public int getSpeedMs() {
         return speedMs;
     }
@@ -24,11 +29,19 @@ public class EndlessMode {
         return difficulty;
     }
 
+    @Override
     public int getTargetLines() {
         return TARGET_LINES;
     }
-    //999 lines
+
+    @Override
     public boolean isWon(int linesCleared) {
         return linesCleared >= TARGET_LINES;
     }
+
+    @Override
+    public int getCurrentLevel(int linesCleared) {
+        return difficulty; // Level equals difficulty in endless mode
+    }
 }
+

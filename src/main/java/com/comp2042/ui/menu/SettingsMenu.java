@@ -1,12 +1,12 @@
 package com.comp2042.ui.menu;
 
-import com.comp2042.config.KeyBindingsConfig;
+import com.comp2042.ui.util.MenuNavigationHandler;
+import com.comp2042.ui.util.NavigationInput;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.Slider;
-import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
@@ -130,62 +130,38 @@ public class SettingsMenu extends VBox {
     }
 
     private void handleKeyPress(KeyEvent event) {
-        KeyCode code = event.getCode();
-        KeyBindingsConfig config = KeyBindingsConfig.getInstance();
-
-        KeyBindingsConfig.Action action = config.getAction(code);
-        boolean isUp = (code == KeyCode.UP) || (action == KeyBindingsConfig.Action.ROTATE);
-        boolean isDown = (code == KeyCode.DOWN) || (action == KeyBindingsConfig.Action.SOFT_DROP);
-        boolean isLeft = (code == KeyCode.LEFT) || (action == KeyBindingsConfig.Action.MOVE_LEFT);
-        boolean isRight = (code == KeyCode.RIGHT) || (action == KeyBindingsConfig.Action.MOVE_RIGHT);
-        boolean isSelect = (code == KeyCode.ENTER || code == KeyCode.SPACE) || (action == KeyBindingsConfig.Action.HARD_DROP);
-        boolean isBack = (code == KeyCode.ESCAPE) || (action == KeyBindingsConfig.Action.PAUSE);
-
-        if (isUp) {
-            selectedIndex = (selectedIndex - 1 + buttons.length) % buttons.length;
-            updateButtonStyles();
-            event.consume();
-        } else if (isDown) {
-            selectedIndex = (selectedIndex + 1) % buttons.length;
-            updateButtonStyles();
-            event.consume();
-        } else if (isLeft) {
-            if (selectedIndex == 0) {
-                selectedIndex = 1;
-            } else if (selectedIndex == 1) {
-                selectedIndex = 0;
-            }
-            updateButtonStyles();
-            event.consume();
-        } else if (isRight) {
-            if (selectedIndex == 0) {
-                selectedIndex = 1;
-            } else if (selectedIndex == 1) {
-                selectedIndex = 0;
-            }
-            updateButtonStyles();
-            event.consume();
-        } else if (isSelect) {
-            buttons[selectedIndex].fire();
-            event.consume();
-        } else if (isBack) {
+        NavigationInput input = MenuNavigationHandler.parseKeyPress(event);
+        
+        // Handle back button
+        if (input.isBack()) {
             if (onBack != null) {
                 onBack.run();
             }
-            event.consume();
+            input.getEvent().consume();
+            return;
+        }
+        
+        // Handle vertical navigation
+        int newIndex = MenuNavigationHandler.handleVerticalNavigation(input, buttons, selectedIndex);
+        if (newIndex >= 0) {
+            selectedIndex = newIndex;
+            return;
+        }
+        
+        // Handle horizontal navigation for first two buttons
+        if (input.isLeft() || input.isRight()) {
+            if (selectedIndex == 0) {
+                selectedIndex = 1;
+            } else if (selectedIndex == 1) {
+                selectedIndex = 0;
+            }
+            updateButtonStyles();
+            input.getEvent().consume();
         }
     }
 
     private void updateButtonStyles() {
-        for (int i = 0; i < buttons.length; i++) {
-            if (i == selectedIndex) {
-                if (!buttons[i].getStyleClass().contains("selected")) {
-                    buttons[i].getStyleClass().add("selected");
-                }
-            } else {
-                buttons[i].getStyleClass().remove("selected");
-            }
-        }
+        MenuNavigationHandler.updateButtonStyles(buttons, selectedIndex);
     }
 
     public void setSelectedIndex(int index) {

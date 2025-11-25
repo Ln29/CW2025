@@ -1,4 +1,4 @@
-package com.comp2042.theme;
+package com.comp2042.config;
 
 import com.comp2042.ui.menu.ThemeMenu;
 import javafx.scene.paint.Color;

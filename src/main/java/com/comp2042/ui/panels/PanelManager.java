@@ -3,9 +3,8 @@ package com.comp2042.ui.panels;
 import com.comp2042.controller.GameModeController;
 import com.comp2042.controller.GameState;
 import com.comp2042.core.Board;
-import com.comp2042.ui.SceneAccessor;
-import com.comp2042.ui.Ui;
-import com.comp2042.config.StatsUpdater;
+import com.comp2042.ui.util.SceneAccessor;
+import com.comp2042.ui.util.PlatformUtils;
 import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.layout.BorderPane;
@@ -14,7 +13,6 @@ import javafx.scene.layout.Pane;
 public class PanelManager {
     private final BorderPane gameBoard;
     private final Board board;
-    private final StatsUpdater statsUpdater;
     private final GameState gameState;
     private final PanelPositioner panelPositioner;
     private GameModeController gameModeController;
@@ -22,12 +20,11 @@ public class PanelManager {
     private NextBrickPanel nextBrickPanel;
     private HoldBrickPanel holdBrickPanel;
     private StatsPanel statsPanel;
-    private StatsPanelRight statsPanelRight;
+    private RightStatsPanel statsPanelRight;
 
-    public PanelManager(BorderPane gameBoard, Board board, StatsUpdater statsUpdater, GameState gameState) {
+    public PanelManager(BorderPane gameBoard, Board board, GameState gameState) {
         this.gameBoard = gameBoard;
         this.board = board;
-        this.statsUpdater = statsUpdater;
         this.gameState = gameState;
         this.panelPositioner = new PanelPositioner(gameBoard);
     }
@@ -40,7 +37,7 @@ public class PanelManager {
     public void initializeNextBrickPanel(Scene scene) {
         if (nextBrickPanel == null) {
             nextBrickPanel = new NextBrickPanel();
-            Ui.run(() -> {
+            PlatformUtils.run(() -> {
                 javafx.scene.Group gameplayLayer = findGameplayLayer();
                 if (gameplayLayer != null) {
                     gameplayLayer.getChildren().add(nextBrickPanel);
@@ -68,7 +65,7 @@ public class PanelManager {
     public void initializeHoldBrickPanel(Scene scene) {
         if (holdBrickPanel == null) {
             holdBrickPanel = new HoldBrickPanel();
-            Ui.run(() -> {
+            PlatformUtils.run(() -> {
                 javafx.scene.Group gameplayLayer = findGameplayLayer();
                 if (gameplayLayer != null) {
                     gameplayLayer.getChildren().add(holdBrickPanel);
@@ -96,7 +93,7 @@ public class PanelManager {
     public void initializeStatsPanel(Scene scene) {
         if (statsPanel == null) {
             statsPanel = new StatsPanel();
-            Ui.run(() -> {
+            PlatformUtils.run(() -> {
                 javafx.scene.Group gameplayLayer = findGameplayLayer();
                 if (gameplayLayer != null) {
                     gameplayLayer.getChildren().add(statsPanel);
@@ -131,13 +128,17 @@ public class PanelManager {
     // Stats Right
     public void initializeStatsPanelRight(Scene scene) {
         if (statsPanelRight == null) {
-            statsPanelRight = new StatsPanelRight();
-            Ui.run(() -> {
+            statsPanelRight = new RightStatsPanel();
+            PlatformUtils.run(() -> {
                 javafx.scene.Group gameplayLayer = findGameplayLayer();
                 if (gameplayLayer != null) {
-                    statsPanelRight.addToGameplayLayer(gameplayLayer);
+                    gameplayLayer.getChildren().add(statsPanelRight);
                 } else {
-                    statsPanelRight.addToScene(scene);
+                    // Fallback - should not happen in normal flow
+                    Pane rootPane = (Pane) scene.getRoot();
+                    if (rootPane != null) {
+                        rootPane.getChildren().add(statsPanelRight);
+                    }
                 }
                 positionStatsPanelRight(scene);
                 updateStatsPanels();
@@ -154,7 +155,75 @@ public class PanelManager {
 
     // Combined Stats update
     public void updateStatsPanels() {
-        statsUpdater.updateAllStats(gameState, board, statsPanel, statsPanelRight, gameModeController);
+        updateAllStats(gameState, board, statsPanel, statsPanelRight, gameModeController);
+    }
+
+    /**
+     * Updates all statistics panels with current game state.
+     * Moved from StatsUpdater to bring UI logic closer to UI components.
+     */
+    private void updateAllStats(GameState state, Board board, StatsPanel statsPanel, RightStatsPanel statsPanelRight, GameModeController gameModeController) {
+        if (state == null) return;
+
+        // Get current score from board
+        int currentScore = 0;
+        if (board != null && board.getScore() != null && board.getScore().scoreProperty() != null) {
+            currentScore = board.getScore().scoreProperty().getValue();
+            // Update high score from current score if higher (mode-specific)
+            if (gameModeController != null) {
+                state.setHighScore(currentScore, gameModeController);
+            } else {
+                state.setHighScore(currentScore); // Fallback to legacy method
+            }
+        }
+
+        if (statsPanel != null) {
+            if (gameModeController != null) {
+                String modeName = gameModeController.getCurrentMode().name();
+                modeName = modeName.substring(0, 1) + modeName.substring(1).toLowerCase();
+                statsPanel.updateMode(modeName);
+            } else {
+                statsPanel.updateMode("Endless");
+            }
+
+            // Get level from game mode controller if available
+            int level = 1;
+            if (gameModeController != null) {
+                level = gameModeController.getCurrentLevel();
+            }
+            statsPanel.updateLevel(level);
+            // Get mode-specific high score
+            int highScore = gameModeController != null 
+                ? state.getHighScore(gameModeController) 
+                : state.getHighScore(); // Fallback to legacy method
+            statsPanel.updateHighScore(highScore);
+        }
+
+        if (statsPanelRight != null) {
+            statsPanelRight.updateScore(currentScore);
+            if (gameModeController != null) {
+                int targetLines = gameModeController.getTargetLines();
+                int currentLines = gameModeController.getLinesCleared();
+                statsPanelRight.updateTarget(currentLines, targetLines);
+            } else {
+                statsPanelRight.updateTarget(0, 0);
+            }
+        }
+    }
+
+    /**
+     * Updates the time display in the stats panel.
+     * Moved from StatsUpdater to bring UI logic closer to UI components.
+     */
+    public void updateTime() {
+        if (statsPanel == null || gameState == null) return;
+
+        long totalSeconds = gameState.getElapsedSeconds();
+        long minutes = totalSeconds / 60;
+        long seconds = totalSeconds % 60;
+
+        String timeString = String.format("%02d:%02d", minutes, seconds);
+        statsPanel.updateTime(timeString);
     }
 
     // Expose for timer updates

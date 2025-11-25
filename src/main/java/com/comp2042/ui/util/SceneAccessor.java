@@ -1,4 +1,4 @@
-package com.comp2042.ui;
+package com.comp2042.ui.util;
 
 import javafx.scene.Scene;
 import javafx.scene.layout.BorderPane;
@@ -18,5 +18,4 @@ public final class SceneAccessor {
         return (Pane) scene.getRoot();
     }
 }
-
 

@@ -1,11 +1,11 @@
 package com.comp2042.ui.menu;
 
-import com.comp2042.config.KeyBindingsConfig;
+import com.comp2042.ui.util.MenuNavigationHandler;
+import com.comp2042.ui.util.NavigationInput;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
@@ -65,39 +65,15 @@ public class GameOverMenu extends VBox {
     }
 
     private void handleKeyPress(KeyEvent event) {
-        KeyCode code = event.getCode();
-        KeyBindingsConfig config = KeyBindingsConfig.getInstance();
-
-        // Check if the pressed key matches any bound action
-        KeyBindingsConfig.Action action = config.getAction(code);
-        boolean isUp = (code == KeyCode.UP) || (action == KeyBindingsConfig.Action.ROTATE);
-        boolean isDown = (code == KeyCode.DOWN) || (action == KeyBindingsConfig.Action.SOFT_DROP);
-        boolean isSelect = (code == KeyCode.ENTER || code == KeyCode.SPACE) || (action == KeyBindingsConfig.Action.HARD_DROP);
-
-        if (isUp) {
-            selectedIndex = (selectedIndex - 1 + buttons.length) % buttons.length;
-            updateButtonStyles();
-            event.consume();
-        } else if (isDown) {
-            selectedIndex = (selectedIndex + 1) % buttons.length;
-            updateButtonStyles();
-            event.consume();
-        } else if (isSelect) {
-            buttons[selectedIndex].fire();
-            event.consume();
+        NavigationInput input = MenuNavigationHandler.parseKeyPress(event);
+        int newIndex = MenuNavigationHandler.handleVerticalNavigation(input, buttons, selectedIndex);
+        if (newIndex >= 0) {
+            selectedIndex = newIndex;
         }
     }
 
     private void updateButtonStyles() {
-        for (int i = 0; i < buttons.length; i++) {
-            if (i == selectedIndex) {
-                if (!buttons[i].getStyleClass().contains("selected")) {
-                    buttons[i].getStyleClass().add("selected");
-                }
-            } else {
-                buttons[i].getStyleClass().remove("selected");
-            }
-        }
+        MenuNavigationHandler.updateButtonStyles(buttons, selectedIndex);
     }
 
     public void setSelectedIndex(int index) {

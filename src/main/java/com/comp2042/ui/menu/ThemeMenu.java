@@ -1,13 +1,13 @@
 package com.comp2042.ui.menu;
 
-import com.comp2042.config.KeyBindingsConfig;
+import com.comp2042.ui.util.MenuNavigationHandler;
+import com.comp2042.ui.util.NavigationInput;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
@@ -65,19 +65,17 @@ public class ThemeMenu extends VBox {
     private int selectedCol = 0;
     private Button[] buttons;
     private List<ThemeOption> themeOptions;
-    private KeyBindingsConfig config;
     private Theme selectedTheme = Theme.DEFAULT;
     private GridPane themeGrid;
 
     public ThemeMenu() {
         getStylesheets().add(getClass().getResource("/menu_style.css").toExternalForm());
         getStyleClass().add("menu-container");
-        config = KeyBindingsConfig.getInstance();
         themeOptions = new ArrayList<>();
 
         setAlignment(Pos.CENTER);
-        setSpacing(10);
-        setPadding(new Insets(30, 60, 40, 60));
+        setSpacing(5);
+        setPadding(new Insets(10, 50, 20, 50));
 
         Label titleLabel = new Label("THEMES");
         titleLabel.getStyleClass().add("menu-title-red");
@@ -85,8 +83,8 @@ public class ThemeMenu extends VBox {
         // Create theme grid (2x2)
         themeGrid = new GridPane();
         themeGrid.setAlignment(Pos.CENTER);
-        themeGrid.setHgap(20);
-        themeGrid.setVgap(20);
+        themeGrid.setHgap(5);
+        themeGrid.setVgap(5);
         themeGrid.setPadding(new Insets(5));
 
         Theme[] themes = Theme.values();
@@ -133,10 +131,10 @@ public class ThemeMenu extends VBox {
         ThemeOption option = new ThemeOption();
         option.theme = theme;
 
-        VBox themeBox = new VBox(10);
+        VBox themeBox = new VBox(5);
         themeBox.getStyleClass().add("theme-box");
         themeBox.setAlignment(Pos.CENTER);
-        themeBox.setPadding(new Insets(15));
+        themeBox.setPadding(new Insets(10));
 
         Label themeLabel = new Label(theme.getDisplayName());
         themeLabel.getStyleClass().add("menu-label-large");
@@ -146,19 +144,19 @@ public class ThemeMenu extends VBox {
         try {
             Image image = new Image(getClass().getClassLoader().getResource("assets/images/" + theme.getImagePath()).toExternalForm());
             imageView.setImage(image);
-            imageView.setFitWidth(200);
-            imageView.setFitHeight(120);
+            imageView.setFitWidth(180);
+            imageView.setFitHeight(100);
             imageView.setPreserveRatio(true);
         } catch (Exception e) {
             System.err.println("Error loading theme image: " + e.getMessage());
         }
 
         // Brick colors preview
-        HBox colorBox = new HBox(5);
+        HBox colorBox = new HBox(3);
         colorBox.setAlignment(Pos.CENTER);
         String[] colors = theme.getBrickColors();
         for (int i = 0; i < colors.length; i++) {
-            VBox colorPreview = new VBox(3);
+            VBox colorPreview = new VBox(2);
             colorPreview.setAlignment(Pos.CENTER);
 
             Rectangle colorRect = new Rectangle(25, 25);
@@ -215,89 +213,74 @@ public class ThemeMenu extends VBox {
     }
 
     private void handleKeyPress(KeyEvent event) {
-        KeyCode code = event.getCode();
+        NavigationInput input = MenuNavigationHandler.parseKeyPress(event);
+        
+        // Handle back button
+        if (input.isBack()) {
+            if (onBack != null) {
+                onBack.run();
+            }
+            input.getEvent().consume();
+            return;
+        }
 
-        KeyBindingsConfig.Action action = config.getAction(code);
-        boolean isUp = (code == KeyCode.UP) || (action == KeyBindingsConfig.Action.ROTATE);
-        boolean isDown = (code == KeyCode.DOWN) || (action == KeyBindingsConfig.Action.SOFT_DROP);
-        boolean isLeft = (code == KeyCode.LEFT) || (action == KeyBindingsConfig.Action.MOVE_LEFT);
-        boolean isRight = (code == KeyCode.RIGHT) || (action == KeyBindingsConfig.Action.MOVE_RIGHT);
-        boolean isSelect = (code == KeyCode.ENTER || code == KeyCode.SPACE) || (action == KeyBindingsConfig.Action.HARD_DROP);
-        boolean isBack = (code == KeyCode.ESCAPE) || (action == KeyBindingsConfig.Action.PAUSE);
-
+        // Handle navigation when back button is selected
         if (selectedIndex == themeOptions.size()) {
-            if (isUp) {
+            if (input.isUp()) {
                 selectedIndex = themeOptions.size() - 1;
                 selectedRow = (themeOptions.size() - 1) / 2;
                 selectedCol = (themeOptions.size() - 1) % 2;
                 updateButtonStyles();
-                event.consume();
-            } else if (isSelect) {
+                input.getEvent().consume();
+            } else if (input.isSelect()) {
                 buttons[selectedIndex].fire();
-                event.consume();
-            } else if (isBack) {
-                if (onBack != null) {
-                    onBack.run();
-                }
-                event.consume();
+                input.getEvent().consume();
             }
             return;
         }
 
-        if (isUp) {
+        // Handle grid navigation (2x2)
+        if (input.isUp()) {
             if (selectedRow > 0) {
                 selectedRow--;
             } else {
                 selectedIndex = themeOptions.size();
                 updateButtonStyles();
-                event.consume();
+                input.getEvent().consume();
                 return;
             }
             selectedIndex = selectedRow * 2 + selectedCol;
             updateButtonStyles();
-            event.consume();
-        } else if (isDown) {
+            input.getEvent().consume();
+        } else if (input.isDown()) {
             if (selectedRow < 1) {
                 selectedRow++;
             }
             selectedIndex = selectedRow * 2 + selectedCol;
             updateButtonStyles();
-            event.consume();
-        } else if (isLeft) {
+            input.getEvent().consume();
+        } else if (input.isLeft()) {
             if (selectedCol > 0) {
                 selectedCol--;
             }
             selectedIndex = selectedRow * 2 + selectedCol;
             updateButtonStyles();
-            event.consume();
-        } else if (isRight) {
+            input.getEvent().consume();
+        } else if (input.isRight()) {
             if (selectedCol < 1) {
                 selectedCol++;
             }
             selectedIndex = selectedRow * 2 + selectedCol;
             updateButtonStyles();
-            event.consume();
-        } else if (isSelect) {
+            input.getEvent().consume();
+        } else if (input.isSelect()) {
             buttons[selectedIndex].fire();
-            event.consume();
-        } else if (isBack) {
-            if (onBack != null) {
-                onBack.run();
-            }
-            event.consume();
+            input.getEvent().consume();
         }
     }
 
     private void updateButtonStyles() {
-        for (int i = 0; i < buttons.length; i++) {
-            if (i == selectedIndex) {
-                if (!buttons[i].getStyleClass().contains("selected")) {
-                    buttons[i].getStyleClass().add("selected");
-                }
-            } else {
-                buttons[i].getStyleClass().remove("selected");
-            }
-        }
+        MenuNavigationHandler.updateButtonStyles(buttons, selectedIndex);
     }
 
     public void setSelectedIndex(int index) {

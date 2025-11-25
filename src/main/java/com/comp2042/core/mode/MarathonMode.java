@@ -1,8 +1,8 @@
-package com.comp2042.core;
+package com.comp2042.core.mode;
 
 import com.comp2042.config.GameModeConfig;
 
-public class MarathonMode {
+public class MarathonMode implements GameModeStrategy {
 
     private final int targetLines;
     private final int startDifficulty;
@@ -18,6 +18,7 @@ public class MarathonMode {
         this.startDifficulty = startDifficulty;
     }
 
+    @Override
     public int getTargetLines() {
         return targetLines;
     }
@@ -26,11 +27,22 @@ public class MarathonMode {
         return startDifficulty;
     }
 
+    @Override
     public int getCurrentSpeedMs(int linesCleared) {
         return GameModeConfig.calculateMarathonSpeed(startDifficulty, linesCleared);
     }
 
+    @Override
     public boolean isWon(int linesCleared) {
         return linesCleared >= targetLines;
     }
+
+    @Override
+    public int getCurrentLevel(int linesCleared) {
+        // Level increases every 10 lines, starting from starting difficulty
+        // Level is capped at 10
+        int levelIncrease = linesCleared / 10;
+        return Math.min(startDifficulty + levelIncrease, 10);
+    }
 }
+

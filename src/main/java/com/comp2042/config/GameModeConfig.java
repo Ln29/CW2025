@@ -1,6 +1,6 @@
 package com.comp2042.config;
 
-import com.comp2042.core.GameMode;
+import com.comp2042.core.mode.GameMode;
 
 public class GameModeConfig {
 
@@ -107,7 +107,6 @@ public class GameModeConfig {
     /**
      * Calculate speed for Marathon mode based on starting difficulty and lines cleared
      * Speed increases every 10 lines: multiply by 0.9^(lines/10)
-     * Minimum speed cap: 80ms
      */
     public static int calculateMarathonSpeed(int startDifficulty, int linesCleared) {
         int baseSpeed = calculateEndlessSpeed(startDifficulty);

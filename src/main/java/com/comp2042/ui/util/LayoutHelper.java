@@ -1,4 +1,4 @@
-package com.comp2042.ui;
+package com.comp2042.ui.util;
 
 import com.comp2042.config.GameConstants;
 import javafx.scene.Scene;
@@ -16,6 +16,5 @@ public final class LayoutHelper {
         gameBoard.setLayoutX(centerX);
         gameBoard.setLayoutY(centerY);
     }
-} 
-
+}
 

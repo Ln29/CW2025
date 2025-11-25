@@ -1,4 +1,4 @@
-package com.comp2042.ui.notification;
+package com.comp2042.ui.panels;
 
 import javafx.animation.FadeTransition;
 import javafx.animation.ParallelTransition;
@@ -113,3 +113,4 @@ public class NotificationPanel extends BorderPane {
         ft.play();
     }
 }
+

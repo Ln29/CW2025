@@ -1,7 +1,7 @@
 package com.comp2042.ui.panels;
 
 import com.comp2042.core.bricks.Brick;
-import com.comp2042.theme.ThemeConfig;
+import com.comp2042.config.ThemeConfig;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;

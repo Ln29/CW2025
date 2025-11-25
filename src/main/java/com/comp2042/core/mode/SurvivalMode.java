@@ -1,10 +1,10 @@
-package com.comp2042.core;
+package com.comp2042.core.mode;
 
 import com.comp2042.config.GameModeConfig;
 
 import java.util.Random;
 
-public class SurvivalMode {
+public class SurvivalMode implements GameModeStrategy {
 
     private final GameModeConfig.SurvivalDifficulty difficulty;
     private final Random random;
@@ -20,6 +20,7 @@ public class SurvivalMode {
         return difficulty;
     }
 
+    @Override
     public int getTargetLines() {
         return difficulty.getTargetLines();
     }
@@ -32,6 +33,7 @@ public class SurvivalMode {
      * Calculate current speed based on lines cleared
      * Speed increases every 10 lines cleared
      */
+    @Override
     public int getCurrentSpeedMs(int linesCleared) {
         int baseSpeed = difficulty.getStartSpeedMs();
         int speedIncreaseFactor = linesCleared / 10;
@@ -109,8 +111,14 @@ public class SurvivalMode {
     }
 
 
+    @Override
     public boolean isWon(int linesCleared) {
         return linesCleared >= difficulty.getTargetLines();
+    }
+
+    @Override
+    public int getCurrentLevel(int linesCleared) {
+        return 0; // Survival mode doesn't have levels
     }
 
     public int getGarbageBlockValue() {

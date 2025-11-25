@@ -1,6 +1,7 @@
-package com.comp2042.theme;
+package com.comp2042.ui;
 
-import com.comp2042.audio.AudioManager;
+import com.comp2042.controller.AudioManager;
+import com.comp2042.config.ThemeConfig;
 import com.comp2042.ui.menu.ThemeMenu;
 import javafx.application.Platform;
 import javafx.scene.Scene;
@@ -25,12 +26,10 @@ public class ThemeApplier {
 
     public void apply(ThemeMenu.Theme theme, Scene scene, Runnable refreshDisplays, boolean playGameMusic) {
         if (theme == null) return;
-        // Update theme state
         if (themeConfig != null) {
             themeConfig.setTheme(theme);
         }
 
-        // Update background image on scene root
         if (scene != null && theme.getImagePath() != null) {
             try {
                 javafx.scene.image.Image bgImage = new javafx.scene.image.Image(
@@ -52,16 +51,13 @@ public class ThemeApplier {
             }
         }
 
-        // Play theme music (game music channel)
         if (playGameMusic && audioManager != null && theme.getMusicFile() != null) {
             audioManager.playGameMusic(theme.getMusicFile());
         }
 
-        // Refresh bricks/panels/colors
         if (refreshDisplays != null) {
             refreshDisplays.run();
         }
     }
 }
-
 

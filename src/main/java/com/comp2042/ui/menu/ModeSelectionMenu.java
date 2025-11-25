@@ -1,12 +1,12 @@
 package com.comp2042.ui.menu;
 
 import com.comp2042.config.GameModeConfig;
-import com.comp2042.config.KeyBindingsConfig;
-import com.comp2042.core.GameMode;
+import com.comp2042.core.mode.GameMode;
+import com.comp2042.ui.util.MenuNavigationHandler;
+import com.comp2042.ui.util.NavigationInput;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
-import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
@@ -288,7 +288,7 @@ public class ModeSelectionMenu extends VBox {
         HBox targetButtons = new HBox(10);
         targetButtons.setAlignment(Pos.CENTER);
 
-        for (int target : new int[]{5, 100, 200, 500}) {
+        for (int target : new int[]{50, 100, 200, 500}) {
             Button btn = new Button(String.valueOf(target));
             btn.getStyleClass().add("option-button");
             if (marathonTargetLines == target) {
@@ -436,16 +436,14 @@ public class ModeSelectionMenu extends VBox {
     }
 
     private void handleKeyPress(KeyEvent event) {
-        KeyCode code = event.getCode();
-        KeyBindingsConfig config = KeyBindingsConfig.getInstance();
-
-        KeyBindingsConfig.Action action = config.getAction(code);
-        boolean isLeft = (code == KeyCode.LEFT) || (action == KeyBindingsConfig.Action.MOVE_LEFT);
-        boolean isRight = (code == KeyCode.RIGHT) || (action == KeyBindingsConfig.Action.MOVE_RIGHT);
-        boolean isUp = (code == KeyCode.UP) || (action == KeyBindingsConfig.Action.ROTATE);
-        boolean isDown = (code == KeyCode.DOWN) || (action == KeyBindingsConfig.Action.SOFT_DROP);
-        boolean isSelect = (code == KeyCode.ENTER || code == KeyCode.SPACE) || (action == KeyBindingsConfig.Action.HARD_DROP);
-        boolean isBack = (code == KeyCode.ESCAPE) || (action == KeyBindingsConfig.Action.PAUSE);
+        NavigationInput input = MenuNavigationHandler.parseKeyPress(event);
+        
+        boolean isLeft = input.isLeft();
+        boolean isRight = input.isRight();
+        boolean isUp = input.isUp();
+        boolean isDown = input.isDown();
+        boolean isSelect = input.isSelect();
+        boolean isBack = input.isBack();
 
         if (isBack) {
             if (navigationState == NavigationState.ACTION) {
@@ -559,7 +557,7 @@ public class ModeSelectionMenu extends VBox {
     private void handleOptionsNavigation(boolean isLeft, boolean isRight, boolean isSelect, KeyEvent event) {
         if (selectedMode == GameMode.MARATHON) {
             if (marathonOptionsState == MarathonOptionsState.TARGET) {
-                int[] targets = {5, 100, 200, 500};
+                int[] targets = {50, 100, 200, 500};
                 int currentTargetIndex = -1;
                 for (int i = 0; i < targets.length; i++) {
                     if (targets[i] == marathonTargetLines) {

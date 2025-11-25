@@ -1,6 +1,6 @@
 package com.comp2042.ui.menu;
 
-import com.comp2042.audio.AudioManager;
+import com.comp2042.controller.AudioManager;
 import com.comp2042.config.GameConstants;
 import javafx.scene.control.Slider;
 

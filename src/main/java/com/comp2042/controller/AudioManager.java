@@ -1,4 +1,4 @@
-package com.comp2042.audio;
+package com.comp2042.controller;
 
 import javafx.scene.media.AudioClip;
 import javafx.scene.media.Media;
@@ -53,7 +53,7 @@ public class AudioManager {
             if (resource != null) {
                 Media media = new Media(resource.toExternalForm());
                 musicPlayer = new MediaPlayer(media);
-                musicPlayer.setCycleCount(MediaPlayer.INDEFINITE); // Loop indefinitely
+                musicPlayer.setCycleCount(MediaPlayer.INDEFINITE); 
                 updateGameMusicVolume();
                 musicPlayer.play();
             }else {
@@ -96,19 +96,19 @@ public class AudioManager {
     }
     
     public void setMasterVolume(double volume) {
-        this.masterVolume = volume / 100.0; // Convert from 0-100 to 0.0-1.0
+        this.masterVolume = volume / 100.0; 
         updateGameMusicVolume();
         updateMenuMusicVolume();
     }
     
     public void setMusicVolume(double volume) {
-        this.musicVolume = volume / 100.0; // Convert from 0-100 to 0.0-1.0
+        this.musicVolume = volume / 100.0; 
         updateGameMusicVolume();
         updateMenuMusicVolume();
     }
     
     public void setSoundEffectVolume(double volume) {
-        this.soundEffectVolume = volume / 100.0; // Convert from 0-100 to 0.0-1.0
+        this.soundEffectVolume = volume / 100.0; 
     }
     
     private void updateGameMusicVolume() {

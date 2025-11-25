@@ -1,8 +1,8 @@
 package com.comp2042.ui.menu;
 
-import com.comp2042.audio.AudioManager;
+import com.comp2042.controller.AudioManager;
 import com.comp2042.input.InputRouter;
-import com.comp2042.ui.SceneAccessor;
+import com.comp2042.ui.util.SceneAccessor;
 import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.layout.BorderPane;

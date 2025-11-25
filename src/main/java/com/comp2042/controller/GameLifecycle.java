@@ -1,6 +1,5 @@
 package com.comp2042.controller;
 
-import com.comp2042.audio.AudioManager;
 import com.comp2042.config.GameConstants;
 import javafx.animation.Timeline;
 import javafx.beans.property.BooleanProperty;
@@ -47,79 +46,82 @@ public class GameLifecycle {
         gameTimeTimeline.setCycleCount(Timeline.INDEFINITE);
     }
 
+    /**
+     * Starts all timers.
+     */
     public void startTimers() {
-        if (timeLine != null) timeLine.play();
-        if (lockDelayCheckTimeline != null) lockDelayCheckTimeline.play();
-        if (gameTimeTimeline != null) gameTimeTimeline.play();
+        controlTimers(true);
     }
 
+    /**
+     * Stops all timers.
+     */
     public void stopTimers() {
-        if (timeLine != null) timeLine.stop();
-        if (lockDelayCheckTimeline != null) lockDelayCheckTimeline.stop();
-        if (gameTimeTimeline != null) gameTimeTimeline.stop();
+        controlTimers(false);
     }
 
+    /**
+     * Pauses all timers and audio.
+     */
     public void pauseTimers() {
-        if (timeLine != null) timeLine.stop();
-        if (lockDelayCheckTimeline != null) lockDelayCheckTimeline.stop();
-        if (gameTimeTimeline != null) gameTimeTimeline.stop();
-        if (audioManager != null) audioManager.pauseAllMusic();
+        controlTimers(false);
+        if (audioManager != null) {
+            audioManager.pauseAllMusic();
+    }
     }
 
+    /**
+     * Resumes all timers and audio.
+     */
     public void resumeTimers() {
-        if (timeLine != null) timeLine.play();
-        if (lockDelayCheckTimeline != null) lockDelayCheckTimeline.play();
-        if (gameTimeTimeline != null) gameTimeTimeline.play();
-        if (audioManager != null) audioManager.resumeAllMusic();
+        controlTimers(true);
+        if (audioManager != null) {
+            audioManager.resumeAllMusic();
+        }
     }
 
-    public void pause(Timeline timeLine, Timeline lockDelay, Timeline gameTimer, BooleanProperty isPause) {
-        if (timeLine != null) timeLine.stop();
-        if (lockDelay != null) lockDelay.stop();
-        if (gameTimer != null) gameTimer.stop();
-        if (isPause != null) isPause.setValue(Boolean.TRUE);
-        if (audioManager != null) audioManager.pauseAllMusic();
-    }
-
-    public void resume(Timeline timeLine, Timeline lockDelay, Timeline gameTimer, BooleanProperty isPause) {
-        if (timeLine != null) timeLine.play();
-        if (lockDelay != null) lockDelay.play();
-        if (gameTimer != null) gameTimer.play();
-        if (isPause != null) isPause.setValue(Boolean.FALSE);
-        if (audioManager != null) audioManager.resumeAllMusic();
-    }
-
-    public void stop(Timeline timeLine, Timeline lockDelay, Timeline gameTimer) {
-        if (timeLine != null) timeLine.stop();
-        if (lockDelay != null) lockDelay.stop();
-        if (gameTimer != null) gameTimer.stop();
-    }
-
-    public void start(Timeline timeLine, Timeline lockDelay, Timeline gameTimer, BooleanProperty isPause, BooleanProperty isGameOver) {
-        if (timeLine != null) timeLine.play();
-        if (lockDelay != null) lockDelay.play();
-        if (gameTimer != null) gameTimer.play();
-        if (isPause != null) isPause.setValue(Boolean.FALSE);
-        if (isGameOver != null) isGameOver.setValue(Boolean.FALSE);
-    }
-
-    public void gameOver(Timeline timeLine, Timeline lockDelay, Timeline gameTimer, BooleanProperty isGameOver) {
-        if (timeLine != null) timeLine.stop();
-        if (lockDelay != null) lockDelay.stop();
-        if (gameTimer != null) gameTimer.stop();
-        if (isGameOver != null) isGameOver.setValue(Boolean.TRUE);
+    /**
+     * Handles game over state - stops timers, sets game over flag, and plays lose sound.
+     * 
+     * @param isGameOver The property to set to true when game is over
+     */
+    public void gameOver(BooleanProperty isGameOver) {
+        stopTimers();
+        if (isGameOver != null) {
+            isGameOver.setValue(Boolean.TRUE);
+        }
         if (audioManager != null) {
             audioManager.stopAllMusic();
             audioManager.playSoundEffect(GameConstants.SFX_LOSE);
         }
     }
 
-    public void gameOver(BooleanProperty isGameOver) {
-        stopTimers();
-        if (isGameOver != null) isGameOver.setValue(Boolean.TRUE);
-        if (audioManager != null) {
-            audioManager.stopAllMusic();
-            audioManager.playSoundEffect(GameConstants.SFX_LOSE);
+    /**
+     * Internal helper method to control all timers (play or stop).
+     * 
+     * @param play If true, starts all timers; if false, stops all timers
+     */
+    private void controlTimers(boolean play) {
+        if (timeLine != null) {
+            if (play) {
+                timeLine.play();
+            } else {
+                timeLine.stop();
+            }
+        }
+        if (lockDelayCheckTimeline != null) {
+            if (play) {
+                lockDelayCheckTimeline.play();
+            } else {
+                lockDelayCheckTimeline.stop();
+            }
+        }
+        if (gameTimeTimeline != null) {
+            if (play) {
+                gameTimeTimeline.play();
+            } else {
+                gameTimeTimeline.stop();
+            }
         }
     }
 

@@ -41,7 +41,7 @@ public class PanelPositioner {
         statsPanel.position(boardX, boardY, boardWidth, boardHeight);
     }
 
-    public void positionStatsPanelRight(StatsPanelRight statsPanelRight, Scene scene) {
+    public void positionStatsPanelRight(RightStatsPanel statsPanelRight, Scene scene) {
         if (statsPanelRight == null) return;
         double boardWidth = GameConstants.BOARD_COLS * GameConstants.BRICK_SIZE + GameConstants.BOARD_BORDER_TOTAL_PX;
         double boardHeight = GameConstants.BOARD_VISIBLE_ROWS * GameConstants.BRICK_SIZE + GameConstants.BOARD_BORDER_TOTAL_PX;

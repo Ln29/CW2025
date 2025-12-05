@@ -1,8 +1,6 @@
 package com.comp2042.core;
 
-import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.Deque;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -140,58 +138,56 @@ public class MatrixOperations {
 
     // check for complete rows and remove them
     public static ClearRow checkRemoving(final int[][] matrix) {
-        // make sure matrix is not null and not empty
         Objects.requireNonNull(matrix, "matrix cannot be null");
         if (matrix.length == 0) {
             throw new IllegalArgumentException("matrix must have at least one row");
         }
 
-        int[] firstRow = Objects.requireNonNull(matrix[0], "matrix row cannot be null");
-        int[][] newMatrix = new int[matrix.length][firstRow.length];
-        Deque<int[]> remainingRows = new ArrayDeque<>();
+        int width = Objects.requireNonNull(matrix[0], "matrix row cannot be null").length;
         List<Integer> clearedRowIndices = new ArrayList<>();
 
-        // check each row to see if it's complete
+        // First pass: identify complete rows (early exit for better performance)
         for (int i = 0; i < matrix.length; i++) {
-            int[] sourceRow = Objects.requireNonNull(matrix[i], "matrix row cannot be null");
-            int[] tmpRow = new int[sourceRow.length];
+            int[] row = Objects.requireNonNull(matrix[i], "matrix row cannot be null");
             boolean isRowComplete = true;
-
-            // check if all cells in this row are filled
-            for (int j = 0; j < sourceRow.length; j++) {
-                int cell = sourceRow[j];
-                if (cell == 0) {
+            
+            // Early exit: stop checking as soon as we find an empty cell
+            for (int j = 0; j < width; j++) {
+                if (row[j] == 0) {
                     isRowComplete = false;
+                    break;
                 }
-                tmpRow[j] = cell;
             }
-
-            // if the row is complete, mark it for clearing
+            
             if (isRowComplete) {
                 clearedRowIndices.add(i);
-            } else {
-                remainingRows.add(tmpRow);
             }
         }
 
-        // fill the new matrix from bottom to top
-        for (int i = matrix.length - 1; i >= 0; i--) {
-            int[] row = remainingRows.pollLast();
-            if (row != null) {
-                newMatrix[i] = row;
-            } else {
-                break;
-            }
+        // Early return if no rows to clear
+        if (clearedRowIndices.isEmpty()) {
+            return new ClearRow(0, matrix, 0);
         }
 
-        // calculate the score bonus
-        // 1 line = 100, 2 lines = 300 (100+200), 3 lines = 600 (100+200+300), 4 lines = 1000 (100+200+300+400)
-        // Formula: 100 * (1 + 2 + 3 + ... + linesCleared) = 100 * linesCleared * (linesCleared + 1) / 2
+        // Second pass: build new matrix by copying non-cleared rows from bottom to top
+        int[][] newMatrix = new int[matrix.length][width];
+        int targetRow = matrix.length - 1;
+        
+        for (int sourceRow = matrix.length - 1; sourceRow >= 0; sourceRow--) {
+            if (!clearedRowIndices.contains(sourceRow)) {
+                newMatrix[targetRow--] = matrix[sourceRow].clone(); // Faster than manual copy
+            }
+        }
+        
+        // Fill remaining rows with zeros (empty rows at top)
+        while (targetRow >= 0) {
+            newMatrix[targetRow--] = new int[width];
+        }
+
+        // Calculate score bonus: 100 * linesCleared * (linesCleared + 1) / 2
         int linesCleared = clearedRowIndices.size();
-        int scoreBonus = 0;
-        if (linesCleared > 0) {
-            scoreBonus = 100 * linesCleared * (linesCleared + 1) / 2;
-        }
+        int scoreBonus = 100 * linesCleared * (linesCleared + 1) / 2;
+        
         return new ClearRow(linesCleared, newMatrix, scoreBonus);
     }
 

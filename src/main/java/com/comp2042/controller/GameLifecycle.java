@@ -19,10 +19,6 @@ public class GameLifecycle {
         this.audioManager = audioManager;
     }
 
-    public void initTimers(Runnable onMoveDownTick, Runnable onLockDelayCheck, Runnable onGameSecondTick) {
-        initTimers(onMoveDownTick, onLockDelayCheck, onGameSecondTick, GameConstants.GAME_TICK_MS);
-    }
-
     public void initTimers(Runnable onMoveDownTick, Runnable onLockDelayCheck, Runnable onGameSecondTick, int initialSpeedMs) {
         // Main move down tick
         timeLine = new Timeline(new javafx.animation.KeyFrame(
@@ -121,25 +117,6 @@ public class GameLifecycle {
                 gameTimeTimeline.play();
             } else {
                 gameTimeTimeline.stop();
-            }
-        }
-    }
-
-    // for dynamic speed mode
-    public void updateSpeed(int speedMs) {
-        if (timeLine != null) {
-            boolean wasPlaying = timeLine.getStatus() == javafx.animation.Animation.Status.RUNNING;
-            timeLine.stop();
-            timeLine = new Timeline(new javafx.animation.KeyFrame(
-                    javafx.util.Duration.millis(speedMs),
-                    ae -> {
-                        // get original action from the old timeline
-                        // preserve the action, need to pass it
-                    }
-            ));
-            timeLine.setCycleCount(Timeline.INDEFINITE);
-            if (wasPlaying) {
-                timeLine.play();
             }
         }
     }

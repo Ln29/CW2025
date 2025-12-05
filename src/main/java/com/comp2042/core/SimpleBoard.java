@@ -224,30 +224,21 @@ public class SimpleBoard implements Board {
         }
 
         Point spawnPoint = createSpawnPoint();
-
-        if (heldBrick == null) {
-            Brick nextBrick = brickGenerator.getBrick();
-            brickRotator.setBrick(nextBrick);
-            if (MatrixOperations.intersect(currentGameMatrix, brickRotator.getCurrentShape(), (int) spawnPoint.getX(), (int) spawnPoint.getY())) {
-                brickRotator.setBrick(currentBrick);
-                return false;
-            }
-            heldBrick = currentBrick;
-            currentOffset = spawnPoint;
-            holdUsed = true;
-            return true;
-        } else {
-            Brick temp = heldBrick;
-            brickRotator.setBrick(temp);
-            if (MatrixOperations.intersect(currentGameMatrix, brickRotator.getCurrentShape(), (int) spawnPoint.getX(), (int) spawnPoint.getY())) {
-                brickRotator.setBrick(currentBrick);
-                return false;
-            }
-            heldBrick = currentBrick;
-            currentOffset = spawnPoint;
-            holdUsed = true;
-            return true;
+        // Determine which brick to spawn: use held brick if available, otherwise get new one
+        Brick brickToSpawn = (heldBrick == null) ? brickGenerator.getBrick() : heldBrick;
+        
+        brickRotator.setBrick(brickToSpawn);
+        if (MatrixOperations.intersect(currentGameMatrix, brickRotator.getCurrentShape(), 
+                (int) spawnPoint.getX(), (int) spawnPoint.getY())) {
+            brickRotator.setBrick(currentBrick); // Restore on failure
+            return false;
         }
+
+        // Success: swap bricks and update state
+        heldBrick = currentBrick;
+        currentOffset = spawnPoint;
+        holdUsed = true;
+        return true;
     }
 
     @Override

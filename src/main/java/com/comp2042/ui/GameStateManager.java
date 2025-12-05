@@ -156,7 +156,7 @@ public class GameStateManager {
         }
         
         // Reset notifications
-        // Note: NotificationService reset should be handled by caller if needed
+        // Note: NotificationService reset is handled by the caller (GuiController) via notificationPanelManager.reset()
         
         // Reset mode controller
         if (gameModeController != null) {
@@ -229,7 +229,7 @@ public class GameStateManager {
         }
         
         // Reset notifications
-        // NotificationService reset should be handled by caller if needed
+        // Note: NotificationService reset is handled by the caller (GuiController) via notificationPanelManager.reset()
         
         // Create new game
         if (eventListener != null) {

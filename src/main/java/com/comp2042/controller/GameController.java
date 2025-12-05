@@ -40,35 +40,10 @@ public class GameController implements InputEventListener {
     @Override
     public DownData onDownEvent(MoveEvent event) {
         boolean canMove = board.moveBrickDown();
-        ClearRow clearRow = null;
-
-        if (!canMove) {
-            // brick can't move down - check if lock delay has expired
-            if (board.shouldLockPiece()) {
-                // lock delay expired, lock the piece
-                board.mergeBrickToBackground();
-                clearRow = board.clearRows();
-
-                // add score if lines were cleared
-                if (clearRow.getLinesRemoved() > 0) {
-                    board.getScore().add(clearRow.getScoreBonus());
-                }
-
-                // try to create new brick, check if game over
-                if (board.createNewBrick()) {
-                    viewGuiController.gameOver();
-                } else {
-                    // new brick spawned successfully; allow hold again
-                    board.resetHoldUsage();
-                }
-
-                // update the display
-                viewGuiController.refreshGameBackground(board.getBoardMatrix());
-            }
-            // if lock delay hasn't expired, don't lock yet - allow adjustments
+        if (!canMove && board.shouldLockPiece()) {
+            return lockPieceAndProcess();
         }
-
-        return new DownData(clearRow, board.getViewData());
+        return new DownData(null, board.getViewData());
     }
 
     @Override
@@ -93,8 +68,23 @@ public class GameController implements InputEventListener {
     public DownData onHardDropEvent() {
         // hard drop the brick to the bottom
         board.hardDropBrick();
+        return lockPieceAndProcess();
+    }
 
-        // merge the brick to the background
+    @Override
+    public void createNewGame() {
+        board.newGame();
+
+        viewGuiController.refreshGameBackground(board.getBoardMatrix());
+    }
+
+    /**
+     * Locks the current piece, clears rows, updates score, and spawns a new brick.
+     * This method encapsulates the common logic used when a piece is locked.
+     * 
+     * @return DownData containing the clear row information and updated view data
+     */
+    private DownData lockPieceAndProcess() {
         board.mergeBrickToBackground();
         ClearRow clearRow = board.clearRows();
 
@@ -115,12 +105,5 @@ public class GameController implements InputEventListener {
         viewGuiController.refreshGameBackground(board.getBoardMatrix());
 
         return new DownData(clearRow, board.getViewData());
-    }
-
-    @Override
-    public void createNewGame() {
-        board.newGame();
-
-        viewGuiController.refreshGameBackground(board.getBoardMatrix());
     }
 }

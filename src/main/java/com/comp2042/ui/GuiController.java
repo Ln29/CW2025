@@ -140,6 +140,46 @@ public class GuiController implements Initializable {
         if (audioManager != null) action.run();
     }
 
+    /**
+     * Initializes the GameModeController with common setup logic.
+     * 
+     * @param gameOverCallback Callback to execute when game over is triggered
+     */
+    private void initializeGameModeController(Runnable gameOverCallback) {
+        if (board == null || gameModeConfig == null) {
+            return;
+        }
+        
+        gameModeController = new GameModeController(gameModeConfig, board);
+        ifPanelManager(() -> panelManager.setGameModeController(gameModeController));
+        
+        // Initialize line clear handler
+        if (notificationPanelManager != null && panelManager != null) {
+            lineClearHandler = new LineClearHandler(
+                    gameState,
+                    gameModeController,
+                    notificationPanelManager.getNotificationService(),
+                    board,
+                    panelManager
+            );
+        }
+        
+        gameModeController.initTimers(
+                this::updateGameSpeed,
+                gameOverCallback,
+                () -> {
+                    ifGameLifecycle(() -> gameLifecycle.stopTimers());
+                    ifAudioManager(() -> audioManager.playSoundEffect(GameConstants.SFX_WIN));
+                    ifMenuController(() -> menuController.showWinMenu(gameBoard));
+                },
+                () -> {
+                    ifGameRenderer(() -> {
+                        ifBoard(() -> gameRenderer.refreshGameBackground(board.getBoardMatrix()));
+                    });
+                }
+        );
+    }
+
     // MenuCallbacks implementation as inner class for better organization
     private class MenuCallbacksImpl implements MenuCallbacks {
         @Override
@@ -183,7 +223,9 @@ public class GuiController implements Initializable {
 
         @Override
         public void onBindingsChanged() {
-            // No action needed
+            // Key bindings are automatically persisted to KeyBindingsConfig singleton.
+            // InputHandler reads from KeyBindingsConfig on each key press, so no refresh needed.
+            // The new bindings will be active immediately for subsequent key presses.
         }
 
         @Override
@@ -455,41 +497,14 @@ public class GuiController implements Initializable {
         ifGameRenderer(() -> gameRenderer.initGameView(boardMatrix, brick));
 
         if (board != null && gameModeConfig != null) {
-            gameModeController = new GameModeController(gameModeConfig, board);
-            ifPanelManager(() -> panelManager.setGameModeController(gameModeController));
-            
-            // Initialize line clear handler
-            if (notificationPanelManager != null && panelManager != null) {
-                lineClearHandler = new LineClearHandler(
-                        gameState,
-                        gameModeController,
-                        notificationPanelManager.getNotificationService(),
-                        board,
-                        panelManager
-                );
-            }
-            
-            gameModeController.initTimers(
-                    this::updateGameSpeed,
-                    () -> {
-                        // Stop garbage production when game over
-                        ifGameLifecycle(() -> gameLifecycle.gameOver(isGameOver));
-                        ifMenuController(() -> menuController.showGameOverMenu(gameBoard));
-                    },
-                    () -> {
-                        ifGameLifecycle(() -> gameLifecycle.stopTimers());
-                        ifAudioManager(() -> audioManager.playSoundEffect(GameConstants.SFX_WIN));
-                        ifMenuController(() -> menuController.showWinMenu(gameBoard));
-                    },
-                    () -> {
-                        ifGameRenderer(() -> {
-                            ifBoard(() -> gameRenderer.refreshGameBackground(board.getBoardMatrix()));
-                        });
-                    }
-            );
+            initializeGameModeController(() -> {
+                // Stop garbage production when game over
+                ifGameLifecycle(() -> gameLifecycle.gameOver(isGameOver));
+                ifMenuController(() -> menuController.showGameOverMenu(gameBoard));
+            });
         }
 
-        // Initialize timers in lifecycle (will be updated with mode speed)
+        // Initialize timers in lifecycle with mode-specific speed
         ifGameLifecycle(() -> {
             int initialSpeed = gameModeController != null ? gameModeController.getCurrentSpeedMs() : GameConstants.GAME_TICK_MS;
             gameLifecycle.initTimers(
@@ -650,19 +665,7 @@ public class GuiController implements Initializable {
         }
 
         if (board != null && gameModeConfig != null) {
-            gameModeController = new GameModeController(gameModeConfig, board);
-            ifPanelManager(() -> panelManager.setGameModeController(gameModeController));
-            
-            // Reinitialize line clear handler with new game mode controller
-            if (notificationPanelManager != null && panelManager != null) {
-                lineClearHandler = new LineClearHandler(
-                        gameState,
-                        gameModeController,
-                        notificationPanelManager.getNotificationService(),
-                        board,
-                        panelManager
-                );
-            }
+            initializeGameModeController(() -> ifGameStateManager(() -> gameStateManager.handleGameOver()));
             
             // Reinitialize game state manager with new game mode controller
             gameStateManager = new GameStateManager(
@@ -680,21 +683,6 @@ public class GuiController implements Initializable {
                     gameplayLayer,
                     isPause,
                     isGameOver
-            );
-            
-            gameModeController.initTimers(
-                    this::updateGameSpeed,
-                    () -> ifGameStateManager(() -> gameStateManager.handleGameOver()),
-                    () -> {
-                        ifGameLifecycle(() -> gameLifecycle.stopTimers());
-                        ifAudioManager(() -> audioManager.playSoundEffect(GameConstants.SFX_WIN));
-                        ifMenuController(() -> menuController.showWinMenu(gameBoard));
-                    },
-                    () -> {
-                        ifGameRenderer(() -> {
-                            ifBoard(() -> gameRenderer.refreshGameBackground(board.getBoardMatrix()));
-                        });
-                    }
             );
         }
 

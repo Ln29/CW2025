@@ -3,6 +3,7 @@ package com.comp2042.core;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 
 public class MatrixOperations {
@@ -11,34 +12,68 @@ public class MatrixOperations {
     private MatrixOperations() {
     }
 
+    /**
+     * Iterates through all non-empty cells of a brick and applies an action.
+     * 
+     * @param brick The brick shape matrix
+     * @param x Base X position
+     * @param y Base Y position
+     * @param action Action to perform for each non-empty cell (targetX, targetY)
+     */
+    private static void forEachBrickCell(final int[][] brick, int x, int y, 
+                                         BiConsumer<Integer, Integer> action) {
+        for (int row = 0; row < brick.length; row++) {
+            int[] brickRow = Objects.requireNonNull(brick[row], "brick row cannot be null");
+            for (int col = 0; col < brickRow.length; col++) {
+                if (brickRow[col] != 0) {
+                    action.accept(x + col, y + row);
+                }
+            }
+        }
+    }
+
+    /**
+     * Functional interface for actions that need both position and cell value.
+     */
+    @FunctionalInterface
+    private interface BrickCellAction {
+        void accept(int targetX, int targetY, int cellValue);
+    }
+
+    /**
+     * Iterates through all non-empty cells of a brick and applies an action with cell value.
+     * 
+     * @param brick The brick shape matrix
+     * @param x Base X position
+     * @param y Base Y position
+     * @param action Action to perform for each non-empty cell (targetX, targetY, cellValue)
+     */
+    private static void forEachBrickCellWithValue(final int[][] brick, int x, int y,
+                                                  BrickCellAction action) {
+        for (int row = 0; row < brick.length; row++) {
+            int[] brickRow = Objects.requireNonNull(brick[row], "brick row cannot be null");
+            for (int col = 0; col < brickRow.length; col++) {
+                int cell = brickRow[col];
+                if (cell != 0) {
+                    action.accept(x + col, y + row, cell);
+                }
+            }
+        }
+    }
+
     // check if the brick intersects with the board or goes out of bounds
     public static boolean intersect(final int[][] matrix, final int[][] brick, int x, int y) {
         // make sure the parameters are not null
         Objects.requireNonNull(matrix, "matrix cannot be null");
         Objects.requireNonNull(brick, "brick cannot be null");
 
-        // loop through each cell of the brick
-        for (int row = 0; row < brick.length; row++) {
-            int[] brickRow = Objects.requireNonNull(brick[row], "brick row cannot be null");
-            for (int col = 0; col < brickRow.length; col++) {
-                int cell = brickRow[col];
-
-                // skip empty cells
-                if (cell == 0) {
-                    continue;
-                }
-
-                // calculate where this cell would be on the board
-                int targetX = x + col;
-                int targetY = y + row;
-
-                // check if it hits something or goes out of bounds
-                if (isOutOfBound(matrix, targetX, targetY) || matrix[targetY][targetX] != 0) {
-                    return true;
-                }
+        final boolean[] hasConflict = {false};
+        forEachBrickCell(brick, x, y, (targetX, targetY) -> {
+            if (isOutOfBound(matrix, targetX, targetY) || matrix[targetY][targetX] != 0) {
+                hasConflict[0] = true;
             }
-        }
-        return false;
+        });
+        return hasConflict[0];
     }
 
     // check if a position is outside the board
@@ -55,36 +90,19 @@ public class MatrixOperations {
         Objects.requireNonNull(matrix, "matrix cannot be null");
         Objects.requireNonNull(brick, "brick cannot be null");
 
-        boolean hasWallCollision = false;
-        boolean hasBlockCollision = false;
+        final boolean[] hasWallCollision = {false};
+        final boolean[] hasBlockCollision = {false};
 
-        // loop through each cell of the brick
-        for (int row = 0; row < brick.length; row++) {
-            int[] brickRow = Objects.requireNonNull(brick[row], "brick row cannot be null");
-            for (int col = 0; col < brickRow.length; col++) {
-                int cell = brickRow[col];
-
-                // skip empty cells
-                if (cell == 0) {
-                    continue;
-                }
-
-                // calculate where this cell would be on the board
-                int targetX = x + col;
-                int targetY = y + row;
-
-                // check if it's out of bounds
-                if (isOutOfBound(matrix, targetX, targetY)) {
-                    hasWallCollision = true;
-                } else if (matrix[targetY][targetX] != 0) {
-                    // it's in bounds but collides with a block
-                    hasBlockCollision = true;
-                }
+        forEachBrickCell(brick, x, y, (targetX, targetY) -> {
+            if (isOutOfBound(matrix, targetX, targetY)) {
+                hasWallCollision[0] = true;
+            } else if (matrix[targetY][targetX] != 0) {
+                hasBlockCollision[0] = true;
             }
-        }
+        });
 
         // return true only if there's a wall collision but no block collision
-        return hasWallCollision && !hasBlockCollision;
+        return hasWallCollision[0] && !hasBlockCollision[0];
     }
 
     // make a copy of the matrix
@@ -113,26 +131,11 @@ public class MatrixOperations {
         int[][] boardCopy = copy(filledFields);
 
         // go through each cell of the brick
-        for (int row = 0; row < brick.length; row++) {
-            int[] brickRow = Objects.requireNonNull(brick[row], "brick row cannot be null");
-            for (int col = 0; col < brickRow.length; col++) {
-                int cell = brickRow[col];
-
-                // skip empty cells
-                if (cell == 0) {
-                    continue;
-                }
-
-                // calculate the target position
-                int targetX = x + col;
-                int targetY = y + row;
-
-                // place the brick cell on the board if it's in bounds
-                if (!isOutOfBound(boardCopy, targetX, targetY)) {
-                    boardCopy[targetY][targetX] = cell;
-                }
+        forEachBrickCellWithValue(brick, x, y, (targetX, targetY, cellValue) -> {
+            if (!isOutOfBound(boardCopy, targetX, targetY)) {
+                boardCopy[targetY][targetX] = cellValue;
             }
-        }
+        });
         return boardCopy;
     }
 

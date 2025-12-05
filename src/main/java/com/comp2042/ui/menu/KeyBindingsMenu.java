@@ -107,7 +107,6 @@ public class KeyBindingsMenu extends VBox {
         final int rowIndex = bindingRows.size();
         rebindButton.setOnMouseEntered(e -> setSelectedIndex(rowIndex));
 
-        row.actionLabel = actionLabel;
         row.keyLabel = keyLabel;
         row.rebindButton = rebindButton;
         row.container = hbox;
@@ -258,8 +257,6 @@ public class KeyBindingsMenu extends VBox {
     // Inner class to hold key binding row data
     private static class KeyBindingRow {
         KeyBindingsConfig.Action action;
-        @SuppressWarnings("unused")
-        Label actionLabel;
         Label keyLabel;
         Button rebindButton;
         HBox container;

@@ -170,11 +170,8 @@ public class PanelManager {
         if (board != null && board.getScore() != null && board.getScore().scoreProperty() != null) {
             currentScore = board.getScore().scoreProperty().getValue();
             // Update high score from current score if higher (mode-specific)
-            if (gameModeController != null) {
-                state.setHighScore(currentScore, gameModeController);
-            } else {
-                state.setHighScore(currentScore); // Fallback to legacy method
-            }
+            // Convenience method handles null GameModeController internally
+            state.setHighScore(currentScore, gameModeController);
         }
 
         if (statsPanel != null) {
@@ -193,9 +190,8 @@ public class PanelManager {
             }
             statsPanel.updateLevel(level);
             // Get mode-specific high score
-            int highScore = gameModeController != null 
-                ? state.getHighScore(gameModeController) 
-                : state.getHighScore(); // Fallback to legacy method
+            // Convenience method handles null GameModeController internally
+            int highScore = state.getHighScore(gameModeController);
             statsPanel.updateHighScore(highScore);
         }
 

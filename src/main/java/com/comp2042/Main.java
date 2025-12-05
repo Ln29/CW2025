@@ -17,7 +17,7 @@ public class Main extends Application {
 
         URL location = getClass().getClassLoader().getResource("gameLayout.fxml");
         if(location == null){
-            throw new IllegalAccessException("Unable to load FXML: gameLayout.fxml");
+            throw new IllegalStateException("Unable to load FXML: gameLayout.fxml");
         }
         FXMLLoader fxmlLoader = new FXMLLoader(location, null);
         Parent root = fxmlLoader.load();

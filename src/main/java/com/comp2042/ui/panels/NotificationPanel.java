@@ -13,6 +13,9 @@ import javafx.scene.effect.Glow;
 import javafx.scene.layout.BorderPane;
 import javafx.util.Duration;
 
+/**
+ * Animated notification panel for displaying combo, score bonus, and level up messages.
+ */
 public class NotificationPanel extends BorderPane {
 
     private Label label;

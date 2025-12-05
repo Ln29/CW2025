@@ -6,6 +6,9 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 
+/**
+ * Left stats panel displaying game mode, time, level, and high score.
+ */
 public class StatsPanel extends VBox {
 
     private static final int PANEL_WIDTH = 300;

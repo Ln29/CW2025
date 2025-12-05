@@ -15,6 +15,9 @@ import javafx.scene.layout.BorderPane;
  */
 public class InputHandler {
 
+    /**
+     * Interface defining game action callbacks.
+     */
     public interface InputActions {
         void moveLeft();
         void moveRight();
@@ -34,6 +37,18 @@ public class InputHandler {
 
     private final java.util.Map<KeyBindingsConfig.Action, Runnable> actionHandlers;
 
+    /**
+     * Creates an input handler with specified components.
+     * 
+     * @param gamePanel game panel to attach key listeners
+     * @param gameBoardRoot root game board container
+     * @param keyBindingsConfig key bindings configuration
+     * @param menuController menu controller for overlay routing
+     * @param gameLifecycle game lifecycle for pause/resume
+     * @param isPause pause state property
+     * @param isGameOver game over state property
+     * @param actions game action callbacks
+     */
     public InputHandler(
             GridPane gamePanel,
             BorderPane gameBoardRoot,
@@ -66,6 +81,9 @@ public class InputHandler {
         return handlers;
     }
 
+    /**
+     * Attaches key event handler to the game panel.
+     */
     public void attach() {
         gamePanel.setOnKeyPressed(this::handleKeyPressed);
     }

@@ -4,6 +4,10 @@ import com.comp2042.config.GameModeConfig;
 
 import java.util.Random;
 
+/**
+ * Survival game mode with garbage row spawning and increasing speed.
+ * Player must clear target lines while garbage rows spawn periodically.
+ */
 public class SurvivalMode implements GameModeStrategy {
 
     private final GameModeConfig.SurvivalDifficulty difficulty;
@@ -11,11 +15,21 @@ public class SurvivalMode implements GameModeStrategy {
     private static final int GARBAGE_BLOCK_VALUE = 8;
     private static final int ROWS_PER_SPAWN = 2;
 
+    /**
+     * Creates a survival mode with specified difficulty.
+     * 
+     * @param difficulty survival difficulty level
+     */
     public SurvivalMode(GameModeConfig.SurvivalDifficulty difficulty) {
         this.difficulty = difficulty;
         this.random = new Random();
     }
 
+    /**
+     * Gets the survival difficulty level.
+     * 
+     * @return survival difficulty
+     */
     public GameModeConfig.SurvivalDifficulty getDifficulty() {
         return difficulty;
     }
@@ -25,13 +39,21 @@ public class SurvivalMode implements GameModeStrategy {
         return difficulty.getTargetLines();
     }
 
+    /**
+     * Gets the starting speed for this difficulty.
+     * 
+     * @return starting speed in milliseconds
+     */
     public int getStartSpeedMs() {
         return difficulty.getStartSpeedMs();
     }
 
     /**
-     * Calculate current speed based on lines cleared
-     * Speed increases every 10 lines cleared
+     * Calculates current speed based on lines cleared.
+     * Speed increases every 10 lines cleared.
+     * 
+     * @param linesCleared number of lines cleared
+     * @return speed in milliseconds (minimum 80ms)
      */
     @Override
     public int getCurrentSpeedMs(int linesCleared) {
@@ -42,18 +64,20 @@ public class SurvivalMode implements GameModeStrategy {
     }
 
     /**
-     * Get the spawn interval in seconds (fixed based on difficulty)
-     * SIMPLE: 15 seconds, MODERATE: 10 seconds, DIFFICULT: 7 seconds
+     * Gets the spawn interval in seconds (fixed based on difficulty).
+     * 
+     * @return spawn interval in seconds
      */
     public int getSpawnIntervalSeconds() {
         return difficulty.getSpawnIntervalSeconds();
     }
 
     /**
-     * Generate garbage rows with random gaps
-     * @param numRows Number of rows to generate (typically 2)
-     * @param boardWidth Width of the board
-     * @return Array of garbage rows (each row is an array of block values)
+     * Generates garbage rows with random gaps based on difficulty.
+     * 
+     * @param numRows number of rows to generate
+     * @param boardWidth width of the board
+     * @return 2D array of garbage rows
      */
     public int[][] generateGarbageRows(int numRows, int boardWidth) {
         int[][] rows = new int[numRows][boardWidth];
@@ -66,7 +90,10 @@ public class SurvivalMode implements GameModeStrategy {
     }
 
     /**
-     * Generate a single garbage row with random gaps based on difficulty weights
+     * Generates a single garbage row with random gaps based on difficulty weights.
+     * 
+     * @param boardWidth width of the board
+     * @return array representing a garbage row
      */
     private int[] generateGarbageRow(int boardWidth) {
         int[] row = new int[boardWidth];
@@ -92,8 +119,9 @@ public class SurvivalMode implements GameModeStrategy {
     }
 
     /**
-     * Select gap count based on difficulty weights
-     * Returns 1, 2, or 3 gaps
+     * Selects gap count based on difficulty weights.
+     * 
+     * @return number of gaps (1, 2, or 3)
      */
     private int selectGapCount() {
         double[] weights = difficulty.getGapWeights();
@@ -110,21 +138,42 @@ public class SurvivalMode implements GameModeStrategy {
         return 2;
     }
 
-
+    /**
+     * Checks if win condition is met based on lines cleared.
+     * 
+     * @param linesCleared number of lines cleared
+     * @return true if target lines reached, false otherwise
+     */
     @Override
     public boolean isWon(int linesCleared) {
         return linesCleared >= difficulty.getTargetLines();
     }
 
+    /**
+     * Gets the current level (survival mode doesn't have levels).
+     * 
+     * @param linesCleared number of lines cleared
+     * @return always 0 for survival mode
+     */
     @Override
     public int getCurrentLevel(int linesCleared) {
-        return 0; // Survival mode doesn't have levels
+        return 0;
     }
 
+    /**
+     * Gets the garbage block value used in the board matrix.
+     * 
+     * @return garbage block value (8)
+     */
     public int getGarbageBlockValue() {
         return GARBAGE_BLOCK_VALUE;
     }
 
+    /**
+     * Gets the number of garbage rows spawned per spawn event.
+     * 
+     * @return rows per spawn (2)
+     */
     public int getRowsPerSpawn() {
         return ROWS_PER_SPAWN;
     }

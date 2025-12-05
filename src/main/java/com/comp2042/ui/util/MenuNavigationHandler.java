@@ -14,8 +14,7 @@ public final class MenuNavigationHandler {
     private MenuNavigationHandler() {}
 
     /**
-     * Parses a KeyEvent and returns a NavigationInput object containing
-     * boolean flags for navigation actions.
+     * Parses a KeyEvent and returns a NavigationInput object containing boolean flags for navigation actions.
      * 
      * @param event The key event to parse
      * @return NavigationInput with parsed action flags
@@ -87,7 +86,7 @@ public final class MenuNavigationHandler {
             }
         }
 
-        return -1; // No navigation occurred
+        return -1; 
     }
 
     /**
@@ -104,7 +103,7 @@ public final class MenuNavigationHandler {
         if (input.isBack() && onBack != null) {
             input.getEvent().consume();
             onBack.run();
-            return selectedIndex; // Index unchanged after back
+            return selectedIndex; 
         }
 
         return handleVerticalNavigation(input, buttons, selectedIndex);

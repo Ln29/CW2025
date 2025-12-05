@@ -9,6 +9,9 @@ import com.comp2042.core.mode.MarathonMode;
 
 import java.util.function.Consumer;
 
+/**
+ * Controls game mode-specific logic including speed progression, win conditions and garbage row spawning.
+ */
 public class GameModeController {
 
     private final GameModeConfig config;
@@ -23,6 +26,12 @@ public class GameModeController {
     private Runnable onGameWin;
     private Runnable onGarbageSpawn;
 
+    /**
+     * Creates a game mode controller with specified configuration.
+     * 
+     * @param config game mode configuration
+     * @param board game board instance
+     */
     public GameModeController(GameModeConfig config, Board board) {
         this.config = config;
         this.board = board;
@@ -46,11 +55,15 @@ public class GameModeController {
     }
 
     /**
-     * Initialize timers for the current game mode
+     * Initializes callbacks for game mode events.
+     * 
+     * @param onSpeedChange callback when speed changes
+     * @param onGameOver callback when game over (handled by GameLifecycle)
+     * @param onGameWin callback when win condition met
+     * @param onGarbageSpawn callback when garbage rows spawn
      */
     public void initTimers(Consumer<Integer> onSpeedChange, Runnable onGameOver, Runnable onGameWin, Runnable onGarbageSpawn) {
         this.onSpeedChange = onSpeedChange;
-        // onGameOver is handled by GameLifecycle
         this.onGameWin = onGameWin;
         this.onGarbageSpawn = onGarbageSpawn;
         notifySpeedChange();
@@ -63,8 +76,9 @@ public class GameModeController {
     }
 
     /**
-     * Check if garbage should spawn based on elapsed game time
-     * @param elapsedSeconds Current elapsed game time in seconds
+     * Checks if garbage rows should spawn based on elapsed time (survival mode only).
+     * 
+     * @param elapsedSeconds current elapsed game time in seconds
      * @return true if garbage should spawn, false otherwise
      */
     public boolean shouldSpawnGarbage(long elapsedSeconds) {
@@ -84,7 +98,7 @@ public class GameModeController {
     }
 
     /**
-     * Spawn garbage rows (called when timer indicates it's time)
+     * Spawns garbage rows from the bottom (survival mode only).
      */
     public void spawnGarbageRows() {
         if (survivalMode == null || board == null || onGarbageSpawn == null) {
@@ -104,7 +118,9 @@ public class GameModeController {
     }
 
     /**
-     * Called when lines are cleared - updates mode-specific logic
+     * Called when lines are cleared - updates mode-specific speed and win conditions.
+     * 
+     * @param lines number of lines cleared
      */
     public void onLinesCleared(int lines) {
         linesCleared += lines;
@@ -148,7 +164,9 @@ public class GameModeController {
     }
 
     /**
-     * Get the current speed in milliseconds for the active mode
+     * Gets the current movement speed in milliseconds for the active mode.
+     * 
+     * @return speed in milliseconds
      */
     public int getCurrentSpeedMs() {
         GameMode mode = config.getCurrentMode();
@@ -166,7 +184,7 @@ public class GameModeController {
     }
 
     /**
-     * Reset the mode controller (e.g., for new game)
+     * Resets the mode controller for a new game.
      */
     public void reset() {
         linesCleared = 0;
@@ -174,19 +192,28 @@ public class GameModeController {
         initializeMode();
     }
 
+    /**
+     * Gets the total number of lines cleared in the current game.
+     * 
+     * @return lines cleared count
+     */
     public int getLinesCleared() {
         return linesCleared;
     }
 
+    /**
+     * Gets the current game mode.
+     * 
+     * @return current GameMode
+     */
     public GameMode getCurrentMode() {
         return config.getCurrentMode();
     }
 
     /**
-     * Get the current level based on the game mode
-     * - Endless: Level = difficulty (0-10)
-     * - Marathon: Level = startingDifficulty + (linesCleared / 10)
-     * - Survival: Level = 0
+     * Gets the current level based on game mode and lines cleared.
+     * 
+     * @return current level
      */
     public int getCurrentLevel() {
         GameMode mode = config.getCurrentMode();
@@ -204,10 +231,9 @@ public class GameModeController {
     }
 
     /**
-     * Get the target lines for the current game mode
-     * - Endless: Returns 999 (or -1 if no target)
-     * - Marathon: Returns target lines (50, 100, 200, or 500)
-     * - Survival: Returns target lines from difficulty (50, 80, or 100)
+     * Gets the target lines for the current game mode.
+     * 
+     * @return target lines (999 for Endless, mode-specific for others)
      */
     public int getTargetLines() {
         GameMode mode = config.getCurrentMode();
@@ -231,21 +257,27 @@ public class GameModeController {
     }
     
     /**
-     * Gets the marathon target lines from the config.
+     * Gets the marathon target lines from configuration.
+     * 
+     * @return marathon target lines
      */
     public int getMarathonTargetLines() {
         return config.getMarathonTargetLines();
     }
     
     /**
-     * Gets the survival difficulty from the config.
+     * Gets the survival difficulty from configuration.
+     * 
+     * @return survival difficulty setting
      */
     public GameModeConfig.SurvivalDifficulty getSurvivalDifficulty() {
         return config.getSurvivalDifficulty();
     }
     
     /**
-     * Gets the game mode config.
+     * Gets the game mode configuration.
+     * 
+     * @return GameModeConfig instance
      */
     public GameModeConfig getConfig() {
         return config;

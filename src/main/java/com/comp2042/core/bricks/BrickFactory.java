@@ -56,8 +56,7 @@ public final class BrickFactory {
         );
     }
 
-    // ========== Brick Implementations ==========
-
+    // Brick Implementations
     /**
      * I-piece (straight line) - 2 rotation states
      */

@@ -11,6 +11,9 @@ import javafx.scene.shape.Rectangle;
 
 import java.util.List;
 
+/**
+ * UI panel displaying the next upcoming bricks.
+ */
 public class NextBrickPanel extends VBox {
 
     private static final int BRICK_SIZE = 15;

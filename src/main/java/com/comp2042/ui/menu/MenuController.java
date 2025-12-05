@@ -7,6 +7,10 @@ import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.layout.BorderPane;
 
+/**
+ * Controller for managing all game menus (main, pause, settings, etc.).
+ * Handles menu initialization, display, and navigation.
+ */
 public class MenuController {
     private MainMenu mainMenu;
     private PauseMenu pauseMenu;

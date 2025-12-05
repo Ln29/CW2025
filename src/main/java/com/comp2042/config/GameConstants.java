@@ -1,5 +1,8 @@
 package com.comp2042.config;
 
+/**
+ * Constants for game configuration including board dimensions, timings, UI styling, and sound effects.
+ */
 public final class GameConstants {
     
     private GameConstants() {}

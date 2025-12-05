@@ -9,10 +9,17 @@ import com.comp2042.ui.menu.SettingsMenu;
 import com.comp2042.ui.menu.ThemeMenu;
 import javafx.scene.input.KeyEvent;
 
+/**
+ * Utility class for routing keyboard input to appropriate menus or game controls.
+ * Handles pause detection and overlay-based input routing.
+ */
 public final class InputRouter {
 
     private InputRouter() {}
 
+    /**
+     * Enumeration of active UI overlays that can receive input.
+     */
     public enum Overlay {
         NONE,
         MAIN_MENU,
@@ -23,6 +30,15 @@ public final class InputRouter {
         GAME_OVER
     }
 
+    /**
+     * Checks if the key event should toggle pause state.
+     * 
+     * @param keyEvent the key event
+     * @param bindings key bindings configuration
+     * @param isGameOver whether game is over
+     * @param keyBindingsVisible whether key bindings menu is visible
+     * @return true if pause should be toggled, false otherwise
+     */
     public static boolean shouldTogglePause(KeyEvent keyEvent,
                                             KeyBindingsConfig bindings,
                                             boolean isGameOver,
@@ -38,6 +54,19 @@ public final class InputRouter {
         return false;
     }
 
+    /**
+     * Routes key event to the appropriate menu based on active overlay.
+     * 
+     * @param overlay active overlay type
+     * @param keyEvent the key event to route
+     * @param mainMenu main menu instance
+     * @param settingsMenu settings menu instance
+     * @param keyBindingsMenu key bindings menu instance
+     * @param themeMenu theme menu instance
+     * @param pauseMenu pause menu instance
+     * @param gameOverMenu game over menu instance
+     * @return true if event was routed, false otherwise
+     */
     public static boolean route(Overlay overlay,
                                 KeyEvent keyEvent,
                                 MainMenu mainMenu,

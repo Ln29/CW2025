@@ -9,6 +9,9 @@ import javafx.scene.layout.*;
 import javafx.scene.paint.Paint;
 import javafx.scene.shape.Rectangle;
 
+/**
+ * UI panel displaying the currently held brick.
+ */
 public class HoldBrickPanel extends VBox {
 
     private static final int BRICK_SIZE = 15;

@@ -1,5 +1,9 @@
 package com.comp2042.ui.menu;
 
+/**
+ * Interface defining callbacks for menu actions.
+ * Implemented by GuiController to handle menu interactions.
+ */
 public interface MenuCallbacks {
     // Main menu
     void onOpenSettings();

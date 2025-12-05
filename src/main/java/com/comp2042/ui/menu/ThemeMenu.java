@@ -18,6 +18,9 @@ import javafx.scene.shape.Rectangle;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Theme selection menu UI component for choosing game themes.
+ */
 public class ThemeMenu extends VBox {
 
     public enum Theme {

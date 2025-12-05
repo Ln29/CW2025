@@ -12,6 +12,9 @@ import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 
+/**
+ * Game mode selection menu UI component for choosing game mode and difficulty.
+ */
 public class ModeSelectionMenu extends VBox {
 
     private GameMode selectedMode = GameMode.ENDLESS;

@@ -6,6 +6,9 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 
+/**
+ * Right stats panel displaying target lines and current score.
+ */
 public class RightStatsPanel extends VBox {
 
     private static final int PANEL_WIDTH = 300;

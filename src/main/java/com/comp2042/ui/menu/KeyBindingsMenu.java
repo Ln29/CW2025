@@ -18,6 +18,9 @@ import javafx.scene.text.FontWeight;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Key bindings menu UI component for customizing game controls.
+ */
 public class KeyBindingsMenu extends VBox {
 
     private Button backButton;

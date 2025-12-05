@@ -6,6 +6,9 @@ import javafx.scene.Scene;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 
+/**
+ * Utility class for positioning UI panels relative to the game board.
+ */
 public class PanelPositioner {
 
     private final BorderPane gameBoard;

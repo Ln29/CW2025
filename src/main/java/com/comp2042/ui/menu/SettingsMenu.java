@@ -11,6 +11,9 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 
+/**
+ * Settings menu UI component with volume controls and navigation to key bindings and themes.
+ */
 public class SettingsMenu extends VBox {
 
     private Button keyBindingsButton;

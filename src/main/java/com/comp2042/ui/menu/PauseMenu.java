@@ -9,6 +9,9 @@ import javafx.scene.control.Label;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.VBox;
 
+/**
+ * Pause menu UI component with resume, restart, and main menu options.
+ */
 public class PauseMenu extends VBox {
 
     private Button resumeButton;

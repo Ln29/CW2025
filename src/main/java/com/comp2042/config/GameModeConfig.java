@@ -2,13 +2,19 @@ package com.comp2042.config;
 
 import com.comp2042.core.mode.GameMode;
 
+/**
+ * Configuration for game modes including difficulty, target lines, and speed calculations.
+ */
 public class GameModeConfig {
 
     private GameMode currentMode;
-    private int difficulty; // 0-10 for endless and marathon
-    private int marathonTargetLines; // 50, 100, 200, or 500
+    private int difficulty; 
+    private int marathonTargetLines;
     private SurvivalDifficulty survivalDifficulty;
 
+    /**
+     * Survival mode difficulty levels with target lines, gap weights, speed, and spawn intervals.
+     */
     public enum SurvivalDifficulty {
         SIMPLE(50, new double[]{0.2, 0.4, 0.4}, 700, 30),
         MODERATE(50, new double[]{0.3, 0.4, 0.3}, 600, 20),
@@ -50,18 +56,39 @@ public class GameModeConfig {
         this.survivalDifficulty = SurvivalDifficulty.SIMPLE;
     }
 
+    /**
+     * Gets the current game mode.
+     * 
+     * @return current game mode
+     */
     public GameMode getCurrentMode() {
         return currentMode;
     }
 
+    /**
+     * Sets the current game mode.
+     * 
+     * @param mode game mode to set
+     */
     public void setCurrentMode(GameMode mode) {
         this.currentMode = mode;
     }
 
+    /**
+     * Gets the difficulty level (0-10).
+     * 
+     * @return difficulty level
+     */
     public int getDifficulty() {
         return difficulty;
     }
 
+    /**
+     * Sets the difficulty level (0-10).
+     * 
+     * @param difficulty difficulty level
+     * @throws IllegalArgumentException if difficulty is out of range
+     */
     public void setDifficulty(int difficulty) {
         if (difficulty < 0 || difficulty > 10) {
             throw new IllegalArgumentException("Difficulty must be between 0 and 10");
@@ -69,10 +96,21 @@ public class GameModeConfig {
         this.difficulty = difficulty;
     }
 
+    /**
+     * Gets the marathon mode target lines.
+     * 
+     * @return target lines (50, 100, 200, or 500)
+     */
     public int getMarathonTargetLines() {
         return marathonTargetLines;
     }
 
+    /**
+     * Sets the marathon mode target lines.
+     * 
+     * @param targetLines target lines (must be 50, 100, 200, or 500)
+     * @throws IllegalArgumentException if target lines is invalid
+     */
     public void setMarathonTargetLines(int targetLines) {
         if (targetLines != 50 && targetLines != 100 && targetLines != 200 && targetLines != 500) {
             throw new IllegalArgumentException("Marathon target lines must be 50, 100, 200, or 500");
@@ -80,17 +118,30 @@ public class GameModeConfig {
         this.marathonTargetLines = targetLines;
     }
 
+    /**
+     * Gets the survival mode difficulty.
+     * 
+     * @return survival difficulty
+     */
     public SurvivalDifficulty getSurvivalDifficulty() {
         return survivalDifficulty;
     }
 
+    /**
+     * Sets the survival mode difficulty.
+     * 
+     * @param difficulty survival difficulty
+     */
     public void setSurvivalDifficulty(SurvivalDifficulty difficulty) {
         this.survivalDifficulty = difficulty;
     }
 
     /**
-     * Calculate speed for Endless mode based on difficulty (0-10)
-     * Level 0 = 1000ms, Level 5 = 500ms, Level 10 = 100ms
+     * Calculates speed for Endless mode based on difficulty (0-10).
+     * 
+     * @param difficulty difficulty level (0-10)
+     * @return speed in milliseconds
+     * @throws IllegalArgumentException if difficulty is out of range
      */
     public static int calculateEndlessSpeed(int difficulty) {
         if (difficulty < 0 || difficulty > 10) {
@@ -105,8 +156,12 @@ public class GameModeConfig {
     }
 
     /**
-     * Calculate speed for Marathon mode based on starting difficulty and lines cleared
-     * Speed increases every 10 lines: multiply by 0.9^(lines/10)
+     * Calculates speed for Marathon mode based on starting difficulty and lines cleared.
+     * Speed increases every 10 lines.
+     * 
+     * @param startDifficulty starting difficulty (0-10)
+     * @param linesCleared number of lines cleared
+     * @return speed in milliseconds (minimum 80ms)
      */
     public static int calculateMarathonSpeed(int startDifficulty, int linesCleared) {
         int baseSpeed = calculateEndlessSpeed(startDifficulty);

@@ -13,6 +13,10 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 
+/**
+ * Main menu UI component with start, settings, and exit options.
+ * Supports keyboard navigation.
+ */
 public class MainMenu extends VBox {
 
     private Button startButton;

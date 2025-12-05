@@ -48,6 +48,10 @@ import javafx.stage.Stage;
 
 import java.net.URL;
 
+/**
+ * Main UI controller coordinating all game components, menus, rendering, and user input.
+ * Handles initialization, game state management, and communication between UI and game logic.
+ */
 public class GuiController implements Initializable {
 
     private static final int BRICK_SIZE = GameConstants.BRICK_SIZE;
@@ -223,9 +227,9 @@ public class GuiController implements Initializable {
 
         @Override
         public void onBindingsChanged() {
-            // Key bindings are automatically persisted to KeyBindingsConfig singleton.
+            // Key bindings automatically persisted to KeyBindingsConfig singleton.
             // InputHandler reads from KeyBindingsConfig on each key press, so no refresh needed.
-            // The new bindings will be active immediately for subsequent key presses.
+            // new bindings will be active immediately for subsequent key presses.
         }
 
         @Override
@@ -300,6 +304,12 @@ public class GuiController implements Initializable {
         }
     }
 
+    /**
+     * Initializes the UI controller and all game components.
+     * 
+     * @param location FXML location
+     * @param resources resource bundle
+     */
     @Override
     public void initialize(URL location, java.util.ResourceBundle resources) {
         initializeConfigs();
@@ -493,6 +503,13 @@ public class GuiController implements Initializable {
         });
     }
 
+    /**
+     * Initializes the game view with board matrix and initial brick data.
+     * Sets up game mode controller and timers.
+     * 
+     * @param boardMatrix initial board state
+     * @param brick initial brick view data
+     */
     public void initGameView(int[][] boardMatrix, ViewData brick) {
         ifGameRenderer(() -> gameRenderer.initGameView(boardMatrix, brick));
 
@@ -576,14 +593,29 @@ public class GuiController implements Initializable {
         }
     }
 
+    /**
+     * Sets the input event listener for game actions.
+     * 
+     * @param eventListener input event listener
+     */
     public void setEventListener(InputEventListener eventListener) {
         this.eventListener = eventListener;
     }
 
+    /**
+     * Sets the game board instance.
+     * 
+     * @param board game board
+     */
     public void setBoard(Board board) {
         this.board = board;
     }
 
+    /**
+     * Binds the score property to update stats panels when score changes.
+     * 
+     * @param integerProperty score property
+     */
     public void bindScore(IntegerProperty integerProperty) {
         if (integerProperty != null) {
             integerProperty.addListener((obs, oldVal, newVal) -> {
@@ -592,10 +624,18 @@ public class GuiController implements Initializable {
         }
     }
 
+    /**
+     * Handles game over state.
+     */
     public void gameOver() {
         ifGameStateManager(() -> gameStateManager.handleGameOver());
     }
 
+    /**
+     * Starts a new game, resetting all game state.
+     * 
+     * @param actionEvent action event (unused)
+     */
     public void newGame(ActionEvent actionEvent) {
         ifGameLifecycle(() -> gameLifecycle.stopTimers());
         eventListener.createNewGame();
@@ -649,10 +689,16 @@ public class GuiController implements Initializable {
         gamePanel.requestFocus();
     }
 
+    /**
+     * Shows the main menu.
+     */
     public void showMainMenu() {
         ifMenuController(() -> menuController.showMainMenu(gameBoard));
     }
 
+    /**
+     * Hides the main menu.
+     */
     public void hideMainMenu() {
         ifMenuController(() -> menuController.hideMainMenu());
     }
@@ -709,14 +755,23 @@ public class GuiController implements Initializable {
         }
     }
 
+    /**
+     * Shows the settings menu.
+     */
     public void showSettingsMenu() {
         ifMenuController(() -> menuController.showSettingsMenu(gameBoard));
     }
 
+    /**
+     * Hides the settings menu.
+     */
     public void hideSettingsMenu() {
         ifMenuController(() -> menuController.hideSettingsMenu());
     }
 
+    /**
+     * Shows the key bindings menu and refreshes bindings display.
+     */
     public void showKeyBindingsMenu() {
         ifMenuController(() -> {
             menuController.showKeyBindingsMenu(gameBoard);
@@ -725,14 +780,23 @@ public class GuiController implements Initializable {
         });
     }
 
+    /**
+     * Hides the key bindings menu.
+     */
     public void hideKeyBindingsMenu() {
         ifMenuController(() -> menuController.hideKeyBindingsMenu());
     }
 
+    /**
+     * Shows the theme selection menu.
+     */
     public void showThemeMenu() {
         ifMenuController(() -> menuController.showThemeMenu(gameBoard));
     }
 
+    /**
+     * Hides the theme selection menu.
+     */
     public void hideThemeMenu() {
         ifMenuController(() -> menuController.hideThemeMenu());
     }
@@ -761,10 +825,20 @@ public class GuiController implements Initializable {
         ifPanelManager(() -> panelManager.updateHoldBrickPanel());
     }
 
+    /**
+     * Refreshes the game background display with updated board matrix.
+     * 
+     * @param boardMatrix updated board state
+     */
     public void refreshGameBackground(int[][] boardMatrix) {
         ifGameRenderer(() -> gameRenderer.refreshGameBackground(boardMatrix));
     }
 
+    /**
+     * Sets the primary stage for window management.
+     * 
+     * @param stage primary stage
+     */
     public void setPrimaryStage(Stage stage) {
         this.primaryStage = stage;
     }

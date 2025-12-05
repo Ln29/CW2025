@@ -7,6 +7,10 @@ import com.comp2042.core.bricks.SevenBagBrickGenerator;
 import java.awt.*;
 import java.util.List;
 
+/**
+ * Implementation of the Board interface for Tetris game logic.
+ * Manages the game board state, piece movement, rotation, locking, and row clearing.
+ */
 public class SimpleBoard implements Board {
 
     private static final long LOCK_DELAY_MS = 500;
@@ -22,6 +26,12 @@ public class SimpleBoard implements Board {
     private boolean holdUsed;
     private Long lockDelayStartTime;
 
+    /**
+     * Creates a new game board with specified dimensions.
+     * 
+     * @param width board width in cells
+     * @param height board height in cells
+     */
     public SimpleBoard(int width, int height) {
         this.width = width;
         this.height = height;
@@ -31,6 +41,11 @@ public class SimpleBoard implements Board {
         score = new Score();
     }
 
+    /**
+     * Moves the brick down by one cell. Starts lock delay timer if blocked.
+     * 
+     * @return true if movement successful, false if blocked
+     */
     @Override
     public boolean moveBrickDown() {
         Point p = new Point(currentOffset);
@@ -49,11 +64,21 @@ public class SimpleBoard implements Board {
     }
 
 
+    /**
+     * Moves the brick left by one cell.
+     * 
+     * @return true if movement successful, false if blocked
+     */
     @Override
     public boolean moveBrickLeft() {
         return moveBrickHorizontally(-1);
     }
 
+    /**
+     * Moves the brick right by one cell.
+     * 
+     * @return true if movement successful, false if blocked
+     */
     @Override
     public boolean moveBrickRight() {
         return moveBrickHorizontally(1);
@@ -78,6 +103,11 @@ public class SimpleBoard implements Board {
         return true;
     }
 
+    /**
+     * Rotates the brick counter-clockwise. Attempts wall kicks if blocked by walls only.
+     * 
+     * @return true if rotation successful, false if blocked
+     */
     @Override
     public boolean rotateLeftBrick() {
         NextShapeInfo nextShape = brickRotator.getNextShape();
@@ -111,6 +141,8 @@ public class SimpleBoard implements Board {
 
     /**
      * Checks if the lock delay has expired and the piece should be locked.
+     * 
+     * @return true if lock delay expired, false otherwise
      */
     public boolean shouldLockPiece() {
         if (lockDelayStartTime == null) {
@@ -133,6 +165,11 @@ public class SimpleBoard implements Board {
         }
     }
 
+    /**
+     * Creates and spawns a new brick. Tries hidden rows first, then visible area.
+     * 
+     * @return true if game over (spawn blocked), false otherwise
+     */
     @Override
     public boolean createNewBrick() {
         Brick currentBrick = brickGenerator.getBrick();
@@ -143,7 +180,7 @@ public class SimpleBoard implements Board {
         int spawnX = (int) currentOffset.getX();
         int[][] shape = brickRotator.getCurrentShape();
 
-        // Try to spawn in hidden rows first (rows 0-1 above visible area)
+        // Try to spawn in hidden rows first
         boolean canSpawnInHiddenArea = false;
         for (int y = 0; y < com.comp2042.config.GameConstants.HIDDEN_ROW_COUNT; y++) {
             if (!MatrixOperations.intersect(currentGameMatrix, shape, spawnX, y)) {
@@ -157,7 +194,6 @@ public class SimpleBoard implements Board {
             return false;
         }
 
-        // Game over only if first visible row (row 2) is blocked
         boolean visibleAreaBlocked = false;
         for (int x = 0; x < width; x++) {
             if (currentGameMatrix[2][x] != 0) {
@@ -169,21 +205,39 @@ public class SimpleBoard implements Board {
         return visibleAreaBlocked;
     }
 
+    /**
+     * Gets the current board state matrix.
+     * 
+     * @return 2D array representing the board
+     */
     @Override
     public int[][] getBoardMatrix() {
         return currentGameMatrix;
     }
 
+    /**
+     * Gets view data including current brick shape, position, and next brick.
+     * 
+     * @return ViewData instance
+     */
     @Override
     public ViewData getViewData() {
         return new ViewData(brickRotator.getCurrentShape(), (int) currentOffset.getX(), (int) currentOffset.getY(), brickGenerator.getNextBrick().getShapeMatrix().get(0));
     }
 
+    /**
+     * Merges the current brick into the board background matrix.
+     */
     @Override
     public void mergeBrickToBackground() {
         currentGameMatrix = MatrixOperations.merge(currentGameMatrix, brickRotator.getCurrentShape(), (int) currentOffset.getX(), (int) currentOffset.getY());
     }
 
+    /**
+     * Clears complete rows and updates the board matrix.
+     * 
+     * @return ClearRow with lines cleared count and updated matrix
+     */
     @Override
     public ClearRow clearRows() {
         ClearRow clearRow = MatrixOperations.checkRemoving(currentGameMatrix);
@@ -192,12 +246,19 @@ public class SimpleBoard implements Board {
 
     }
 
+    /**
+     * Gets the score manager instance.
+     * 
+     * @return Score instance
+     */
     @Override
     public Score getScore() {
         return score;
     }
 
-
+    /**
+     * Resets the board, score, and spawns a new brick for a new game.
+     */
     @Override
     public void newGame() {
         currentGameMatrix = new int[height][width];
@@ -208,6 +269,12 @@ public class SimpleBoard implements Board {
         createNewBrick();
     }
 
+    /**
+     * Holds the current brick and swaps with previously held brick.
+     * Can only be used once per piece spawn.
+     * 
+     * @return true if hold successful, false if already used or invalid
+     */
     @Override
     public boolean holdBrick() {
         if (holdUsed) {
@@ -220,13 +287,13 @@ public class SimpleBoard implements Board {
         }
 
         Point spawnPoint = createSpawnPoint();
-        // Determine which brick to spawn: use held brick if available, otherwise get new one
+        // use held brick if available, otherwise get new one
         Brick brickToSpawn = (heldBrick == null) ? brickGenerator.getBrick() : heldBrick;
         
         brickRotator.setBrick(brickToSpawn);
         if (MatrixOperations.intersect(currentGameMatrix, brickRotator.getCurrentShape(), 
                 (int) spawnPoint.getX(), (int) spawnPoint.getY())) {
-            brickRotator.setBrick(currentBrick); // Restore on failure
+            brickRotator.setBrick(currentBrick); 
             return false;
         }
 
@@ -237,21 +304,40 @@ public class SimpleBoard implements Board {
         return true;
     }
 
+    /**
+     * Gets the currently held brick.
+     * 
+     * @return held brick, or null if none
+     */
     @Override
     public Brick getHeldBrick() {
         return heldBrick;
     }
 
+    /**
+     * Resets the hold usage flag, allowing hold to be used again.
+     */
     @Override
     public void resetHoldUsage() {
         holdUsed = false;
     }
 
+    /**
+     * Gets the next bricks that will appear.
+     * 
+     * @param count number of next bricks to retrieve
+     * @return list of upcoming bricks
+     */
     @Override
     public List<Brick> getNextBricks(int count) {
         return brickGenerator.getNextBricks(count);
     }
 
+    /**
+     * Instantly drops the brick to the bottom of the board.
+     * 
+     * @return number of cells the brick dropped
+     */
     @Override
     public int hardDropBrick() {
         int dropCount = 0;
@@ -261,6 +347,11 @@ public class SimpleBoard implements Board {
         return dropCount;
     }
 
+    /**
+     * Calculates and returns the ghost brick showing where the piece will land.
+     * 
+     * @return GhostBrick instance, or null if piece is already at bottom
+     */
     @Override
     public GhostBrick getGhostBrick() {
         if (brickRotator.getCurrentShape() == null) {
@@ -288,6 +379,13 @@ public class SimpleBoard implements Board {
         return new GhostBrick(currentShape, currentX, ghostY);
     }
 
+    /**
+     * Adds garbage rows from the bottom, shifting existing rows up.
+     * Used in survival mode.
+     * 
+     * @param garbageRows 2D array of garbage rows to add
+     * @return true if game over occurred, false otherwise
+     */
     @Override
     public boolean addGarbageRowsFromBottom(int[][] garbageRows) {
         if (garbageRows == null || garbageRows.length == 0) {

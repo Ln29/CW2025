@@ -10,6 +10,9 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 
+/**
+ * Game over menu UI component with restart and main menu options.
+ */
 public class GameOverMenu extends VBox {
 
     private Button restartButton;

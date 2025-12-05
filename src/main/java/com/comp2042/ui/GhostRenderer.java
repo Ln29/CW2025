@@ -12,6 +12,10 @@ import javafx.scene.shape.Rectangle;
 
 import java.util.function.IntFunction;
 
+/**
+ * Renders ghost bricks - preview of where the current piece will land.
+ * Displays semi-transparent outline of the piece at its landing position.
+ */
 public class GhostRenderer {
 
     private final BorderPane gameBoard;
@@ -24,6 +28,16 @@ public class GhostRenderer {
     private GridPane ghostPanel;
     private Rectangle[][] ghostRectangles;
 
+    /**
+     * Creates a ghost renderer for displaying piece landing preview.
+     * 
+     * @param gameBoard the main game board container
+     * @param gamePanel the game grid panel
+     * @param brickPanel the brick display panel
+     * @param brickSize size of each brick cell in pixels
+     * @param hiddenRowCount number of hidden rows at top of board
+     * @param colorFunc function to get color for brick values
+     */
     public GhostRenderer(BorderPane gameBoard,
                          GridPane gamePanel,
                          GridPane brickPanel,
@@ -60,6 +74,11 @@ public class GhostRenderer {
         }
     }
 
+    /**
+     * Adds the ghost panel to the scene hierarchy.
+     * 
+     * @param scene the scene to add the ghost panel to
+     */
     public void addToScene(Scene scene) {
         if (scene == null) return;
         Pane root = (Pane) scene.getRoot();
@@ -80,6 +99,12 @@ public class GhostRenderer {
         }
     }
 
+    /**
+     * Renders the ghost brick at its landing position.
+     * 
+     * @param ghostBrick the ghost brick to render, or null to hide
+     * @param boardCentered whether the board is centered on screen
+     */
     public void render(GhostBrick ghostBrick, boolean boardCentered) {
         if (ghostBrick == null) {
             ghostPanel.setVisible(false);

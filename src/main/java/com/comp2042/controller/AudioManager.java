@@ -6,6 +6,10 @@ import javafx.scene.media.MediaPlayer;
 
 import java.net.URL;
 
+/**
+ * Singleton manager for game audio including music and sound effects.
+ * Handles volume control, playback, pause, and resume functionality.
+ */
 public class AudioManager {
     
     private static AudioManager instance;
@@ -16,9 +20,13 @@ public class AudioManager {
     private double soundEffectVolume = 1.0;
     
     private AudioManager() {
-        // Private constructor for singleton
     }
     
+    /**
+     * Gets the singleton AudioManager instance.
+     * 
+     * @return AudioManager instance
+     */
     public static AudioManager getInstance() {
         if (instance == null) {
             instance = new AudioManager();
@@ -26,6 +34,9 @@ public class AudioManager {
         return instance;
     }
     
+    /**
+     * Plays the main menu background music (loops indefinitely).
+     */
     public void playMainMenuMusic() {
         stopAllMusic();
         try {
@@ -42,10 +53,18 @@ public class AudioManager {
         }
     }
     
+    /**
+     * Plays the default game music.
+     */
     public void playGameMusic() {
         playGameMusic("default.mp3");
     }
     
+    /**
+     * Plays the specified game music file (loops indefinitely).
+     * 
+     * @param musicFile name of the music file in assets/sound/Music/
+     */
     public void playGameMusic(String musicFile) {
         stopAllMusic();
         try {
@@ -64,6 +83,9 @@ public class AudioManager {
         }
     }
     
+    /**
+     * Stops all currently playing music.
+     */
     public void stopAllMusic() {
         if (musicPlayer != null) {
             musicPlayer.stop();
@@ -75,6 +97,9 @@ public class AudioManager {
         }
     }
     
+    /**
+     * Pauses all currently playing music.
+     */
     public void pauseAllMusic() {
         if (musicPlayer != null) {
             musicPlayer.pause();
@@ -84,6 +109,9 @@ public class AudioManager {
         }
     }
     
+    /**
+     * Resumes all paused music.
+     */
     public void resumeAllMusic() {
         if (musicPlayer != null) {
             musicPlayer.play();
@@ -95,18 +123,33 @@ public class AudioManager {
         }
     }
     
+    /**
+     * Sets the master volume (0-100).
+     * 
+     * @param volume volume level (0-100)
+     */
     public void setMasterVolume(double volume) {
         this.masterVolume = volume / 100.0; 
         updateGameMusicVolume();
         updateMenuMusicVolume();
     }
     
+    /**
+     * Sets the music volume (0-100).
+     * 
+     * @param volume volume level (0-100)
+     */
     public void setMusicVolume(double volume) {
         this.musicVolume = volume / 100.0; 
         updateGameMusicVolume();
         updateMenuMusicVolume();
     }
     
+    /**
+     * Sets the sound effect volume (0-100).
+     * 
+     * @param volume volume level (0-100)
+     */
     public void setSoundEffectVolume(double volume) {
         this.soundEffectVolume = volume / 100.0; 
     }
@@ -123,6 +166,11 @@ public class AudioManager {
         }
     }
     
+    /**
+     * Plays a sound effect once.
+     * 
+     * @param soundName name of the sound file in assets/sound/SoundEffect/
+     */
     public void playSoundEffect(String soundName) {
         try {
             URL resource = getClass().getClassLoader().getResource("assets/sound/SoundEffect/" + soundName);
@@ -136,14 +184,29 @@ public class AudioManager {
         }
     }
     
+    /**
+     * Gets the master volume (0-100).
+     * 
+     * @return master volume level
+     */
     public double getMasterVolume() {
         return masterVolume * 100.0;
     }
     
+    /**
+     * Gets the music volume (0-100).
+     * 
+     * @return music volume level
+     */
     public double getMusicVolume() {
         return musicVolume * 100.0;
     }
     
+    /**
+     * Gets the sound effect volume (0-100).
+     * 
+     * @return sound effect volume level
+     */
     public double getSoundEffectVolume() {
         return soundEffectVolume * 100.0;
     }

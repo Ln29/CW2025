@@ -4,6 +4,10 @@ import com.comp2042.controller.AudioManager;
 import com.comp2042.config.GameConstants;
 import javafx.scene.control.Slider;
 
+/**
+ * Factory for creating and configuring game menus.
+ * Ensures menus are created once and properly initialized with callbacks.
+ */
 public class MenuFactory {
     private final AudioManager audioManager;
     private final MenuCallbacks callbacks;

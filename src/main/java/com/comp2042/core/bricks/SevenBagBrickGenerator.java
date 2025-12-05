@@ -31,7 +31,6 @@ public class SevenBagBrickGenerator implements BrickGenerator {
      */
     @Override
     public Brick getBrick() {
-        // Add more bricks if we're running low
         if (nextBricks.size() < 7) {
             addNewBag();
         }

@@ -9,8 +9,18 @@ import javafx.scene.shape.Rectangle;
 
 import java.util.function.IntFunction;
 
+/**
+ * Renders the game board grid lines and background rectangles.
+ * Handles visual display of the game board matrix.
+ */
 public class GridRenderer {
 
+    /**
+     * Draws grid lines on the game panel for visual reference.
+     * 
+     * @param gamePanel the game panel to draw lines on
+     * @param brickSize size of each brick cell in pixels
+     */
     public void drawGridLines(GridPane gamePanel, int brickSize) {
         Color gridColor = Color.rgb(128, 128, 128, 0.5);
 
@@ -52,6 +62,14 @@ public class GridRenderer {
         }
     }
 
+    /**
+     * Refreshes the game background by updating rectangle colors from board matrix.
+     * 
+     * @param board the game board matrix
+     * @param displayMatrix the rectangle matrix to update
+     * @param colorFunction function to get color for board values
+     * @param hiddenRowCount number of hidden rows at top of board
+     */
     public void refreshGameBackground(int[][] board, Rectangle[][] displayMatrix, IntFunction<Paint> colorFunction, int hiddenRowCount) {
         if (board == null || displayMatrix == null) return;
         int maxRow = Math.min(board.length - 1, hiddenRowCount + GameConstants.BOARD_VISIBLE_ROWS);
@@ -62,6 +80,13 @@ public class GridRenderer {
         }
     }
 
+    /**
+     * Sets the visual properties of a rectangle based on board value.
+     * 
+     * @param color the board value (0 = empty, >0 = brick type)
+     * @param rectangle the rectangle to update
+     * @param colorFunction function to get color for board value
+     */
     public void setRectangleData(int color, Rectangle rectangle, IntFunction<Paint> colorFunction) {
         if (rectangle == null) return;
         rectangle.setFill(colorFunction.apply(color));

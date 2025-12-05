@@ -10,6 +10,10 @@ import javafx.scene.Scene;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Pane;
 
+/**
+ * Manages all game UI panels including next brick, hold brick, and stats panels.
+ * Handles panel initialization, positioning, and updates.
+ */
 public class PanelManager {
     private final BorderPane gameBoard;
     private final Board board;
@@ -169,8 +173,7 @@ public class PanelManager {
         int currentScore = 0;
         if (board != null && board.getScore() != null && board.getScore().scoreProperty() != null) {
             currentScore = board.getScore().scoreProperty().getValue();
-            // Update high score from current score if higher (mode-specific)
-            // Convenience method handles null GameModeController internally
+
             state.setHighScore(currentScore, gameModeController);
         }
 
@@ -189,8 +192,7 @@ public class PanelManager {
                 level = gameModeController.getCurrentLevel();
             }
             statsPanel.updateLevel(level);
-            // Get mode-specific high score
-            // Convenience method handles null GameModeController internally
+
             int highScore = state.getHighScore(gameModeController);
             statsPanel.updateHighScore(highScore);
         }

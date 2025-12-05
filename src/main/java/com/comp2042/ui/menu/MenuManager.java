@@ -6,6 +6,10 @@ import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.layout.BorderPane;
 
+/**
+ * Manages menu display, positioning, and visibility.
+ * Handles centering menus on scene or game board.
+ */
 public class MenuManager {
 
     private final Group uiLayer;

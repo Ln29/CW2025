@@ -6,9 +6,12 @@ import java.util.Objects;
 import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 
+/**
+ * Utility class providing static methods for matrix operations used in Tetris.
+ * Handles intersection checks, matrix copying, merging, and row clearing.
+ */
 public class MatrixOperations {
 
-    // we don't want to instantiate this utility class
     private MatrixOperations() {
     }
 
@@ -61,9 +64,16 @@ public class MatrixOperations {
         }
     }
 
-    // check if the brick intersects with the board or goes out of bounds
+    /**
+     * Checks if a brick would intersect with the board or go out of bounds at the given position.
+     * 
+     * @param matrix the game board matrix
+     * @param brick the brick shape matrix
+     * @param x horizontal position
+     * @param y vertical position
+     * @return true if there would be a conflict, false otherwise
+     */
     public static boolean intersect(final int[][] matrix, final int[][] brick, int x, int y) {
-        // make sure the parameters are not null
         Objects.requireNonNull(matrix, "matrix cannot be null");
         Objects.requireNonNull(brick, "brick cannot be null");
 
@@ -76,7 +86,14 @@ public class MatrixOperations {
         return hasConflict[0];
     }
 
-    // check if a position is outside the board
+    /**
+     * Checks if a position is outside the board boundaries.
+     * 
+     * @param matrix the game board matrix
+     * @param targetX horizontal position
+     * @param targetY vertical position
+     * @return true if out of bounds, false otherwise
+     */
     private static boolean isOutOfBound(int[][] matrix, int targetX, int targetY) {
         return targetX < 0
                 || targetY < 0
@@ -84,8 +101,16 @@ public class MatrixOperations {
                 || targetX >= matrix[targetY].length;
     }
 
-    // check if the brick would only collide with walls (out of bounds), not with blocks
-    // returns true if collision is only due to walls, false if it's due to blocks or no collision
+    /**
+     * Checks if a brick would only collide with walls (out of bounds), not with blocks.
+     * Used for wall kick detection during rotation.
+     * 
+     * @param matrix the game board matrix
+     * @param brick the brick shape matrix
+     * @param x horizontal position
+     * @param y vertical position
+     * @return true if collision is only due to walls, false otherwise
+     */
     public static boolean isWallCollisionOnly(final int[][] matrix, final int[][] brick, int x, int y) {
         Objects.requireNonNull(matrix, "matrix cannot be null");
         Objects.requireNonNull(brick, "brick cannot be null");
@@ -101,18 +126,20 @@ public class MatrixOperations {
             }
         });
 
-        // return true only if there's a wall collision but no block collision
         return hasWallCollision[0] && !hasBlockCollision[0];
     }
 
-    // make a copy of the matrix
+    /**
+     * Creates a deep copy of a matrix.
+     * 
+     * @param original the matrix to copy
+     * @return a new matrix with copied values
+     */
     public static int[][] copy(int[][] original) {
-        // check if the original matrix is null
         Objects.requireNonNull(original, "original matrix cannot be null");
 
         int[][] result = new int[original.length][];
 
-        // copy each row
         for (int i = 0; i < original.length; i++) {
             int[] sourceRow = Objects.requireNonNull(original[i], "matrix row cannot be null");
             int[] destinationRow = new int[sourceRow.length];
@@ -122,15 +149,20 @@ public class MatrixOperations {
         return result;
     }
 
-    // merge the brick into the board at a specific position
+    /**
+     * Merges a brick into the board matrix at the specified position.
+     * 
+     * @param filledFields the current board matrix
+     * @param brick the brick shape matrix
+     * @param x horizontal position
+     * @param y vertical position
+     * @return a new matrix with the brick merged in
+     */
     public static int[][] merge(int[][] filledFields, int[][] brick, int x, int y) {
-        // check if brick is null
         Objects.requireNonNull(brick, "brick cannot be null");
 
-        // make a copy first so we don't change the original
         int[][] boardCopy = copy(filledFields);
 
-        // go through each cell of the brick
         forEachBrickCellWithValue(brick, x, y, (targetX, targetY, cellValue) -> {
             if (!isOutOfBound(boardCopy, targetX, targetY)) {
                 boardCopy[targetY][targetX] = cellValue;
@@ -139,7 +171,13 @@ public class MatrixOperations {
         return boardCopy;
     }
 
-    // check for complete rows and remove them
+    /**
+     * Checks for complete rows and removes them, shifting remaining rows down.
+     * Calculates score bonus based on number of lines cleared.
+     * 
+     * @param matrix the board matrix to check
+     * @return ClearRow containing lines cleared count, new matrix, and score bonus
+     */
     public static ClearRow checkRemoving(final int[][] matrix) {
         Objects.requireNonNull(matrix, "matrix cannot be null");
         if (matrix.length == 0) {
@@ -149,12 +187,12 @@ public class MatrixOperations {
         int width = Objects.requireNonNull(matrix[0], "matrix row cannot be null").length;
         List<Integer> clearedRowIndices = new ArrayList<>();
 
-        // First pass: identify complete rows (early exit for better performance)
+        // First pass: identify complete rows
         for (int i = 0; i < matrix.length; i++) {
             int[] row = Objects.requireNonNull(matrix[i], "matrix row cannot be null");
             boolean isRowComplete = true;
             
-            // Early exit: stop checking as soon as we find an empty cell
+            // Early exit: stop checking as soon as find empty cell
             for (int j = 0; j < width; j++) {
                 if (row[j] == 0) {
                     isRowComplete = false;
@@ -167,7 +205,6 @@ public class MatrixOperations {
             }
         }
 
-        // Early return if no rows to clear
         if (clearedRowIndices.isEmpty()) {
             return new ClearRow(0, matrix, 0);
         }
@@ -178,11 +215,11 @@ public class MatrixOperations {
         
         for (int sourceRow = matrix.length - 1; sourceRow >= 0; sourceRow--) {
             if (!clearedRowIndices.contains(sourceRow)) {
-                newMatrix[targetRow--] = matrix[sourceRow].clone(); // Faster than manual copy
+                newMatrix[targetRow--] = matrix[sourceRow].clone(); 
             }
         }
         
-        // Fill remaining rows with zeros (empty rows at top)
+        // Fill remaining rows with zeros
         while (targetRow >= 0) {
             newMatrix[targetRow--] = new int[width];
         }
@@ -194,9 +231,13 @@ public class MatrixOperations {
         return new ClearRow(linesCleared, newMatrix, scoreBonus);
     }
 
-    // make a deep copy of a list of matrices
+    /**
+     * Creates a deep copy of a list of matrices.
+     * 
+     * @param list the list of matrices to copy
+     * @return a new list containing copied matrices
+     */
     public static List<int[][]> deepCopyList(List<int[][]> list) {
-        // check if the list is null
         Objects.requireNonNull(list, "list cannot be null");
         return list.stream()
                 .map(MatrixOperations::copy)

@@ -47,7 +47,6 @@ import javafx.scene.text.Font;
 import javafx.stage.Stage;
 
 import java.net.URL;
-import java.util.ResourceBundle;
 
 public class GuiController implements Initializable {
 
@@ -105,7 +104,7 @@ public class GuiController implements Initializable {
     private final BooleanProperty isGameOver = new SimpleBooleanProperty();
 
     @Override
-    public void initialize(URL location, ResourceBundle resources) {
+    public void initialize(URL location, java.util.ResourceBundle resources) {
         Font.loadFont(getClass().getClassLoader().getResource("digital.ttf").toExternalForm(), 38);
         BorderPane.setAlignment(gamePanel, Pos.CENTER);
         gamePanel.getStyleClass().add("game-panel");
@@ -461,24 +460,11 @@ public class GuiController implements Initializable {
     }
 
     private Paint getFillColor(int i) {
-        if (themeConfig != null) {
-            return themeConfig.getBrickColor(i);
+        // Special handling for garbage blocks (colorCode 8)
+        if (i == 8) {
+            return Color.GRAY;
         }
-        // Default colors
-        Paint returnPaint;
-        switch (i) {
-            case 0: returnPaint = Color.TRANSPARENT; break;
-            case 1: returnPaint = Color.AQUA; break;
-            case 2: returnPaint = Color.BLUEVIOLET; break;
-            case 3: returnPaint = Color.DARKGREEN; break;
-            case 4: returnPaint = Color.YELLOW; break;
-            case 5: returnPaint = Color.RED; break;
-            case 6: returnPaint = Color.BEIGE; break;
-            case 7: returnPaint = Color.BURLYWOOD; break;
-            case 8: returnPaint = Color.GRAY; break; // Garbage blocks
-            default: returnPaint = Color.WHITE; break;
-        }
-        return returnPaint;
+        return themeConfig.getBrickColor(i);
     }
 
 

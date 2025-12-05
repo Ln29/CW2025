@@ -6,7 +6,6 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
 import javafx.scene.layout.*;
-import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
 import javafx.scene.shape.Rectangle;
 
@@ -105,31 +104,7 @@ public class NextBrickPanel extends VBox {
     }
 
     private Paint getFillColor(int colorCode) {
-        ThemeConfig themeConfig = ThemeConfig.getInstance();
-        if (themeConfig != null) {
-            return themeConfig.getBrickColor(colorCode);
-        }
-        // Fallback to default colors
-        switch (colorCode) {
-            case 0:
-                return Color.TRANSPARENT;
-            case 1:
-                return Color.AQUA;
-            case 2:
-                return Color.BLUEVIOLET;
-            case 3:
-                return Color.DARKGREEN;
-            case 4:
-                return Color.YELLOW;
-            case 5:
-                return Color.RED;
-            case 6:
-                return Color.BEIGE;
-            case 7:
-                return Color.BURLYWOOD;
-            default:
-                return Color.WHITE;
-        }
+        return ThemeConfig.getInstance().getBrickColor(colorCode);
     }
 
     public void position(double boardX, double boardY, double boardWidth, double boardHeight) {

@@ -9,7 +9,6 @@ import javafx.scene.Scene;
 import javafx.stage.Stage;
 
 import java.net.URL;
-import java.util.ResourceBundle;
 
 public class Main extends Application {
 
@@ -20,7 +19,7 @@ public class Main extends Application {
         if(location == null){
             throw new IllegalAccessException("Unable to load FXML: gameLayout.fxml");
         }
-        FXMLLoader fxmlLoader = new FXMLLoader(location,(ResourceBundle) null);
+        FXMLLoader fxmlLoader = new FXMLLoader(location, null);
         Parent root = fxmlLoader.load();
         GuiController c = fxmlLoader.getController();
 

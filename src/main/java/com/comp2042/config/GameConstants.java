@@ -31,6 +31,6 @@ public final class GameConstants {
     public static final String SFX_BLOCK_FALL = "blockfall.wav";
     public static final String SFX_LOSE = "lose.wav";
     public static final String SFX_WIN = "win.wav";
-} 
+}
 
 

@@ -11,18 +11,18 @@ public class BrickRotator {
     private int currentShape = 0;
 
     public NextShapeInfo getNextShape(){
-        BrickNotSet();
+        brickNotSet();
         int nextShape =(currentShape + 1) % shapeMatrices.size();
         return new NextShapeInfo(shapeMatrices.get(nextShape),nextShape);
     }
 
     public int[][] getCurrentShape(){
-        BrickNotSet();
+        brickNotSet();
         return shapeMatrices.get(currentShape);
     }
 
     public void setCurrentShape(int currentShape){
-        BrickNotSet();
+        brickNotSet();
         this.currentShape = currentShape;
     }
 
@@ -42,11 +42,9 @@ public class BrickRotator {
         return brick;
     }
 
-    private void BrickNotSet(){
+    private void brickNotSet(){
         if(brick == null || shapeMatrices == null || shapeMatrices.isEmpty()){
             throw new IllegalStateException("Brick is not set.");
         }
     }
-
-
 }

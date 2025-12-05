@@ -467,7 +467,6 @@ public class GuiController implements Initializable {
         return themeConfig.getBrickColor(i);
     }
 
-
     private void moveDown(MoveEvent event) {
         if (isPause.getValue() == Boolean.FALSE) {
             DownData downData = eventListener.onDownEvent(event);

@@ -26,9 +26,7 @@ public class ThemeApplier {
 
     public void apply(ThemeMenu.Theme theme, Scene scene, Runnable refreshDisplays, boolean playGameMusic) {
         if (theme == null) return;
-        if (themeConfig != null) {
-            themeConfig.setTheme(theme);
-        }
+        themeConfig.setTheme(theme);
 
         if (scene != null && theme.getImagePath() != null) {
             try {
@@ -60,4 +58,3 @@ public class ThemeApplier {
         }
     }
 }
-

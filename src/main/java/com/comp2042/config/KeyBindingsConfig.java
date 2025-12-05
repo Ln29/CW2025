@@ -56,12 +56,7 @@ public class KeyBindingsConfig {
     }
     
     public boolean hasConflict(KeyCode key, Action excludeAction) {
-        for (Map.Entry<Action, KeyCode> entry : bindings.entrySet()) {
-            if (entry.getKey() != excludeAction && entry.getValue() == key) {
-                return true;
-            }
-        }
-        return false;
+        return getConflictingAction(key, excludeAction) != null;
     }
     
     public Action getConflictingAction(KeyCode key, Action excludeAction) {

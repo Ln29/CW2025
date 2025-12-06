@@ -167,7 +167,7 @@ public class GameStateManager {
         if (audioManager != null) {
             String musicFile = (themeConfig != null && themeConfig.getMusicFile() != null)
                     ? themeConfig.getMusicFile()
-                    : "default.wav";
+                    : "default.mp3";
             audioManager.playGameMusic(musicFile);
         }
         

@@ -40,7 +40,7 @@ public class AudioManager {
     public void playMainMenuMusic() {
         stopAllMusic();
         try {
-            URL resource = getClass().getClassLoader().getResource("assets/sound/Music/main menu.wav");
+            URL resource = getClass().getClassLoader().getResource("assets/sound/Music/main menu.mp3");
             if (resource != null) {
                 Media media = new Media(resource.toExternalForm());
                 menuMusicPlayer = new MediaPlayer(media);

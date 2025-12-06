@@ -554,7 +554,7 @@ public class GuiController implements Initializable {
     private Paint getFillColor(int i) {
         // Special handling for garbage blocks
         if (i == 8) {
-            return Color.GRAY;
+            return Color.WHITE;
         }
         return themeConfig.getBrickColor(i);
     }

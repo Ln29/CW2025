@@ -29,11 +29,11 @@ public final class GameConstants {
     public static final int NOTIFICATION_MAX = 5;
 
     // Sound effects
-    public static final String SFX_CLICK = "click.wav";
-    public static final String SFX_CLEAR_LINE = "clearline.wav";
-    public static final String SFX_BLOCK_FALL = "blockfall.wav";
-    public static final String SFX_LOSE = "lose.wav";
-    public static final String SFX_WIN = "win.wav";
+    public static final String SFX_CLICK = "click.mp3";
+    public static final String SFX_CLEAR_LINE = "clearline.mp3";
+    public static final String SFX_BLOCK_FALL = "blockfall.mp3";
+    public static final String SFX_LOSE = "lose.mp3";
+    public static final String SFX_WIN = "win.mp3";
 }
 
 

@@ -26,11 +26,11 @@ public class ThemeMenu extends VBox {
     public enum Theme {
         DEFAULT("Default", "default.png", "default.mp3",
                 new String[]{"#FF6B6B", "#FFA500", "#FFD93D", "#6BCF7F", "#4ECDC4", "#A78BFA", "#FF6BA9"}),
-        SNOWY_MOUNTAIN("Snowy Mountain", "snowy_mountain.png", "snowy_mountain.wav",
+        SNOWY_MOUNTAIN("Snowy Mountain", "snowy_mountain.png", "snowy_mountain.mp3",
                 new String[]{"#90C9E8", "#AAD5E8", "#95D9B8", "#B8E6D0", "#C9A8D8", "#E5D4C1", "#F0F8FF"}),
-        BEACH("Beach", "beach.png", "beach.wav",
+        BEACH("Beach", "beach.png", "beach.mp3",
                 new String[]{"#5DDEF4", "#7FE7FF", "#FFF176", "#FFDB58", "#FFBC42", "#E8C68E", "#B0E0E6"}),
-        PARTY("Party", "party.jpg", "party.wav",
+        PARTY("Party", "party.jpg", "party.mp3",
                 new String[]{"#FF1493", "#FF00FF", "#FF69B4", "#00FFFF", "#00FF00", "#FFFF00", "#FF4500"});
 
         private final String displayName;

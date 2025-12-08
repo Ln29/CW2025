@@ -11,6 +11,13 @@ https://github.com/Ln29/CW2025
 
 ### Building the Project
 
+**Important:** Before running any Maven commands, make sure you are in the project root (the folder that contains `pom.xml`).  
+You can navigate to the project folder using:
+
+```bash
+cd "path/to/CW2025"
+```
+
 1. **Using Maven directly:**
    ```bash
    mvn clean compile
